@@ -1,0 +1,17 @@
+{
+  "name": "portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal portfolio website showcasing experience, projects, skills, and blog",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "server": "npm run dev --prefix backend",
+    "lint": "npm run lint --prefix frontend && npm run lint --prefix backend",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}
