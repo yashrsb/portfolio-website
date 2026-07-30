@@ -1,0 +1,87 @@
+/* ============================================ */
+/* Card — Design System Component               */
+/* ============================================ */
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition:
+    box-shadow var(--transition-base),
+    transform var(--transition-base),
+    border-color var(--transition-base);
+}
+
+/* ---- Shadow presets ---- */
+
+.shadow-none {
+  box-shadow: none;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---- Padding presets ---- */
+
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: var(--spacing-md);
+}
+
+.padding-md {
+  padding: var(--spacing-lg);
+}
+
+.padding-lg {
+  padding: var(--spacing-xl);
+}
+
+.padding-xl {
+  padding: var(--spacing-2xl);
+}
+
+/* ---- Border radius presets ---- */
+
+.rounded-none {
+  border-radius: 0;
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+/* ---- Hoverable ---- */
+
+.hoverable {
+  cursor: pointer;
+}
+
+.hoverable:hover,
+.hoverable:focus-visible {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-light);
+}

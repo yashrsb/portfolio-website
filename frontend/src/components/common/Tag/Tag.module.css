@@ -1,0 +1,123 @@
+/* ============================================ */
+/* Tag — Design System Component                */
+/* ============================================ */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  user-select: none;
+  line-height: var(--line-height-tight);
+}
+
+/* ---- Sizes ---- */
+
+.sm {
+  padding: 2px var(--spacing-sm);
+  font-size: var(--font-size-xs);
+}
+
+.md {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Variants ---- */
+
+.default {
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.primary {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.secondary {
+  background-color: #ede9fe;
+  color: var(--color-secondary);
+}
+
+.success {
+  background-color: #dcfce7;
+  color: var(--color-success);
+}
+
+.danger {
+  background-color: #fee2e2;
+  color: var(--color-danger);
+}
+
+.warning {
+  background-color: #fef3c7;
+  color: var(--color-warning);
+}
+
+.info {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+/* ---- Dark mode variant overrides ---- */
+
+[data-theme='dark'] .default {
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+}
+
+[data-theme='dark'] .primary {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-hover);
+}
+
+[data-theme='dark'] .secondary {
+  background-color: #3b0764;
+  color: var(--color-secondary);
+}
+
+[data-theme='dark'] .success {
+  background-color: #052e16;
+  color: var(--color-success);
+}
+
+[data-theme='dark'] .danger {
+  background-color: #450a0a;
+  color: var(--color-danger);
+}
+
+[data-theme='dark'] .warning {
+  background-color: #451a03;
+  color: var(--color-warning);
+}
+
+/* ---- Remove button ---- */
+
+.remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+.remove:hover {
+  opacity: 1;
+}
+
+.label {
+  pointer-events: none;
+}

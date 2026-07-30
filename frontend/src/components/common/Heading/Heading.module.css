@@ -1,0 +1,83 @@
+/* ============================================ */
+/* Heading — Design System Component            */
+/* ============================================ */
+
+.wrapper {
+  margin-bottom: var(--spacing-md);
+}
+
+.heading {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+/* ---- Levels ---- */
+
+.level-1 {
+  font-size: var(--font-size-4xl);
+  letter-spacing: -0.02em;
+}
+
+.level-2 {
+  font-size: var(--font-size-3xl);
+  letter-spacing: -0.01em;
+}
+
+.level-3 {
+  font-size: var(--font-size-2xl);
+}
+
+.level-4 {
+  font-size: var(--font-size-xl);
+}
+
+/* ---- Alignment ---- */
+
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+/* ---- Subtitle ---- */
+
+.subtitle {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+  .level-1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .level-2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .level-3 {
+    font-size: var(--font-size-xl);
+  }
+
+  .level-4 {
+    font-size: var(--font-size-lg);
+  }
+
+  .subtitle {
+    font-size: var(--font-size-base);
+  }
+}

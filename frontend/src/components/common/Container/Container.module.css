@@ -1,0 +1,33 @@
+/* ============================================ */
+/* Container — Design System Component          */
+/* ============================================ */
+
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+/* ---- Max-width presets ---- */
+
+.sm {
+  max-width: 640px;
+}
+
+.md {
+  max-width: 768px;
+}
+
+.lg {
+  max-width: var(--container-max-width);
+}
+
+.xl {
+  max-width: 1400px;
+}
+
+.fluid {
+  max-width: none;
+}

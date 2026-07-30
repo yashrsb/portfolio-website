@@ -1,0 +1,70 @@
+/* ============================================ */
+/* Footer — Design System Component             */
+/* ============================================ */
+
+.footer {
+  background-color: var(--color-footer-bg);
+  color: var(--color-footer-text);
+  padding: var(--spacing-2xl) 0;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  text-align: center;
+}
+
+/* ---- Social links ---- */
+
+.socials {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-footer-text);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+.socialLink:hover {
+  color: var(--color-primary-hover);
+}
+
+.socialIcon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+.socialLabel {
+  font-weight: var(--font-weight-medium);
+}
+
+/* ---- Copyright ---- */
+
+.copyright {
+  font-size: var(--font-size-sm);
+  color: var(--color-footer-text);
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 640px) {
+  .footer {
+    padding: var(--spacing-xl) 0;
+  }
+
+  .socials {
+    gap: var(--spacing-md);
+  }
+}

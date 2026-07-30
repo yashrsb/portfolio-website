@@ -1,0 +1,110 @@
+/* ============================================ */
+/* Timeline — Design System Component           */
+/* ============================================ */
+
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ---- Item ---- */
+
+.item {
+  display: flex;
+  gap: var(--spacing-lg);
+  position: relative;
+}
+
+/* ---- Marker (dot + connecting line) ---- */
+
+.marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 20px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  border: 3px solid var(--color-background);
+  box-shadow: 0 0 0 2px var(--color-primary);
+  z-index: var(--z-base);
+  flex-shrink: 0;
+}
+
+.line {
+  width: 2px;
+  flex: 1;
+  background-color: var(--color-border);
+  min-height: 24px;
+}
+
+/* ---- Content ---- */
+
+.content {
+  padding-bottom: var(--spacing-2xl);
+  flex: 1;
+  min-width: 0;
+}
+
+.item:last-child .content {
+  padding-bottom: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.role {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.company {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 640px) {
+  .item {
+    gap: var(--spacing-md);
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .role {
+    font-size: var(--font-size-base);
+  }
+}
