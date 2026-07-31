@@ -6,6 +6,24 @@
   background-color: var(--color-footer-bg);
   color: var(--color-footer-text);
   padding: var(--spacing-2xl) 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.footerVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .inner {

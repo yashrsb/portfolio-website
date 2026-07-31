@@ -1,0 +1,40 @@
+/* ============================================ */
+/* Slide Animation Classes — Reusable           */
+/* ============================================ */
+
+/* ---- Slide Up (Fade + Translate) ---- */
+
+.animate-slide-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* ---- Initial hidden state for slide animations ---- */
+
+.animate-slide-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* ---- Slide Visible state ---- */
+
+.animate-slide-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+/* ---- Reduced motion: skip all slide animations ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-hidden,
+  .animate-slide-visible,
+  .animate-slide-up {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+}
+

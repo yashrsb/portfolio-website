@@ -12,6 +12,14 @@
   white-space: nowrap;
   user-select: none;
   line-height: var(--line-height-tight);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.tag:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ---- Sizes ---- */

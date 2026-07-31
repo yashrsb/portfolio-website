@@ -1,3 +1,4 @@
+import { useIntersectionObserver } from '../../../hooks';
 import styles from './Footer.module.css';
 import Container from '../../common/Container/Container';
 import Button from '../../common/Button/Button';
@@ -11,16 +12,26 @@ const SOCIAL_LINKS = [
 
 /**
  * Site footer with social links, copyright, and a back-to-top button.
+ * Gently fades in when it enters the viewport.
  */
 function Footer() {
+  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const currentYear = new Date().getFullYear();
 
+  const footerClasses = [
+    styles.footer,
+    isVisible ? styles.footerVisible : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <footer className={styles.footer}>
+    <footer ref={ref} className={footerClasses}>
       <Container>
         <div className={styles.inner}>
           {/* Social links */}
@@ -63,3 +74,4 @@ function Footer() {
 }
 
 export default Footer;
+

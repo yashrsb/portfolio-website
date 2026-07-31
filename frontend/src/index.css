@@ -15,6 +15,20 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   font-family: var(--font-family-primary);
   line-height: var(--line-height-normal);
@@ -38,9 +52,22 @@ img {
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+  transition: outline-offset var(--transition-fast);
 }
 
 ::selection {
   background-color: var(--color-primary-light);
   color: var(--color-text);
 }
+
+/* ---- Page Transition ---- */
+
+.page-transition-enter {
+  animation: fadeIn 200ms ease-out forwards;
+}
+
+.page-transition-exit {
+  opacity: 0;
+  transition: opacity 150ms ease-in;
+}
+

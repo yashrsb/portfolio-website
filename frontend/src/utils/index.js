@@ -38,3 +38,5 @@ export function cn(...classes) {
 export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
+
+export { animateValue, getTypedText } from './animation';

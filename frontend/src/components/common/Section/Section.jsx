@@ -20,23 +20,15 @@ function Section({
   children,
   className = '',
 }) {
-  const classNames = [
-    styles.section,
-    styles[background],
-    className,
-  ]
+  const classNames = [styles.section, styles[background], className]
     .filter(Boolean)
     .join(' ');
 
   return (
     <section id={id} className={classNames}>
       <div className={styles.content}>
-        {title && (
-          <h2 className={styles.title}>{title}</h2>
-        )}
-        {subtitle && (
-          <p className={styles.subtitle}>{subtitle}</p>
-        )}
+        {title && <h2 className={styles.title}>{title}</h2>}
+        {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         {children && <div className={styles.body}>{children}</div>}
       </div>
     </section>

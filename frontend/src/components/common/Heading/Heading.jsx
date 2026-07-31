@@ -37,9 +37,7 @@ function Heading({
         {children}
       </Tag>
       {subtitle && (
-        <p
-          className={`${styles.subtitle} ${styles[`align-${alignment}`]}`}
-        >
+        <p className={`${styles.subtitle} ${styles[`align-${alignment}`]}`}>
           {subtitle}
         </p>
       )}

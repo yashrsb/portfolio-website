@@ -1,20 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import Container from '../../common/Container/Container';
 import Button from '../../common/Button/Button';
-
-const NAV_LINKS = [
-  { label: 'Home', href: '#home' },
-  { label: 'About', href: '#about' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Skills', href: '#skills' },
-  { label: 'Experience', href: '#experience' },
-  { label: 'Contact', href: '#contact' },
-];
+import navigation from '../../../data/navigation';
 
 /**
- * Responsive navigation bar with hamburger menu and dark mode toggle placeholder.
+ * Responsive navigation bar with hamburger menu and dark mode toggle.
  * Sticky positioned at the top of the viewport.
+ * Uses React Router NavLink for active page highlighting.
  *
  * @param {Object} props
  * @param {'light' | 'dark'} [props.theme='light'] - Current theme (for toggle icon)
@@ -22,31 +16,54 @@ const NAV_LINKS = [
  */
 function Navbar({ theme = 'light', onToggleTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 8);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => setMenuOpen(false);
 
+  const navbarClass = [
+    styles.navbar,
+    scrolled ? styles.navbarScrolled : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <nav className={styles.navbar} role="navigation" aria-label="Main navigation">
+    <nav
+      className={navbarClass}
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <Container>
         <div className={styles.inner}>
-          {/* Logo / Name */}
-          <a href="#home" className={styles.logo} aria-label="Go to home">
+          <Link to="/" className={styles.logo} aria-label="Go to home">
             Portfolio
-          </a>
-
-          {/* Desktop links */}
+          </Link>
           <ul className={styles.desktopLinks}>
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <a href={link.href} className={styles.link}>
+            {navigation.map((link) => (
+              <li key={link.path}>
+                <NavLink
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `${styles.link} ${isActive ? styles.linkActive : ''}`
+                  }
+                  end={link.path === '/'}
+                >
                   {link.label}
-                </a>
+                </NavLink>
               </li>
             ))}
           </ul>
-
-          {/* Actions (theme toggle + hamburger) */}
           <div className={styles.actions}>
             <Button
               variant="ghost"
@@ -54,15 +71,15 @@ function Navbar({ theme = 'light', onToggleTheme }) {
               onClick={onToggleTheme}
               ariaLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             >
-              {theme === 'light' ? '🌙' : '☀️'}
+              {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
             </Button>
-
             <button
               type="button"
               className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ''}`}
               onClick={toggleMenu}
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
             >
               <span className={styles.bar} />
               <span className={styles.bar} />
@@ -71,22 +88,24 @@ function Navbar({ theme = 'light', onToggleTheme }) {
           </div>
         </div>
       </Container>
-
-      {/* Mobile menu */}
       <div
+        id="mobile-menu"
         className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ''}`}
         aria-hidden={!menuOpen}
       >
         <ul className={styles.mobileLinks}>
-          {NAV_LINKS.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className={styles.mobileLink}
+          {navigation.map((link) => (
+            <li key={link.path}>
+              <NavLink
+                to={link.path}
+                className={({ isActive }) =>
+                  `${styles.mobileLink} ${isActive ? styles.mobileLinkActive : ''}`
+                }
                 onClick={closeMenu}
+                end={link.path === '/'}
               >
                 {link.label}
-              </a>
+              </NavLink>
             </li>
           ))}
         </ul>
@@ -96,3 +115,4 @@ function Navbar({ theme = 'light', onToggleTheme }) {
 }
 
 export default Navbar;
+

@@ -23,12 +23,7 @@ function Tag({
   onRemove,
   className = '',
 }) {
-  const classNames = [
-    styles.tag,
-    styles[variant],
-    styles[size],
-    className,
-  ]
+  const classNames = [styles.tag, styles[variant], styles[size], className]
     .filter(Boolean)
     .join(' ');
 

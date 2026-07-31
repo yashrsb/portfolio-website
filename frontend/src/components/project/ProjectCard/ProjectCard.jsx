@@ -40,7 +40,12 @@ function ProjectCard({
       {/* Image / Placeholder */}
       <div className={styles.imageWrapper}>
         {imageUrl ? (
-          <img src={imageUrl} alt={imageAlt} className={styles.image} loading="lazy" />
+          <img
+            src={imageUrl}
+            alt={imageAlt}
+            className={styles.image}
+            loading="lazy"
+          />
         ) : (
           <div className={styles.placeholder} aria-hidden="true">
             <span className={styles.placeholderIcon}>📁</span>
@@ -49,13 +54,27 @@ function ProjectCard({
 
         {/* Badges */}
         <div className={styles.badges}>
-          {featured && <Tag variant="primary" size="sm">Featured</Tag>}
+          {featured && (
+            <Tag variant="primary" size="sm">
+              Featured
+            </Tag>
+          )}
           {status && (
             <Tag
-              variant={status === 'live' ? 'success' : status === 'wip' ? 'warning' : 'default'}
+              variant={
+                status === 'live'
+                  ? 'success'
+                  : status === 'wip'
+                    ? 'warning'
+                    : 'default'
+              }
               size="sm"
             >
-              {status === 'live' ? 'Live' : status === 'wip' ? 'WIP' : 'Archived'}
+              {status === 'live'
+                ? 'Live'
+                : status === 'wip'
+                  ? 'WIP'
+                  : 'Archived'}
             </Tag>
           )}
         </div>
@@ -82,7 +101,9 @@ function ProjectCard({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open(githubUrl, '_blank', 'noopener noreferrer')}
+              onClick={() =>
+                window.open(githubUrl, '_blank', 'noopener noreferrer')
+              }
               ariaLabel={`View ${title} source code on GitHub`}
             >
               GitHub
@@ -92,7 +113,9 @@ function ProjectCard({
             <Button
               variant="primary"
               size="sm"
-              onClick={() => window.open(liveUrl, '_blank', 'noopener noreferrer')}
+              onClick={() =>
+                window.open(liveUrl, '_blank', 'noopener noreferrer')
+              }
               ariaLabel={`View ${title} live demo`}
             >
               Live Demo

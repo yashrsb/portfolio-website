@@ -51,5 +51,17 @@
   height: 100%;
   background-color: var(--color-primary);
   border-radius: var(--radius-full);
-  transition: width var(--transition-slow);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.6s ease-out;
 }
+
+/* ---- Reduced motion: show full bar immediately ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .proficiencyBar {
+    transform: none;
+    transition: none;
+  }
+}
+

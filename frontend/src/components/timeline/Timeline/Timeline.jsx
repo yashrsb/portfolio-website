@@ -1,3 +1,4 @@
+import { useIntersectionObserver } from '../../../hooks';
 import styles from './Timeline.module.css';
 
 /**
@@ -10,12 +11,15 @@ import styles from './Timeline.module.css';
 
 /**
  * Reusable timeline component that renders an array of events.
+ * Items fade and slide upward when they enter the viewport.
  *
  * @param {Object} props
  * @param {TimelineEvent[]} props.events - Array of timeline events
  * @param {string} [props.className] - Additional CSS classes
  */
 function Timeline({ events = [], className = '' }) {
+  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+
   if (!events.length) {
     return null;
   }
@@ -23,11 +27,14 @@ function Timeline({ events = [], className = '' }) {
   const classNames = [styles.timeline, className].filter(Boolean).join(' ');
 
   return (
-    <div className={classNames} role="list" aria-label="Timeline">
+    <div ref={ref} className={classNames} role="list" aria-label="Timeline">
       {events.map((event, index) => (
         <div
           key={`${event.company}-${index}`}
-          className={styles.item}
+          className={`${styles.item} ${
+            isVisible ? styles.itemVisible : styles.itemHidden
+          }`}
+          style={{ transitionDelay: `${index * 80}ms` }}
           role="listitem"
         >
           <div className={styles.marker}>
@@ -53,3 +60,4 @@ function Timeline({ events = [], className = '' }) {
 }
 
 export default Timeline;
+

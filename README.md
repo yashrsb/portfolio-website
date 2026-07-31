@@ -5,12 +5,14 @@ A modern, production-ready personal portfolio website showcasing experience, pro
 ## Tech Stack
 
 ### Frontend
+
 - **React 18** — UI library
 - **Vite** — Build tool and dev server
 - **React Router 6** — Client-side routing
 - **CSS** — Styling (no framework)
 
 ### Backend
+
 - **Node.js** — JavaScript runtime
 - **Express** — Web framework
 - **Helmet** — Security headers
@@ -18,6 +20,7 @@ A modern, production-ready personal portfolio website showcasing experience, pro
 - **Morgan** — HTTP request logging
 
 ### Tooling
+
 - **ESLint** — Code linting
 - **Prettier** — Code formatting
 - **npm** — Package manager
@@ -62,7 +65,7 @@ portfolio/
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm 9+
 
 ### Installation
@@ -117,14 +120,14 @@ npm run format:check
 
 ## Development Commands
 
-| Command             | Description                              |
-|---------------------|------------------------------------------|
-| `npm run dev`       | Start frontend dev server on port 5173   |
-| `npm run server`    | Start backend server on port 5000        |
-| `npm run lint`      | Run ESLint on both projects              |
-| `npm run format`    | Format all files with Prettier           |
-| `npm run format:check` | Check formatting without modifying   |
-| `npm run install:all` | Install dependencies for all projects |
+| Command                | Description                            |
+| ---------------------- | -------------------------------------- |
+| `npm run dev`          | Start frontend dev server on port 5173 |
+| `npm run server`       | Start backend server on port 5000      |
+| `npm run lint`         | Run ESLint on both projects            |
+| `npm run format`       | Format all files with Prettier         |
+| `npm run format:check` | Check formatting without modifying     |
+| `npm run install:all`  | Install dependencies for all projects  |
 
 ## License
 
