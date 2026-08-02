@@ -1,6 +1,4 @@
-const config = {
-  port: process.env.PORT || 5000,
-  nodeEnv: process.env.NODE_ENV || 'development',
-};
-
-export default config;
+export { env } from './env.js';
+export { default as corsOptions } from './cors.js';
+export { default as helmetConfig } from './helmet.js';
+export { default as rateLimiterConfig } from './rateLimit.js';

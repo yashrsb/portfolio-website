@@ -2,7 +2,14 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['node_modules'] },
+  {
+    ignores: [
+      'node_modules',
+      'src/generated',
+      'prisma.config.ts',
+      'prisma/migrations',
+    ],
+  },
   {
     files: ['**/*.js'],
     languageOptions: {
