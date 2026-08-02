@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProjectStatus {
+  live
+  wip
+  archived
+}
+
+enum SkillCategory {
+  languages
+  frontend
+  backend
+  databases
+  cloud
+  tools
+}
+
+enum ContactMessageStatus {
+  new
+  read
+  archived
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  name      String
+  headline  String
+  tagline   String
+  bio       String
+  interests String[]
+  goals     String[]
+  strengths String[]
+  stats     Json
+  contact   Json
+  resumeUrl String   @default("#")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  slug         String        @unique
+  title        String
+  description  String
+  summary      String?
+  imageUrl     String?
+  githubUrl    String?
+  demoUrl      String?
+  status       ProjectStatus @default(live)
+  featured     Boolean       @default(false)
+  displayOrder Int           @default(0)
+  tags         String[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([featured, displayOrder])
+  @@index([status])
+}
+
+model Experience {
+  id               String    @id @default(uuid())
+  company          String
+  role             String
+  startDate        DateTime
+  endDate          DateTime?
+  current          Boolean   @default(false)
+  location         String
+  description      String
+  technologies     String[]
+  responsibilities String[]
+  achievements     String[]
+  displayOrder     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([displayOrder])
+}
+
+model Skill {
+  id           String        @id @default(uuid())
+  name         String
+  category     SkillCategory
+  proficiency  Int
+  icon         String
+  displayOrder Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([name, category])
+  @@index([category, displayOrder])
+}
+
+model Education {
+  id           String   @id @default(uuid())
+  institution  String
+  degree       String
+  fieldOfStudy String?
+  startYear    Int
+  endYear      Int
+  grade        String?
+  highlights   String[]
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([displayOrder])
+}
+
+model Certificate {
+  id           String   @id @default(uuid())
+  name         String
+  issuer       String
+  date         String
+  url          String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([displayOrder])
+}
+
+model Achievement {
+  id           String   @id @default(uuid())
+  title        String
+  organization String
+  year         Int
+  description  String
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([displayOrder])
+}
+
+model SocialLink {
+  id           String   @id @default(uuid())
+  platform     String   @unique
+  url          String
+  icon         String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([displayOrder])
+}
+
+model ContactMessage {
+  id        String              @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    ContactMessageStatus @default(new)
+  createdAt DateTime            @default(now())
+
+  @@index([status, createdAt])
+}
+
