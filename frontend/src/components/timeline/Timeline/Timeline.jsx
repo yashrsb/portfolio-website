@@ -60,4 +60,3 @@ function Timeline({ events = [], className = '' }) {
 }
 
 export default Timeline;
-

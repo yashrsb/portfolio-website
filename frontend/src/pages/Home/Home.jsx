@@ -113,7 +113,9 @@ function Home() {
   const scrollToNext = () => {
     const nextSection = document.getElementById('quick-stats');
     if (nextSection) {
-      nextSection.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+      nextSection.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      });
     }
   };
 
@@ -142,10 +144,7 @@ function Home() {
               <p className={styles.headline}>
                 {typedText}
                 {showCursor && (
-                  <span
-                    className={styles.cursor}
-                    aria-hidden="true"
-                  >
+                  <span className={styles.cursor} aria-hidden="true">
                     |
                   </span>
                 )}
@@ -219,4 +218,3 @@ function Home() {
 }
 
 export default Home;
-

@@ -62,4 +62,3 @@ export function animateValue({ start, end, duration, onUpdate }) {
 export function getTypedText(text, charIndex) {
   return text.slice(0, charIndex);
 }
-

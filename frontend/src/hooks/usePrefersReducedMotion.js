@@ -28,4 +28,3 @@ export function usePrefersReducedMotion() {
 
   return prefersReduced;
 }
-

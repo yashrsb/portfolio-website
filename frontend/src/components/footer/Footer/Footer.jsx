@@ -23,10 +23,7 @@ function Footer() {
 
   const currentYear = new Date().getFullYear();
 
-  const footerClasses = [
-    styles.footer,
-    isVisible ? styles.footerVisible : '',
-  ]
+  const footerClasses = [styles.footer, isVisible ? styles.footerVisible : '']
     .filter(Boolean)
     .join(' ');
 
@@ -74,4 +71,3 @@ function Footer() {
 }
 
 export default Footer;
-

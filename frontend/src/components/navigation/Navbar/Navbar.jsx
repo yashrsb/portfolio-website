@@ -31,19 +31,12 @@ function Navbar({ theme = 'light', onToggleTheme }) {
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => setMenuOpen(false);
 
-  const navbarClass = [
-    styles.navbar,
-    scrolled ? styles.navbarScrolled : '',
-  ]
+  const navbarClass = [styles.navbar, scrolled ? styles.navbarScrolled : '']
     .filter(Boolean)
     .join(' ');
 
   return (
-    <nav
-      className={navbarClass}
-      role="navigation"
-      aria-label="Main navigation"
-    >
+    <nav className={navbarClass} role="navigation" aria-label="Main navigation">
       <Container>
         <div className={styles.inner}>
           <Link to="/" className={styles.logo} aria-label="Go to home">
@@ -115,4 +108,3 @@ function Navbar({ theme = 'light', onToggleTheme }) {
 }
 
 export default Navbar;
-

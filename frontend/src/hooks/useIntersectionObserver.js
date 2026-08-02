@@ -53,9 +53,7 @@ export function useIntersectionObserver(options = {}) {
     return () => {
       observer.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threshold, rootMargin, triggerOnce]);
 
   return { ref, isVisible };
 }
-

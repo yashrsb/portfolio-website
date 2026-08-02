@@ -64,4 +64,3 @@ function SkillBadge({ name, icon, proficiency, className = '' }) {
 }
 
 export default SkillBadge;
-

@@ -38,4 +38,3 @@ function Reveal({ children, as: Tag = 'div', delay = 0, className = '' }) {
 }
 
 export default Reveal;
-

@@ -47,9 +47,11 @@ function App() {
 
   const PageComponent =
     PAGE_COMPONENTS[activePath] ||
-    PAGE_COMPONENTS[Object.keys(PAGE_COMPONENTS).find(
-      (k) => k !== '/' && activePath.startsWith(k),
-    )] ||
+    PAGE_COMPONENTS[
+      Object.keys(PAGE_COMPONENTS).find(
+        (k) => k !== '/' && activePath.startsWith(k),
+      )
+    ] ||
     NotFound;
 
   return (
