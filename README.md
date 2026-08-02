@@ -294,15 +294,16 @@ npm run format:check
 
 ## Development Commands
 
-| Command                | Description                            |
-| ---------------------- | -------------------------------------- |
-| `npm run dev`          | Start frontend dev server on port 5173 |
-| `npm run server`       | Start backend server on port 5000      |
-| `npm run admin`        | Start admin dashboard on port 5174     |
-| `npm run lint`         | Run ESLint on all projects             |
-| `npm run format`       | Format all files with Prettier         |
-| `npm run format:check` | Check formatting without modifying     |
-| `npm run install:all`  | Install dependencies for all projects  |
+| Command                    | Description                                   |
+| -------------------------- | --------------------------------------------- |
+| `npm run dev`              | Start frontend dev server on port 5173        |
+| `npm run server`           | Start backend server on port 5000             |
+| `npm run admin`            | Start admin dashboard on port 5174            |
+| `npm run import:portfolio` | Import portfolio data from YAML to PostgreSQL |
+| `npm run lint`             | Run ESLint on all projects                    |
+| `npm run format`           | Format all files with Prettier                |
+| `npm run format:check`     | Check formatting without modifying            |
+| `npm run install:all`      | Install dependencies for all projects         |
 
 ## License
 

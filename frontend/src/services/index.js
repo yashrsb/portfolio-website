@@ -1,3 +1,8 @@
-// API service functions will be added in future phases.
-// Export services from here as they are created.
-export {};
+export { apiClient, ApiError } from './apiClient';
+export { fetchProfile } from './profileService';
+export { fetchProjects } from './projectService';
+export { fetchExperience } from './experienceService';
+export { fetchSkills } from './skillService';
+export { fetchEducation } from './educationService';
+export { fetchSocial } from './socialService';
+export { submitContact } from './contactService';

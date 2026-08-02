@@ -3,7 +3,9 @@ import Container from '../../components/common/Container/Container';
 import Section from '../../components/common/Section/Section';
 import Heading from '../../components/common/Heading/Heading';
 import Reveal from '../../components/common/Reveal/Reveal';
-import { profile } from '../../data';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import { useProfile } from '../../hooks';
 import styles from './About.module.css';
 
 /**
@@ -11,9 +13,25 @@ import styles from './About.module.css';
  * Each section fades in when it enters the viewport.
  */
 function About() {
+  const { profile, loading, error } = useProfile();
+
   useEffect(() => {
-    document.title = `${profile.name} — About`;
-  }, []);
+    if (profile?.name) {
+      document.title = `${profile.name} — About`;
+    }
+  }, [profile]);
+
+  if (loading) {
+    return <LoadingState label="Loading profile..." />;
+  }
+
+  if (error) {
+    return <ErrorState title="Failed to load profile" message={error} />;
+  }
+
+  if (!profile) {
+    return null;
+  }
 
   const bioParagraphs = profile.bio.split('\n');
 

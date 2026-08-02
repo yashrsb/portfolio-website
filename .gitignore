@@ -42,3 +42,4 @@ temp/
 
 assets/
 docs/
+!docs/portfolio-data.yaml

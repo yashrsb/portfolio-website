@@ -4,7 +4,9 @@ import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
 import SkillBadge from '../../components/skills/SkillBadge/SkillBadge';
 import Reveal from '../../components/common/Reveal/Reveal';
-import { skills } from '../../data';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import { useSkills } from '../../hooks';
 import styles from './Skills.module.css';
 
 const categories = [
@@ -21,9 +23,19 @@ const categories = [
  * Each category card fades in when it enters the viewport.
  */
 function Skills() {
+  const { skills, loading, error } = useSkills();
+
   useEffect(() => {
-    document.title = 'Skills — Alex Chen';
+    document.title = 'Skills — Portfolio';
   }, []);
+
+  if (loading) {
+    return <LoadingState label="Loading skills..." />;
+  }
+
+  if (error) {
+    return <ErrorState title="Failed to load skills" message={error} />;
+  }
 
   return (
     <Container size="md">
@@ -32,23 +44,28 @@ function Skills() {
       </Heading>
 
       <div className={styles.grid}>
-        {categories.map(({ key, label }, index) => (
-          <Reveal key={key} delay={(index % 3) * 100}>
-            <Card className={styles.category}>
-              <h3 className={styles.categoryTitle}>{label}</h3>
-              <div className={styles.badges}>
-                {skills[key].map((skill) => (
-                  <SkillBadge
-                    key={skill.name}
-                    name={skill.name}
-                    icon={skill.icon}
-                    proficiency={skill.proficiency}
-                  />
-                ))}
-              </div>
-            </Card>
-          </Reveal>
-        ))}
+        {categories.map(({ key, label }, index) => {
+          const items = skills[key] || [];
+          if (!items.length) return null;
+
+          return (
+            <Reveal key={key} delay={(index % 3) * 100}>
+              <Card className={styles.category}>
+                <h3 className={styles.categoryTitle}>{label}</h3>
+                <div className={styles.badges}>
+                  {items.map((skill) => (
+                    <SkillBadge
+                      key={skill.name}
+                      name={skill.name}
+                      icon={skill.icon}
+                      proficiency={skill.proficiency}
+                    />
+                  ))}
+                </div>
+              </Card>
+            </Reveal>
+          );
+        })}
       </div>
     </Container>
   );

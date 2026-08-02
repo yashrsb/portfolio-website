@@ -14,6 +14,7 @@ import validateRequest from '../../middlewares/validateRequest.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import { HTTP_STATUS } from '../../constants/httpStatus.js';
 import { env } from '../../config/env.js';
+import adminRoutes from './adminRoutes.js';
 
 const router = Router();
 
@@ -73,5 +74,8 @@ router.post(
   validateRequest,
   postContactHandler,
 );
+
+// Admin CRUD API
+router.use('/admin', adminRoutes);
 
 export default router;

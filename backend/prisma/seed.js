@@ -1,16 +1,21 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/index.js';
-import profileData from '../src/data/profile.js';
-import projectsData from '../src/data/projects.js';
-import experienceData from '../src/data/experience.js';
-import skillsData from '../src/data/skills.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+import profileData from '../legacy-data/profile.js';
+import projectsData from '../legacy-data/projects.js';
+import experienceData from '../legacy-data/experience.js';
+import skillsData from '../legacy-data/skills.js';
 import {
   education as educationData,
   certificates as certificatesData,
   achievements as achievementsData,
-} from '../src/data/education.js';
-import socialData from '../src/data/social.js';
+} from '../legacy-data/education.js';
+import socialData from '../legacy-data/social.js';
 
 const adapter = new PrismaPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
@@ -157,9 +162,27 @@ const seedProfile = async () => {
 };
 
 /**
+ * Clears all portfolio tables so the seed can be re-run safely (idempotent).
+ */
+const clearTables = async () => {
+  await prisma.contactMessage.deleteMany();
+  await prisma.socialLink.deleteMany();
+  await prisma.skill.deleteMany();
+  await prisma.education.deleteMany();
+  await prisma.certificate.deleteMany();
+  await prisma.achievement.deleteMany();
+  await prisma.experience.deleteMany();
+  await prisma.project.deleteMany();
+  await prisma.profile.deleteMany();
+};
+
+/**
  * Seeds the database with the existing portfolio data.
+ * Clears existing data first so the script is idempotent.
  */
 async function main() {
+  await clearTables();
+
   await prisma.project.createMany({
     data: projectsData.map(toProjectPayload),
   });

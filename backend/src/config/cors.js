@@ -3,7 +3,10 @@ import ApiError from '../utils/ApiError.js';
 import { HTTP_STATUS } from '../constants/httpStatus.js';
 import { ERROR_CODES } from '../constants/errorCodes.js';
 
-const allowedOrigins = env.frontendUrl
+// Admin runs on :5174 alongside the public frontend on :5173.
+const DEFAULT_FRONTEND_URLS = 'http://localhost:5173,http://localhost:5174';
+
+const allowedOrigins = (env.frontendUrl || DEFAULT_FRONTEND_URLS)
   .split(',')
   .map((origin) => origin.trim());
 

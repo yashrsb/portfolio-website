@@ -5,7 +5,9 @@ import Card from '../../components/common/Card/Card';
 import Tag from '../../components/common/Tag/Tag';
 import Timeline from '../../components/timeline/Timeline/Timeline';
 import Reveal from '../../components/common/Reveal/Reveal';
-import { experience } from '../../data';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import { useExperience } from '../../hooks';
 import styles from './Experience.module.css';
 
 /**
@@ -13,9 +15,19 @@ import styles from './Experience.module.css';
  * Cards fade in when they enter the viewport.
  */
 function Experience() {
+  const { experience, loading, error } = useExperience();
+
   useEffect(() => {
-    document.title = 'Experience — Alex Chen';
+    document.title = 'Experience — Portfolio';
   }, []);
+
+  if (loading) {
+    return <LoadingState label="Loading experience..." />;
+  }
+
+  if (error) {
+    return <ErrorState title="Failed to load experience" message={error} />;
+  }
 
   const timelineEvents = experience.map((item) => ({
     company: item.company,

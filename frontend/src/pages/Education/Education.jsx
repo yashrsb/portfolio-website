@@ -3,7 +3,9 @@ import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
 import Reveal from '../../components/common/Reveal/Reveal';
-import { education, certificates, achievements } from '../../data';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import { useEducation } from '../../hooks';
 import styles from './Education.module.css';
 
 /**
@@ -11,9 +13,20 @@ import styles from './Education.module.css';
  * Cards fade in when they enter the viewport.
  */
 function Education() {
+  const { education, certificates, achievements, loading, error } =
+    useEducation();
+
   useEffect(() => {
-    document.title = 'Education — Alex Chen';
+    document.title = 'Education — Portfolio';
   }, []);
+
+  if (loading) {
+    return <LoadingState label="Loading education..." />;
+  }
+
+  if (error) {
+    return <ErrorState title="Failed to load education" message={error} />;
+  }
 
   return (
     <Container size="md">
@@ -29,7 +42,8 @@ function Education() {
               <h3 className={styles.institution}>{edu.institution}</h3>
               <p className={styles.degree}>{edu.degree}</p>
               <p className={styles.meta}>
-                {edu.date} • GPA {edu.gpa}
+                {edu.date}
+                {edu.gpa ? ` • GPA ${edu.gpa}` : ''}
               </p>
               <ul className={styles.list}>
                 {edu.highlights.map((hl) => (

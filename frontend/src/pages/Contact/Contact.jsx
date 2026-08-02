@@ -4,43 +4,97 @@ import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
 import Button from '../../components/common/Button/Button';
 import Reveal from '../../components/common/Reveal/Reveal';
-import { social } from '../../data';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import { useProfile, useSocial } from '../../hooks';
+import { submitContact } from '../../services';
 import styles from './Contact.module.css';
 
+const EMPTY_FORM = {
+  name: '',
+  email: '',
+  subject: '',
+  message: '',
+};
+
 /**
- * Contact page — contact details and a frontend-only form.
- * Sections fade in when they enter the viewport.
+ * Contact page — contact details and a contact form backed by the API.
+ * Contact info comes from the profile record; social links come from
+ * the social links resource.
  */
 function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
+  const {
+    profile,
+    loading: profileLoading,
+    error: profileError,
+  } = useProfile();
+  const {
+    socialLinks,
+    loading: socialLoading,
+    error: socialError,
+  } = useSocial();
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    document.title = 'Contact — Alex Chen';
+    document.title = 'Contact — Portfolio';
   }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setSubmitError('');
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      await submitContact(formData);
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to send your message.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (profileLoading || socialLoading) {
+    return <LoadingState label="Loading contact details..." />;
+  }
+
+  const error = profileError || socialError;
+  if (error) {
+    return (
+      <ErrorState title="Failed to load contact details" message={error} />
+    );
+  }
+
+  const contact = profile?.contact || {};
+  // Build a platform -> URL lookup from the SocialLink records.
+  const social = {};
+  for (const link of socialLinks || []) {
+    social[link.platform] = link.url;
+  }
 
   const contactItems = [
-    { label: 'Email', value: social.email, href: `mailto:${social.email}` },
-    { label: 'LinkedIn', value: 'LinkedIn Profile', href: social.linkedin },
-    { label: 'GitHub', value: 'GitHub Profile', href: social.github },
-    { label: 'Location', value: social.location },
-    { label: 'Phone', value: social.phone },
-  ];
+    { label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
+    {
+      label: 'LinkedIn',
+      value: 'LinkedIn Profile',
+      href: social.linkedin || contact.linkedin,
+    },
+    {
+      label: 'GitHub',
+      value: 'GitHub Profile',
+      href: social.github || contact.github,
+    },
+    { label: 'Location', value: contact.location },
+  ].filter((item) => item.value);
 
   return (
     <Container size="md">
@@ -78,10 +132,10 @@ function Contact() {
           <Card className={styles.formCard}>
             {submitted ? (
               <div className={styles.comingSoon} role="status">
-                <p className={styles.comingSoonTitle}>Coming Soon</p>
+                <p className={styles.comingSoonTitle}>Message Sent</p>
                 <p className={styles.comingSoonText}>
-                  The contact form will be available in a future phase. Please
-                  reach out via email or social channels.
+                  Thank you for reaching out. I&apos;ll get back to you as soon
+                  as possible.
                 </p>
               </div>
             ) : (
@@ -142,11 +196,19 @@ function Contact() {
                     required
                   />
                 </div>
+
+                {submitError && (
+                  <p className={styles.submitError} role="alert">
+                    {submitError}
+                  </p>
+                )}
+
                 <Button
                   type="submit"
                   variant="primary"
                   size="lg"
                   className={styles.submit}
+                  loading={submitting}
                 >
                   Send Message
                 </Button>

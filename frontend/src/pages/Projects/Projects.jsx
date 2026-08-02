@@ -3,7 +3,9 @@ import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import ProjectCard from '../../components/project/ProjectCard/ProjectCard';
 import Reveal from '../../components/common/Reveal/Reveal';
-import { projects } from '../../data';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import { useProjects } from '../../hooks';
 import styles from './Projects.module.css';
 
 /**
@@ -11,9 +13,19 @@ import styles from './Projects.module.css';
  * Each card fades in when it enters the viewport (via Reveal).
  */
 function Projects() {
+  const { projects, loading, error } = useProjects();
+
   useEffect(() => {
-    document.title = 'Projects — Alex Chen';
+    document.title = 'Projects — Portfolio';
   }, []);
+
+  if (loading) {
+    return <LoadingState label="Loading projects..." />;
+  }
+
+  if (error) {
+    return <ErrorState title="Failed to load projects" message={error} />;
+  }
 
   return (
     <Container size="lg">

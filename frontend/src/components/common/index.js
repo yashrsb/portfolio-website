@@ -5,3 +5,5 @@ export { default as Tag } from './Tag/Tag';
 export { default as Heading } from './Heading/Heading';
 export { default as Section } from './Section/Section';
 export { default as Reveal } from './Reveal/Reveal';
+export { default as LoadingState } from './LoadingState/LoadingState';
+export { default as ErrorState } from './ErrorState/ErrorState';

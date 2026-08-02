@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../../components/common/Container/Container';
 import Button from '../../components/common/Button/Button';
-import { profile } from '../../data';
-import { useIntersectionObserver, usePrefersReducedMotion } from '../../hooks';
+import LoadingState from '../../components/common/LoadingState/LoadingState';
+import ErrorState from '../../components/common/ErrorState/ErrorState';
+import {
+  useProfile,
+  useIntersectionObserver,
+  usePrefersReducedMotion,
+} from '../../hooks';
 import { animateValue } from '../../utils';
 import styles from './Home.module.css';
 
@@ -62,6 +67,7 @@ function StatValue({ value, start }) {
  */
 function Home() {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { profile, loading, error } = useProfile();
   const { ref: heroRef, isVisible: heroVisible } = useIntersectionObserver({
     threshold: 0.1,
   });
@@ -69,15 +75,17 @@ function Home() {
     threshold: 0.3,
   });
 
-  const headline = profile.headline;
+  const headline = profile?.headline || '';
   const [typedText, setTypedText] = useState(
     prefersReducedMotion ? headline : '',
   );
   const [showCursor, setShowCursor] = useState(!prefersReducedMotion);
 
   useEffect(() => {
-    document.title = `${profile.name} — Portfolio`;
-  }, []);
+    if (profile?.name) {
+      document.title = `${profile.name} — Portfolio`;
+    }
+  }, [profile]);
 
   // Typing animation — runs once, respects reduced motion
   useEffect(() => {
@@ -109,6 +117,18 @@ function Home() {
       clearTimeout(cursorTimer);
     };
   }, [headline, prefersReducedMotion]);
+
+  if (loading) {
+    return <LoadingState label="Loading profile..." />;
+  }
+
+  if (error) {
+    return <ErrorState title="Failed to load profile" message={error} />;
+  }
+
+  if (!profile) {
+    return null;
+  }
 
   const scrollToNext = () => {
     const nextSection = document.getElementById('quick-stats');
