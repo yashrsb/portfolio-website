@@ -23,6 +23,14 @@ A modern, production-ready personal portfolio website showcasing experience, pro
 - **express-validator** — Request validation
 - **dotenv** — Environment variable loading
 
+### Admin Dashboard
+
+- **React 18** — UI library
+- **Vite** — Build tool and dev server
+- **React Router 6** — Client-side routing
+- **CSS Modules** — Component-scoped styling
+- **Dark mode** — Theme toggle with design tokens
+
 ### Tooling
 
 - **ESLint** — Code linting
@@ -34,7 +42,7 @@ A modern, production-ready personal portfolio website showcasing experience, pro
 ```
 portfolio/
 │
-├── frontend/               # React application
+├── frontend/               # Public React application
 │   ├── public/             # Static assets
 │   ├── src/                # Application source code
 │   │   ├── App.jsx         # Root component with routing
@@ -44,6 +52,21 @@ portfolio/
 │   ├── vite.config.js      # Vite configuration
 │   ├── .eslintrc.cjs       # ESLint configuration
 │   └── package.json        # Frontend dependencies
+│
+├── admin/                  # Admin dashboard (separate React app)
+│   ├── src/
+│   │   ├── components/     # Reusable UI + layout components
+│   │   │   ├── common/     # Button, Modal, DataTable, Badge, etc.
+│   │   │   ├── form/       # FormField, TextInput, Select, Toggle, etc.
+│   │   │   └── layout/     # Sidebar, Topbar, Breadcrumb, AdminLayout
+│   │   ├── context/        # Auth, Theme, Toast providers
+│   │   ├── pages/          # Login, Dashboard, CRUD pages, Settings
+│   │   ├── hooks/          # useCrud, useForm
+│   │   ├── utils/          # Validation helpers
+│   │   └── data/           # Mock data
+│   ├── index.html
+│   ├── vite.config.js      # Port 5174 (separate from public frontend)
+│   └── package.json
 │
 ├── backend/                # Express API server
 │   ├── src/
@@ -245,13 +268,38 @@ npm run format
 npm run format:check
 ```
 
+### Admin Dashboard
+
+```bash
+# Start the admin dashboard (http://localhost:5174)
+npm run admin
+```
+
+### Linting
+
+```bash
+# Lint frontend, backend, and admin
+npm run lint
+```
+
+### Formatting
+
+```bash
+# Format all files with Prettier
+npm run format
+
+# Check formatting without making changes
+npm run format:check
+```
+
 ## Development Commands
 
 | Command                | Description                            |
 | ---------------------- | -------------------------------------- |
 | `npm run dev`          | Start frontend dev server on port 5173 |
 | `npm run server`       | Start backend server on port 5000      |
-| `npm run lint`         | Run ESLint on both projects            |
+| `npm run admin`        | Start admin dashboard on port 5174     |
+| `npm run lint`         | Run ESLint on all projects             |
 | `npm run format`       | Format all files with Prettier         |
 | `npm run format:check` | Check formatting without modifying     |
 | `npm run install:all`  | Install dependencies for all projects  |
