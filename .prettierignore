@@ -5,3 +5,5 @@ coverage/
 *.log
 .git
 .github
+backend/src/generated/
+backend/prisma/migrations/
