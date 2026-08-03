@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /**
  * @typedef {Object} IntersectionObserverOptions
@@ -10,6 +10,11 @@ import { useRef, useState, useEffect } from 'react';
 /**
  * useIntersectionObserver — observes when an element enters the viewport.
  *
+ * Uses a callback ref that stores the DOM node in state so the observer is
+ * (re)attached whenever the element becomes available — including after the
+ * component mounts while children are conditionally rendered behind an async
+ * loading state.
+ *
  * @param {IntersectionObserverOptions} [options]
  * @returns {{ ref: React.RefObject<null>, isVisible: boolean }}
  *
@@ -20,11 +25,10 @@ import { useRef, useState, useEffect } from 'react';
 export function useIntersectionObserver(options = {}) {
   const { threshold = 0.1, rootMargin = '0px', triggerOnce = true } = options;
 
-  const ref = useRef(null);
+  const [element, setElement] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const element = ref.current;
     if (!element) return;
 
     // If reduced motion is preferred, immediately show
@@ -39,7 +43,7 @@ export function useIntersectionObserver(options = {}) {
         if (entry.isIntersecting) {
           setIsVisible(true);
           if (triggerOnce) {
-            observer.unobserve(element);
+            observer.unobserve(entry.target);
           }
         } else if (!triggerOnce) {
           setIsVisible(false);
@@ -53,7 +57,11 @@ export function useIntersectionObserver(options = {}) {
     return () => {
       observer.disconnect();
     };
-  }, [threshold, rootMargin, triggerOnce]);
+  }, [element, threshold, rootMargin, triggerOnce]);
+
+  const ref = useCallback((node) => {
+    setElement(node);
+  }, []);
 
   return { ref, isVisible };
 }

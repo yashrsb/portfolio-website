@@ -75,6 +75,7 @@ const toDbExperience = (form) => {
   const current = Boolean(form.current);
   return {
     company: form.company,
+    companyWebsite: form.companyWebsite || null,
     role: form.role,
     startDate: parseMonth(form.startDate),
     endDate: current ? null : parseMonth(form.endDate) || null,

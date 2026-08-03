@@ -64,6 +64,7 @@ const toExperiencePayload = (item, index) => {
   const { startDate, endDate, current } = parseExperienceDates(item.date);
   return {
     company: item.company,
+    companyWebsite: item.companyWebsite || null,
     role: item.role,
     startDate,
     endDate,
@@ -157,6 +158,7 @@ const seedProfile = async () => {
       stats: profileData.stats,
       contact: profileData.contact,
       resumeUrl: profileData.resumeUrl,
+      profileImageUrl: profileData.profileImageUrl || null,
     },
   });
 };

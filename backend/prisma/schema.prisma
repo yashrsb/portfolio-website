@@ -29,19 +29,20 @@ enum ContactMessageStatus {
 }
 
 model Profile {
-  id        String   @id @default(uuid())
-  name      String
-  headline  String
-  tagline   String
-  bio       String
-  interests String[]
-  goals     String[]
-  strengths String[]
-  stats     Json
-  contact   Json
-  resumeUrl String   @default("#")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  name            String
+  headline        String
+  tagline         String
+  bio             String
+  interests       String[]
+  goals           String[]
+  strengths       String[]
+  stats           Json
+  contact         Json
+  resumeUrl       String   @default("#")
+  profileImageUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Project {
@@ -67,6 +68,7 @@ model Project {
 model Experience {
   id               String    @id @default(uuid())
   company          String
+  companyWebsite   String?
   role             String
   startDate        DateTime
   endDate          DateTime?

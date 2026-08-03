@@ -59,6 +59,7 @@ export function normalizeProfile(profile) {
     stats: profile.stats || {},
     contact: profile.contact || {},
     resumeUrl: profile.resumeUrl || '#',
+    profileImageUrl: profile.profileImageUrl || null,
   };
 }
 
@@ -72,6 +73,7 @@ export function normalizeExperience(item, index) {
   const { startDate, endDate, current } = normalizeExperienceDates(item);
   return {
     company: item.company,
+    companyWebsite: item.companyWebsite || null,
     role: item.role,
     startDate,
     endDate,

@@ -74,6 +74,11 @@ export const profileSchema = z.object({
   stats: statsSchema,
   contact: contactSchema,
   resumeUrl: z.string().optional().default('#'),
+  profileImageUrl: z
+    .string()
+    .regex(URL_REGEX, 'Must be a valid URL (http:// or https://)')
+    .optional()
+    .nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -82,6 +87,7 @@ export const profileSchema = z.object({
 
 export const experienceSchema = z.object({
   company: nonEmptyString,
+  companyWebsite: urlOrNull,
   role: nonEmptyString,
   startDate: z
     .string()

@@ -7,6 +7,7 @@ import Timeline from '../../components/timeline/Timeline/Timeline';
 import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
+import CompanyLink from '../../components/common/CompanyLink/CompanyLink';
 import { useExperience } from '../../hooks';
 import styles from './Experience.module.css';
 
@@ -31,6 +32,7 @@ function Experience() {
 
   const timelineEvents = experience.map((item) => ({
     company: item.company,
+    companyUrl: item.companyWebsite,
     role: item.role,
     date: item.date,
     description: item.description,
@@ -56,7 +58,12 @@ function Experience() {
                 <h3 className={styles.cardTitle}>{item.role}</h3>
                 <span className={styles.cardDate}>{item.date}</span>
               </div>
-              <p className={styles.company}>{item.company}</p>
+              <p className={styles.company}>
+                <CompanyLink
+                  company={item.company}
+                  companyUrl={item.companyWebsite}
+                />
+              </p>
               <p className={styles.location}>{item.location}</p>
               <p className={styles.description}>{item.description}</p>
 
