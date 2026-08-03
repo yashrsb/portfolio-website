@@ -33,6 +33,7 @@ const formatMonth = (iso) => {
  */
 const toUiExperience = (item) => ({
   company: item.company,
+  companyWebsite: item.companyWebsite || null,
   role: item.role,
   date: `${formatMonth(item.startDate)} — ${
     item.current ? 'Present' : formatMonth(item.endDate)

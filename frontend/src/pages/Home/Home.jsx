@@ -68,6 +68,7 @@ function StatValue({ value, start }) {
 function Home() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const { profile, loading, error } = useProfile();
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
   const { ref: heroRef, isVisible: heroVisible } = useIntersectionObserver({
     threshold: 0.1,
   });
@@ -187,15 +188,25 @@ function Home() {
               </div>
             </div>
             <div className={styles.heroImage}>
-              <div
-                className={styles.imagePlaceholder}
-                role="img"
-                aria-label="Profile photo placeholder"
-              >
-                <span className={styles.imageEmoji} aria-hidden="true">
-                  👨‍💻
-                </span>
-              </div>
+              {profile.profileImageUrl && !profileImageFailed ? (
+                <img
+                  src={profile.profileImageUrl}
+                  alt={`${profile.name} portrait`}
+                  className={styles.profileImage}
+                  loading="lazy"
+                  onError={() => setProfileImageFailed(true)}
+                />
+              ) : (
+                <div
+                  className={styles.imagePlaceholder}
+                  role="img"
+                  aria-label="Profile photo placeholder"
+                >
+                  <span className={styles.imageEmoji} aria-hidden="true">
+                    👨‍💻
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

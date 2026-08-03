@@ -1,9 +1,11 @@
 import { useIntersectionObserver } from '../../../hooks';
+import { CompanyLink } from '../../common';
 import styles from './Timeline.module.css';
 
 /**
  * @typedef {Object} TimelineEvent
  * @property {string} company - Company or institution name
+ * @property {string|null} [companyUrl] - Optional company website URL
  * @property {string} role - Job title or role
  * @property {string} date - Date range (e.g., "Jan 2020 — Present")
  * @property {string} [description] - Optional description of responsibilities
@@ -48,7 +50,12 @@ function Timeline({ events = [], className = '' }) {
               <h3 className={styles.role}>{event.role}</h3>
               <span className={styles.date}>{event.date}</span>
             </div>
-            <p className={styles.company}>{event.company}</p>
+            <p className={styles.company}>
+              <CompanyLink
+                company={event.company}
+                companyUrl={event.companyUrl}
+              />
+            </p>
             {event.description && (
               <p className={styles.description}>{event.description}</p>
             )}

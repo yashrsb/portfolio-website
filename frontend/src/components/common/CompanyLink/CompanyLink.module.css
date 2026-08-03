@@ -1,0 +1,22 @@
+.link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration-color: currentColor;
+}
+
+.link:focus-visible {
+  color: var(--color-primary-hover);
+  text-decoration-color: currentColor;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
