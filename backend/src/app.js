@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import {
   corsOptions,
   helmetConfig,
@@ -34,6 +35,9 @@ const createApp = () => {
 
   // Request ID
   app.use(requestId);
+
+  // Cookie parsing (for refresh tokens)
+  app.use(cookieParser());
 
   // Body parsing
   app.use(express.json({ limit: '10kb' }));
