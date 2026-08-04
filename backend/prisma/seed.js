@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/index.js';
+import bcrypt from 'bcryptjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -167,6 +168,8 @@ const seedProfile = async () => {
  * Clears all portfolio tables so the seed can be re-run safely (idempotent).
  */
 const clearTables = async () => {
+  await prisma.refreshToken.deleteMany();
+  await prisma.user.deleteMany();
   await prisma.contactMessage.deleteMany();
   await prisma.socialLink.deleteMany();
   await prisma.skill.deleteMany();
@@ -176,6 +179,42 @@ const clearTables = async () => {
   await prisma.experience.deleteMany();
   await prisma.project.deleteMany();
   await prisma.profile.deleteMany();
+};
+
+/**
+ * Verifies the admin credentials are present and hashes the password.
+ * @returns {Promise<{name: string, email: string, passwordHash: string}>}
+ */
+const buildAdminPayload = async () => {
+  const name = process.env.ADMIN_NAME;
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!name || !email || !password) {
+    throw new Error(
+      'ADMIN_NAME, ADMIN_EMAIL and ADMIN_PASSWORD must be set to seed the admin user.',
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  return { name, email, passwordHash };
+};
+
+/**
+ * Seeds the initial admin user from environment variables.
+ * @returns {Promise<void>}
+ */
+const seedAdmin = async () => {
+  const payload = await buildAdminPayload();
+  await prisma.user.create({
+    data: {
+      name: payload.name,
+      email: payload.email,
+      passwordHash: payload.passwordHash,
+      role: 'ADMIN',
+      isActive: true,
+    },
+  });
 };
 
 /**
@@ -226,8 +265,10 @@ async function main() {
   });
 
   await seedProfile();
+  await seedAdmin();
 
   const counts = {
+    users: await prisma.user.count(),
     profiles: await prisma.profile.count(),
     projects: await prisma.project.count(),
     experiences: await prisma.experience.count(),

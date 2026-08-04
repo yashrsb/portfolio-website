@@ -15,6 +15,7 @@ import ApiResponse from '../../utils/ApiResponse.js';
 import { HTTP_STATUS } from '../../constants/httpStatus.js';
 import { env } from '../../config/env.js';
 import adminRoutes from './adminRoutes.js';
+import authRoutes from './authRoutes.js';
 
 const router = Router();
 
@@ -74,6 +75,9 @@ router.post(
   validateRequest,
   postContactHandler,
 );
+
+// Auth routes
+router.use('/auth', authRoutes);
 
 // Admin CRUD API
 router.use('/admin', adminRoutes);
