@@ -6,6 +6,13 @@ import {
   certificateRepository,
   achievementRepository,
   socialLinkRepository,
+  projectReorderRepository,
+  skillReorderRepository,
+  experienceReorderRepository,
+  educationReorderRepository,
+  certificateReorderRepository,
+  achievementReorderRepository,
+  socialLinkReorderRepository,
   getProfile,
   updateProfile,
   listContactMessages,
@@ -266,6 +273,15 @@ export const adminService = {
   createSocialLink: socialLinkService.create,
   updateSocialLink: socialLinkService.update,
   deleteSocialLink: socialLinkService.remove,
+
+  // Reordering (transactional)
+  reorderProjects: (items) => projectReorderRepository.reorder(items),
+  reorderSkills: (items) => skillReorderRepository.reorder(items),
+  reorderExperience: (items) => experienceReorderRepository.reorder(items),
+  reorderEducation: (items) => educationReorderRepository.reorder(items),
+  reorderCertificates: (items) => certificateReorderRepository.reorder(items),
+  reorderAchievements: (items) => achievementReorderRepository.reorder(items),
+  reorderSocialLinks: (items) => socialLinkReorderRepository.reorder(items),
 
   // Profile (single record)
   getProfile: () => getProfile(),

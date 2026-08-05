@@ -20,6 +20,22 @@ const buildMeta = (req) => ({
  * @param {object} service - Admin service slice (list/get/create/update/delete).
  * @param {string} resourceName - Human-readable resource name.
  */
+/**
+ * Creates a generic reorder handler bound to a service reorder method.
+ * @param {(items: Array<{id: string, displayOrder: number}>) => Promise<void>} reorderFn
+ * @param {string} resourceName - Human-readable resource name.
+ */
+const createReorderHandler = (reorderFn, resourceName) =>
+  asyncHandler(async (req, res) => {
+    await reorderFn(req.body.items);
+    new ApiResponse(
+      HTTP_STATUS.OK,
+      `${resourceName} reordered successfully`,
+      null,
+      buildMeta(req),
+    ).send(res);
+  });
+
 const createResourceController = (service, resourceName) => ({
   list: asyncHandler(async (req, res) => {
     const data = await service.list();
@@ -77,6 +93,8 @@ const createResourceController = (service, resourceName) => ({
       buildMeta(req),
     ).send(res);
   }),
+
+  reorder: createReorderHandler(service.reorder, resourceName),
 });
 
 const projects = createResourceController(
@@ -86,6 +104,7 @@ const projects = createResourceController(
     create: (form) => adminService.createProject(form),
     update: (id, form) => adminService.updateProject(id, form),
     remove: (id) => adminService.deleteProject(id),
+    reorder: (items) => adminService.reorderProjects(items),
   },
   'Project',
 );
@@ -97,6 +116,7 @@ const skills = createResourceController(
     create: (form) => adminService.createSkill(form),
     update: (id, form) => adminService.updateSkill(id, form),
     remove: (id) => adminService.deleteSkill(id),
+    reorder: (items) => adminService.reorderSkills(items),
   },
   'Skill',
 );
@@ -108,6 +128,7 @@ const experience = createResourceController(
     create: (form) => adminService.createExperience(form),
     update: (id, form) => adminService.updateExperience(id, form),
     remove: (id) => adminService.deleteExperience(id),
+    reorder: (items) => adminService.reorderExperience(items),
   },
   'Experience',
 );
@@ -119,6 +140,7 @@ const education = createResourceController(
     create: (form) => adminService.createEducation(form),
     update: (id, form) => adminService.updateEducation(id, form),
     remove: (id) => adminService.deleteEducation(id),
+    reorder: (items) => adminService.reorderEducation(items),
   },
   'Education',
 );
@@ -130,6 +152,7 @@ const certificates = createResourceController(
     create: (form) => adminService.createCertificate(form),
     update: (id, form) => adminService.updateCertificate(id, form),
     remove: (id) => adminService.deleteCertificate(id),
+    reorder: (items) => adminService.reorderCertificates(items),
   },
   'Certificate',
 );
@@ -141,6 +164,7 @@ const achievements = createResourceController(
     create: (form) => adminService.createAchievement(form),
     update: (id, form) => adminService.updateAchievement(id, form),
     remove: (id) => adminService.deleteAchievement(id),
+    reorder: (items) => adminService.reorderAchievements(items),
   },
   'Achievement',
 );
@@ -152,6 +176,7 @@ const socialLinks = createResourceController(
     create: (form) => adminService.createSocialLink(form),
     update: (id, form) => adminService.updateSocialLink(id, form),
     remove: (id) => adminService.deleteSocialLink(id),
+    reorder: (items) => adminService.reorderSocialLinks(items),
   },
   'Social link',
 );

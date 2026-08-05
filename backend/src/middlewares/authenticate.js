@@ -60,4 +60,3 @@ const authenticate = async (req, _res, next) => {
 };
 
 export default authenticate;
-

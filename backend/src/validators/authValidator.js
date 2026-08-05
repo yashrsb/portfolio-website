@@ -10,10 +10,7 @@ export const loginValidator = [
     .isEmail()
     .withMessage('A valid email address is required.')
     .normalizeEmail(),
-  body('password')
-    .isString()
-    .notEmpty()
-    .withMessage('Password is required.'),
+  body('password').isString().notEmpty().withMessage('Password is required.'),
 ];
 
 /**
@@ -22,4 +19,3 @@ export const loginValidator = [
  * This export exists so the route can keep its guard consistent with others.
  */
 export const refreshValidator = [];
-

@@ -48,6 +48,51 @@ router.get('/', (req, res) => {
       path: '/contact',
       description: 'Submit a contact message (mock)',
     },
+    {
+      method: 'GET',
+      path: '/admin/stats',
+      description: 'Dashboard stats (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/projects',
+      description: 'Admin project CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/skills',
+      description: 'Admin skill CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/experience',
+      description: 'Admin experience CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/education',
+      description: 'Admin education CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/certificates',
+      description: 'Admin certificate CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/achievements',
+      description: 'Admin achievement CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/social-links',
+      description: 'Admin social link CRUD + reorder (authenticated)',
+    },
+    {
+      method: 'GET|PUT|DELETE',
+      path: '/admin/contact-messages',
+      description: 'Admin contact message management (authenticated)',
+    },
   ];
   const data = {
     version: env.apiVersion,
