@@ -60,6 +60,39 @@ export const updateContactMessage = (id, data) =>
 export const removeContactMessage = (id) =>
   prisma.contactMessage.delete({ where: { id } });
 
+/**
+ * Creates a transactional reorder repository for a Prisma model.
+ * Updates displayOrder for every item in a single DB transaction.
+ * @param {string} model - Prisma model name (lowercase).
+ */
+const createReorderRepository = (model) => ({
+  /**
+   * @param {Array<{id: string, displayOrder: number}>} items - Ordered items.
+   */
+  reorder: async (items) => {
+    await prisma.$transaction(
+      items.map(({ id, displayOrder }) =>
+        prisma[model].update({
+          where: { id },
+          data: { displayOrder },
+        }),
+      ),
+    );
+  },
+});
+
+export const projectReorderRepository = createReorderRepository('project');
+export const skillReorderRepository = createReorderRepository('skill');
+export const experienceReorderRepository =
+  createReorderRepository('experience');
+export const educationReorderRepository = createReorderRepository('education');
+export const certificateReorderRepository =
+  createReorderRepository('certificate');
+export const achievementReorderRepository =
+  createReorderRepository('achievement');
+export const socialLinkReorderRepository =
+  createReorderRepository('socialLink');
+
 export const getAdminStats = async () => {
   const [
     projects,

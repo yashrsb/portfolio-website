@@ -108,7 +108,10 @@ export const refresh = async (rawToken) => {
   if (stored.revokedAt) {
     // Token reuse detected — revoke the whole family.
     await revokeAllUserTokens(stored.userId);
-    throw new ApiError(401, 'Refresh token reuse detected. Please log in again.');
+    throw new ApiError(
+      401,
+      'Refresh token reuse detected. Please log in again.',
+    );
   }
 
   if (stored.expiresAt < new Date()) {
@@ -170,4 +173,3 @@ export const getCurrentUser = async (userId) => {
   }
   return toPublicUser(user);
 };
-

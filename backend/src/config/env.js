@@ -67,9 +67,11 @@ export const env = {
   frontendUrl: process.env.FRONTEND_URL || DEFAULT_FRONTEND_URL,
   apiVersion: 'v1',
   auth: {
-    accessTokenTtl: process.env.JWT_ACCESS_SECRET_TTL || DEFAULT_ACCESS_TOKEN_TTL,
+    accessTokenTtl:
+      process.env.JWT_ACCESS_SECRET_TTL || DEFAULT_ACCESS_TOKEN_TTL,
     refreshTokenTtlDays: Number.parseInt(
-      process.env.JWT_REFRESH_SECRET_TTL_DAYS || String(DEFAULT_REFRESH_TOKEN_TTL_DAYS),
+      process.env.JWT_REFRESH_SECRET_TTL_DAYS ||
+        String(DEFAULT_REFRESH_TOKEN_TTL_DAYS),
       10,
     ),
     refreshTokenCookieName:
