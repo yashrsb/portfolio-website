@@ -5,14 +5,16 @@ import Badge from '../../components/common/Badge/Badge';
 import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
+import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
 import TextArea from '../../components/form/TextArea/TextArea';
 import Checkbox from '../../components/form/Checkbox/Checkbox';
-import { useCrud } from '../../hooks/useCrud';
-import { experience as initialExperience } from '../../data/mockData';
+import { useResource } from '../../hooks/useResource';
+import { useDirtyForm } from '../../hooks/useDirtyForm';
+import { experienceService } from '../../services';
 import { isRequired } from '../../utils/validation';
-import { useToast } from '../../context/ToastContext';
 import styles from './ExperiencePage.module.css';
 
 const EMPTY_FORM = {
@@ -26,18 +28,30 @@ const EMPTY_FORM = {
 };
 
 /**
- * ExperiencePage — CRUD UI for work experience entries (mock handlers).
+ * ExperiencePage — CRUD UI for work experience entries backed by
+ * experienceService.
  */
 function ExperiencePage() {
-  const { items, createItem, updateItem, deleteItem, getItem } =
-    useCrud(initialExperience);
-  const { showToast } = useToast();
+  const {
+    data: items,
+    loading,
+    error,
+    create,
+    update,
+    remove,
+    reorder,
+    refresh,
+    clearError,
+  } = useResource(experienceService);
+  const { markDirty, resetDirty } = useDirtyForm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const openCreate = () => {
     setEditingId(null);
@@ -46,10 +60,9 @@ function ExperiencePage() {
     setModalOpen(true);
   };
 
-  const openEdit = (id) => {
-    const item = getItem(id);
+  const openEdit = (item) => {
     if (!item) return;
-    setEditingId(id);
+    setEditingId(item.id);
     setForm({
       company: item.company,
       role: item.role,
@@ -68,10 +81,12 @@ function ExperiencePage() {
     const nextValue = type === 'checkbox' ? checked : value;
     setForm((prev) => ({ ...prev, [name]: nextValue }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    markDirty();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
 
     const validationErrors = {};
     if (isRequired(form.company))
@@ -90,22 +105,40 @@ function ExperiencePage() {
       displayOrder: Number(form.displayOrder) || 0,
     };
 
-    if (editingId) {
-      updateItem(editingId, payload);
-      showToast('success', 'Experience updated successfully.');
-    } else {
-      createItem(payload);
-      showToast('success', 'Experience created successfully.');
-    }
+    setSubmitting(true);
+    const result = editingId
+      ? await update(editingId, payload)
+      : await create(payload);
 
-    setModalOpen(false);
+    if (result) {
+      resetDirty();
+      setModalOpen(false);
+      setEditingId(null);
+    }
+    setSubmitting(false);
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteItem(deleteTarget.id);
-    showToast('success', 'Experience deleted successfully.');
-    setDeleteTarget(null);
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    const ok = await remove(deleteTarget.id);
+    setDeleting(false);
+    if (ok) setDeleteTarget(null);
+  };
+
+  const handleMove = async (item, direction) => {
+    const index = items.findIndex((i) => i.id === item.id);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= items.length) return;
+
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    const reordered = next.map((i, idx) => ({
+      id: i.id,
+      displayOrder: idx + 1,
+    }));
+    await reorder(reordered);
   };
 
   const formatDate = (value) => {
@@ -141,15 +174,33 @@ function ExperiencePage() {
       key: 'actions',
       label: 'Actions',
       type: 'action',
-      render: (row) => (
+      render: (row, idx) => (
         <div className={styles.actions}>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openEdit(row.id)}
+            onClick={() => openEdit(row)}
             ariaLabel={`Edit ${row.company}`}
           >
             Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'up')}
+            disabled={idx === 0}
+            ariaLabel={`Move ${row.company} up`}
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'down')}
+            disabled={idx === items.length - 1}
+            ariaLabel={`Move ${row.company} down`}
+          >
+            ↓
           </Button>
           <Button
             variant="ghost"
@@ -170,15 +221,37 @@ function ExperiencePage() {
 
       <div className={styles.header}>
         <h2 className={styles.heading}>Experience</h2>
-        <Button onClick={openCreate}>+ New Experience</Button>
+        <div className={styles.actions}>
+          <Button variant="outline" size="sm" onClick={refresh}>
+            Refresh
+          </Button>
+          <Button onClick={openCreate}>+ New Experience</Button>
+        </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={items}
-        caption="Work experience"
-        emptyMessage="No experience entries yet."
-      />
+      {error && (
+        <ApiErrorBanner
+          error={error}
+          onRetry={() => {
+            if (error.isNetworkError) {
+              refresh();
+            } else {
+              clearError();
+            }
+          }}
+        />
+      )}
+
+      {loading ? (
+        <SkeletonTable rows={4} columns={6} />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={items}
+          caption="Work experience"
+          emptyMessage="No experience entries yet."
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}
@@ -198,6 +271,7 @@ function ExperiencePage() {
               value={form.company}
               onChange={handleChange}
               error={errors.company}
+              disabled={submitting}
             />
           </FormField>
 
@@ -213,6 +287,7 @@ function ExperiencePage() {
               value={form.role}
               onChange={handleChange}
               error={errors.role}
+              disabled={submitting}
             />
           </FormField>
 
@@ -230,6 +305,7 @@ function ExperiencePage() {
                 value={form.startDate}
                 onChange={handleChange}
                 error={errors.startDate}
+                disabled={submitting}
               />
             </FormField>
 
@@ -246,7 +322,7 @@ function ExperiencePage() {
                 value={form.endDate}
                 onChange={handleChange}
                 error={errors.endDate}
-                disabled={form.current}
+                disabled={form.current || submitting}
               />
             </FormField>
           </div>
@@ -257,6 +333,7 @@ function ExperiencePage() {
             checked={form.current}
             onChange={handleChange}
             label="I currently work here"
+            disabled={submitting}
           />
 
           <FormField label="Description" htmlFor="exp-description">
@@ -266,6 +343,7 @@ function ExperiencePage() {
               value={form.description}
               onChange={handleChange}
               rows={4}
+              disabled={submitting}
             />
           </FormField>
 
@@ -277,6 +355,7 @@ function ExperiencePage() {
               value={form.displayOrder}
               onChange={handleChange}
               min={0}
+              disabled={submitting}
             />
           </FormField>
 
@@ -285,10 +364,11 @@ function ExperiencePage() {
               type="button"
               variant="outline"
               onClick={() => setModalOpen(false)}
+              disabled={submitting}
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" loading={submitting} disabled={submitting}>
               {editingId ? 'Save Changes' : 'Create Experience'}
             </Button>
           </div>

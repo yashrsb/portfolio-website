@@ -6,14 +6,17 @@ import Button from '../../components/common/Button/Button';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
 import Checkbox from '../../components/form/Checkbox/Checkbox';
+import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import { isEmail, isRequired } from '../../utils/validation';
+import { normalizeApiError } from '../../utils/apiErrors';
 import styles from './LoginPage.module.css';
 
 /**
- * LoginPage — mock authentication form (UI only for Phase 7).
+ * LoginPage — real authentication form.
  *
- * Accepts any valid-looking email/password combination.
- * Real authentication arrives in Phase 8.
+ * Submits credentials via authService.login, shows loading state, surfaces
+ * server/network errors, and redirects to the originally requested route
+ * (or the dashboard) on success.
  */
 function LoginPage() {
   const { isAuthenticated, login } = useAuth();
@@ -27,8 +30,15 @@ function LoginPage() {
     remember: false,
   });
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const from = location.state?.from || '/dashboard';
+  // `from` may be a path string or a location object (from ProtectedRoute).
+  const fromState = location.state?.from;
+  const from =
+    typeof fromState === 'string'
+      ? fromState
+      : fromState?.pathname || '/dashboard';
 
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
@@ -39,10 +49,13 @@ function LoginPage() {
     const nextValue = type === 'checkbox' ? checked : value;
     setValues((prev) => ({ ...prev, [name]: nextValue }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    setApiError(null);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (submitting) return;
 
     const validationErrors = {};
     if (!isEmail(values.email)) {
@@ -55,14 +68,26 @@ function LoginPage() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    // Mock login — accepts any credentials in Phase 7.
-    login(values.email, values.password, values.remember);
-    showToast('success', 'Welcome back! Signed in successfully.');
-    navigate(from, { replace: true });
-  };
+    setSubmitting(true);
+    setApiError(null);
 
-  const handleForgotPassword = () => {
-    showToast('info', 'Password reset is coming in a future phase.');
+    try {
+      await login(values.email, values.password, values.remember);
+      showToast('success', 'Welcome back! Signed in successfully.');
+      navigate(from, { replace: true });
+    } catch (error) {
+      const normalized = normalizeApiError(error);
+      setApiError(normalized);
+      if (normalized.fieldErrors.length > 0) {
+        const fieldMap = {};
+        normalized.fieldErrors.forEach((fe) => {
+          fieldMap[fe.field] = fe.message;
+        });
+        setErrors(fieldMap);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -75,6 +100,8 @@ function LoginPage() {
           <h1 className={styles.title}>Portfolio Admin</h1>
           <p className={styles.subtitle}>Sign in to manage your content</p>
         </div>
+
+        {apiError && <ApiErrorBanner error={apiError} />}
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <FormField
@@ -92,6 +119,7 @@ function LoginPage() {
               placeholder="admin@example.com"
               error={errors.email}
               autoComplete="email"
+              disabled={submitting}
             />
           </FormField>
 
@@ -110,6 +138,7 @@ function LoginPage() {
               placeholder="••••••••"
               error={errors.password}
               autoComplete="current-password"
+              disabled={submitting}
             />
           </FormField>
 
@@ -120,24 +149,20 @@ function LoginPage() {
               checked={values.remember}
               onChange={handleChange}
               label="Remember me"
+              disabled={submitting}
             />
-            <button
-              type="button"
-              className={styles.forgotLink}
-              onClick={handleForgotPassword}
-            >
-              Forgot password?
-            </button>
           </div>
 
-          <Button type="submit" size="lg" className={styles.submit}>
-            Sign In
+          <Button
+            type="submit"
+            size="lg"
+            className={styles.submit}
+            loading={submitting}
+            disabled={submitting}
+          >
+            {submitting ? 'Signing in…' : 'Sign In'}
           </Button>
         </form>
-
-        <p className={styles.hint}>
-          Phase 7 mock login — any email and password will work.
-        </p>
       </div>
     </div>
   );
