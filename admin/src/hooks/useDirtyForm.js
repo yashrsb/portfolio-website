@@ -25,8 +25,10 @@ const UNLOAD_MESSAGE =
  * }}
  */
 function useDirtyForm(options = {}) {
-  const { message = 'You have unsaved changes. Discard them?', enabled = true } =
-    options;
+  const {
+    message = 'You have unsaved changes. Discard them?',
+    enabled = true,
+  } = options;
 
   const [isDirty, setIsDirty] = useState(false);
   const [blockNavigation, setBlockNavigation] = useState(false);

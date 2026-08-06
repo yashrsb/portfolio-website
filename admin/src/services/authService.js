@@ -1,5 +1,6 @@
 import apiClient from './api/apiClient';
 import { setAccessToken, clearSession } from './tokenStore';
+import { AUTH_ENDPOINTS } from '../constants/api';
 
 /**
  * Authentication service — exposes business methods for the auth lifecycle.
@@ -14,7 +15,10 @@ import { setAccessToken, clearSession } from './tokenStore';
  * @returns {Promise<import('./types.js').User>} The authenticated user.
  */
 export const login = async (email, password) => {
-  const { data } = await apiClient.post('/auth/login', { email, password });
+  const { data } = await apiClient.post(AUTH_ENDPOINTS.login, {
+    email,
+    password,
+  });
   setAccessToken(data.data.accessToken);
   return data.data.user;
 };
@@ -25,7 +29,7 @@ export const login = async (email, password) => {
  */
 export const logout = async () => {
   try {
-    await apiClient.post('/auth/logout');
+    await apiClient.post(AUTH_ENDPOINTS.logout);
   } finally {
     clearSession();
   }
@@ -36,7 +40,7 @@ export const logout = async () => {
  * @returns {Promise<import('./types.js').User>} The current user.
  */
 export const me = async () => {
-  const { data } = await apiClient.get('/auth/me');
+  const { data } = await apiClient.get(AUTH_ENDPOINTS.me);
   return data.data.user;
 };
 

@@ -1,4 +1,5 @@
 import apiClient from './api/apiClient';
+import { ADMIN_ENDPOINTS } from '../constants/api';
 
 /**
  * Dashboard service — aggregates admin statistics and profile data.
@@ -10,7 +11,7 @@ import apiClient from './api/apiClient';
  * @returns {Promise<object>} Stats object.
  */
 export const getStats = async () => {
-  const { data } = await apiClient.get('/admin/stats');
+  const { data } = await apiClient.get(ADMIN_ENDPOINTS.stats);
   return data.data;
 };
 
@@ -19,7 +20,7 @@ export const getStats = async () => {
  * @returns {Promise<object>} Profile object.
  */
 export const getProfile = async () => {
-  const { data } = await apiClient.get('/admin/profile');
+  const { data } = await apiClient.get(ADMIN_ENDPOINTS.profile);
   return data.data;
 };
 
@@ -29,7 +30,7 @@ export const getProfile = async () => {
  * @returns {Promise<object>} The updated profile.
  */
 export const updateProfile = async (payload) => {
-  const { data } = await apiClient.put('/admin/profile', payload);
+  const { data } = await apiClient.put(ADMIN_ENDPOINTS.profile, payload);
   return data.data;
 };
 

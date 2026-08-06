@@ -1,4 +1,5 @@
 import apiClient from './api/apiClient';
+import { ADMIN_ENDPOINTS } from '../constants/api';
 
 /**
  * Resume service — manages the single resume file.
@@ -10,7 +11,7 @@ import apiClient from './api/apiClient';
  * @returns {Promise<object|null>} Resume metadata or null when none exists.
  */
 export const getResume = async () => {
-  const { data } = await apiClient.get('/admin/resume');
+  const { data } = await apiClient.get(ADMIN_ENDPOINTS.resume);
   return data.data;
 };
 
@@ -22,7 +23,7 @@ export const getResume = async () => {
 export const uploadResume = async (file) => {
   const formData = new FormData();
   formData.append('resume', file);
-  const { data } = await apiClient.post('/admin/resume', formData, {
+  const { data } = await apiClient.post(ADMIN_ENDPOINTS.resume, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data.data;
@@ -36,7 +37,7 @@ export const uploadResume = async (file) => {
 export const replaceResume = async (file) => {
   const formData = new FormData();
   formData.append('resume', file);
-  const { data } = await apiClient.put('/admin/resume', formData, {
+  const { data } = await apiClient.put(ADMIN_ENDPOINTS.resume, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data.data;
@@ -47,7 +48,7 @@ export const replaceResume = async (file) => {
  * @returns {Promise<void>}
  */
 export const deleteResume = async () => {
-  await apiClient.delete('/admin/resume');
+  await apiClient.delete(ADMIN_ENDPOINTS.resume);
 };
 
 export default { getResume, uploadResume, replaceResume, deleteResume };

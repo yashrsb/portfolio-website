@@ -23,7 +23,8 @@ const ACCESS_TOKEN_KEY = 'portfolio_access_token';
  * Returns the current access token, falling back to a cached value.
  * @returns {string|null} The access token.
  */
-export const getAccessToken = () => accessToken || sessionStorage.getItem(ACCESS_TOKEN_KEY);
+export const getAccessToken = () =>
+  accessToken || sessionStorage.getItem(ACCESS_TOKEN_KEY);
 
 /**
  * Stores the access token in memory and sessionStorage.
