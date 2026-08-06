@@ -1,0 +1,346 @@
+# =============================================================================
+# Portfolio Data — Single Source of Truth
+# =============================================================================
+# Edit this file to update your portfolio content.
+# Run `npm run import:portfolio` to sync changes to the database.
+#
+# Guidelines:
+#   - Use `key: value` for scalars
+#   - Use `- item` for lists
+#   - Use `|` for multiline strings
+#   - Use `null` for empty optional fields
+#   - Dates use "Mon YYYY" format (e.g., "Jan 2022")
+#   - Proficiency is 0–100
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Profile
+# ---------------------------------------------------------------------------
+profile:
+  name: "Yash Raj Singh Bisht"
+  headline: "Senior Software Engineer"
+  tagline: "Building scalable backend systems and cloud-native applications with modern technologies."
+  bio: |
+    As a Senior Software Engineer with over 5 years of professional experience,
+    I specialize in designing and building scalable, high-performance backend systems
+    and cloud-native applications. My expertise includes Node.js, TypeScript,
+    PostgreSQL, microservices, event-driven architecture, and AWS.
+
+    I enjoy solving complex engineering challenges, optimizing system performance,
+    and building reliable software that scales. Passionate about continuous learning,
+    I constantly explore modern technologies and best practices to deliver robust,
+    maintainable, and impactful solutions.
+  interests:
+    - Continuous Learning
+    - System Design
+    - Cloud Technologies
+    - Open-Source Software
+    - Personal Development
+    - Reading Technical Blogs
+  goals:
+    - Become a Staff/Principal Software Engineer
+    - Build highly scalable distributed systems serving millions of users
+    - Contribute to impactful open-source projects
+    - Deepen expertise in cloud infrastructure and platform engineering
+    - Mentor developers and lead engineering initiatives
+  strengths:
+    - Scalable Backend Development
+    - Distributed Systems
+    - Microservices Architecture
+    - API Design (REST, GraphQL, gRPC)
+    - Database Performance Optimization
+    - System Design
+  profileImageUrl: "https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/yash-ghibli_vlahxv"
+  stats:
+    experience: "5+"
+    projects: 10
+    technologies: 25
+    openSourceContributions: 5
+  contact:
+    email: "yrajsingh0001@gmail.com"
+    phone: "+91-9278557002"
+    location: "Delhi, India"
+    linkedin: "https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/"
+    github: "https://github.com/yashrsb"
+  resumeUrl: "https://github.com/user-attachments/files/30660899/Yash-Resume.pdf"
+
+# ---------------------------------------------------------------------------
+# Work Experience
+# ---------------------------------------------------------------------------
+experience:
+  - company: "thinkBridge"
+    companyWebsite: "https://www.thinkbridge.com/"
+    role: "Senior Software Engineer – Backend"
+    startDate: "Jul 2025"
+    endDate: null
+    current: true
+    location: "India (Remote)"
+    description: |
+      Working as a Senior Backend Engineer on scalable transportation and
+      ride-assignment systems. Focused on improving system performance, database
+      optimization, production reliability, and distributed backend services for
+      high-volume trip assignment.
+    technologies:
+      - Node.js
+      - TypeScript
+      - SQL Server
+      - PostgreSQL
+      - Queue-based Systems
+      - Microservices
+      - gRPC
+      - AWS
+      - Git
+    responsibilities:
+      - Designed and implemented scalable backend services for automated trip assignment
+      - Optimized SQL Server queries and stored procedures for high-volume production workloads
+      - Debugged critical production incidents and performed root cause analysis
+      - Collaborated with product managers and stakeholders to deliver business-critical enhancements
+      - Improved reliability and scalability of queue-based processing systems
+    achievements:
+      - Migrated auto-assignment of trips from SQL Server Agents to scalable backend queue-based system, improving processing efficiency by 50%
+      - Implemented Fraud, Waste, and Abuse (FWA) safeguards within SQL-based auto-assignment engine, reducing policy violations by 70%
+      - Resolved critical Kafka producer issue that prevented vendor from receiving reservation updates, reducing message delivery failures by 90%
+
+  - company: "Compliance Innovation"
+    companyWebsite: "https://complianceinnovation.ai/"
+    role: "Software Engineer"
+    startDate: "Jul 2024"
+    endDate: "Jul 2025"
+    current: false
+    location: "India (Remote)"
+    description: |
+      Developed fintech and compliance solutions from the ground up, including
+      cloud deployment, authentication, document processing, and e-signature workflows.
+    technologies:
+      - Node.js
+      - TypeScript
+      - PostgreSQL
+      - MongoDB
+      - Google APIs
+      - REST APIs
+      - Docker
+      - Git
+    responsibilities:
+      - Built backend services and platform features for compliance applications
+      - Deployed production applications on virtual machines with custom domains
+      - Integrated third-party APIs for authentication and document processing
+      - Improved reliability of document upload and e-signature workflows
+    achievements:
+      - Replaced inefficient polling with GraphQL subscriptions in login flow, reducing server load by 45%
+      - Implemented rotating QR code functionality for secure verifiable credential generation, reducing credential setup failures by 40%
+      - Resolved critical OAuth session issue in OIDC flow, improving signup success rates by 85%
+      - Optimized Pipelines microservice backend with decoupled scalable modules, boosting performance by 40%
+
+  - company: "Kampd"
+    companyWebsite: "https://www.kampd.com/"
+    role: "Software Engineer"
+    startDate: "Nov 2021"
+    endDate: "Jul 2024"
+    current: false
+    location: "India"
+    description: |
+      Worked on scalable backend services, real-time messaging, and performance
+      optimization for a customer engagement platform.
+    technologies:
+      - Node.js
+      - TypeScript
+      - MongoDB
+      - PostgreSQL
+      - Kafka
+      - gRPC
+      - Firebase Cloud Messaging
+      - AWS
+      - Git
+    responsibilities:
+      - Developed backend APIs and microservices
+      - Built real-time notification systems
+      - Improved service communication and system performance
+      - Integrated cloud messaging services
+    achievements:
+      - Migrated services by replacing Kafka with gRPC for read requests, reducing latency by 70%
+      - Enhanced Twilio messaging feature, reducing unauthorized access attempts by 80%
+      - Implemented push notifications using Firebase Cloud Messaging, enhancing user engagement by 25%
+      - Integrated OpenTelemetry and Zipkin for comprehensive application monitoring, enabling 30% faster issue resolution
+
+# ---------------------------------------------------------------------------
+# Projects
+# ---------------------------------------------------------------------------
+projects:
+  - slug: "portfolio-website"
+    title: "Personal Portfolio Website"
+    description: "A production-ready personal portfolio website built with React, Express, and PostgreSQL. Features a public frontend, REST API, admin dashboard, and Markdown-based content import system."
+    summary: "Full-stack portfolio with admin dashboard and content import from YAML"
+    status: "live"
+    featured: true
+    tags:
+      - React
+      - Node.js
+      - Express
+      - PostgreSQL
+      - Prisma
+      - Docker
+
+  - slug: "auto-assignment-engine"
+    title: "Automated Trip Assignment Engine"
+    description: "Scalable backend system for automated trip assignment in transportation and ride-sharing platforms. Replaced legacy SQL Server Agent jobs with a queue-based microservice architecture."
+    summary: "High-throughput trip assignment system for transportation platforms"
+    status: "live"
+    featured: true
+    tags:
+      - Node.js
+      - TypeScript
+      - SQL Server
+      - Kafka
+      - gRPC
+      - AWS
+
+# ---------------------------------------------------------------------------
+# Skills
+# ---------------------------------------------------------------------------
+skills:
+  - name: "JavaScript"
+    category: "languages"
+    proficiency: 95
+    icon: "🟨"
+  - name: "TypeScript"
+    category: "languages"
+    proficiency: 90
+    icon: "🔷"
+  - name: "Python"
+    category: "languages"
+    proficiency: 70
+    icon: "🐍"
+  - name: "SQL"
+    category: "languages"
+    proficiency: 85
+    icon: "🗃️"
+  - name: "Golang"
+    category: "languages"
+    proficiency: 50
+    icon: "🐹"
+  - name: "React"
+    category: "frontend"
+    proficiency: 80
+    icon: "⚛️"
+  - name: "Node.js"
+    category: "backend"
+    proficiency: 95
+    icon: "💚"
+  - name: "Express"
+    category: "backend"
+    proficiency: 90
+    icon: "🚂"
+  - name: "NestJS"
+    category: "backend"
+    proficiency: 70
+    icon: "🏗️"
+  - name: "REST APIs"
+    category: "backend"
+    proficiency: 95
+    icon: "🔌"
+  - name: "GraphQL"
+    category: "backend"
+    proficiency: 80
+    icon: "◈"
+  - name: "gRPC"
+    category: "backend"
+    proficiency: 75
+    icon: "🔗"
+  - name: "PostgreSQL"
+    category: "databases"
+    proficiency: 85
+    icon: "🐘"
+  - name: "MongoDB"
+    category: "databases"
+    proficiency: 80
+    icon: "🍃"
+  - name: "SQL Server"
+    category: "databases"
+    proficiency: 80
+    icon: "🗄️"
+  - name: "Redis"
+    category: "databases"
+    proficiency: 70
+    icon: "🔴"
+  - name: "AWS"
+    category: "cloud"
+    proficiency: 80
+    icon: "☁️"
+  - name: "Docker"
+    category: "cloud"
+    proficiency: 85
+    icon: "🐳"
+  - name: "Kubernetes"
+    category: "cloud"
+    proficiency: 60
+    icon: "☸️"
+  - name: "CI/CD"
+    category: "cloud"
+    proficiency: 85
+    icon: "🔄"
+  - name: "Git"
+    category: "tools"
+    proficiency: 95
+    icon: "📦"
+  - name: "Apache Kafka"
+    category: "tools"
+    proficiency: 80
+    icon: "📨"
+  - name: "OpenTelemetry"
+    category: "tools"
+    proficiency: 75
+    icon: "📊"
+  - name: "System Design"
+    category: "tools"
+    proficiency: 85
+    icon: "🏛️"
+
+# ---------------------------------------------------------------------------
+# Education
+# ---------------------------------------------------------------------------
+education:
+  - institution: "A.K.T.U. University, Lucknow, U.P."
+    degree: "Bachelor of Technology"
+    fieldOfStudy: "Computer Science and Engineering"
+    startYear: 2018
+    endYear: 2022
+    grade: "8.76"
+    highlights:
+      - Computer Science and Engineering
+
+# ---------------------------------------------------------------------------
+# Certificates
+# ---------------------------------------------------------------------------
+certificates:
+  - name: "The Complete Web Developer Masterclass: Beginner To Advanced"
+    issuer: "UDEMY"
+    date: "Oct 2021"
+    url: "https://www.udemy.com/certificate/UC-f8b33eb8-07c1-4848-844e-c9655ca16391/"
+  - name: "Everyday AI Concepts"
+    issuer: "LINKEDIN LEARNING"
+    date: "May 2026"
+    url: "https://www.linkedin.com/learning/certificates/34d91152eca10d4ee05592004cf5a042b8ac0b05530de42422e9e51456b5ff7e"
+  - name: "Introduction to Cloud Computing on AWS for Beginners [2026]"
+    issuer: "Udemy"
+    date: "Apr 2026"
+    url: "https://www.udemy.com/certificate/UC-b6501459-8015-42a0-aa85-474dc00dcadf/"
+
+# ---------------------------------------------------------------------------
+# Achievements
+# ---------------------------------------------------------------------------
+achievements:
+  - title: "Engineering Excellence"
+    organization: "thinkBridge"
+    year: 2025
+    description: "Recognized for outstanding contributions to platform architecture, production reliability, and team mentorship."
+
+# ---------------------------------------------------------------------------
+# Social Links
+# ---------------------------------------------------------------------------
+socialLinks:
+  - platform: "github"
+    url: "https://github.com/yashrsb"
+  - platform: "linkedin"
+    url: "https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/"
+  - platform: "leetcode"
+    url: "https://leetcode.com/u/YRaj001/"

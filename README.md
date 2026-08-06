@@ -1,169 +1,182 @@
 # Portfolio
 
-A modern, production-ready personal portfolio website showcasing experience, projects, skills, and blog.
+A modern, production-ready personal portfolio website showcasing experience,
+projects, skills, and blog — with an admin dashboard for content management.
+
+## Overview
+
+This repository is a full-stack monorepo with three applications:
+
+- **frontend** — the public portfolio website (React + Vite, port 5173)
+- **admin** — the admin dashboard for content management (React + Vite, port 5174)
+- **backend** — the Express API + PostgreSQL database (port 5000)
+
+## Features
+
+- Public portfolio pages: Home, About, Projects, Skills, Experience, Education, Contact
+- Dark/light theme with design tokens and reduced-motion support
+- Admin dashboard with role-based access (`ADMIN`, `EDITOR`)
+- Full authentication: login, refresh-token rotation, logout, reuse detection
+- CRUD + reorder for Projects, Skills, Experience, Education, Certificates, Achievements, Social Links
+- Contact message submission and management
+- Resume upload / replace / delete / download (local file storage)
+- Dashboard statistics
+- Versioned REST API with a consistent response envelope
+- Standardized error handling, request IDs, rate limiting, and security headers
 
 ## Tech Stack
 
-### Frontend
+### Frontend / Admin
 
 - **React 18** — UI library
-- **Vite** — Build tool and dev server
-- **React Router 6** — Client-side routing
-- **CSS** — Styling (no framework)
+- **Vite** — build tool and dev server
+- **React Router 6** — client-side routing
+- **CSS Modules** — component-scoped styling
+- **Axios** (admin) — HTTP client with retry/cache helpers
 
 ### Backend
 
-- **Node.js** — JavaScript runtime
-- **Express** — Web framework
-- **Helmet** — Security headers
-- **CORS** — Cross-origin resource sharing
-- **Compression** — gzip response compression
-- **Morgan** — HTTP request logging
-- **express-rate-limit** — API rate limiting
-- **express-validator** — Request validation
-- **dotenv** — Environment variable loading
-
-### Admin Dashboard
-
-- **React 18** — UI library
-- **Vite** — Build tool and dev server
-- **React Router 6** — Client-side routing
-- **CSS Modules** — Component-scoped styling
-- **Dark mode** — Theme toggle with design tokens
+- **Node.js** & **Express** — HTTP server
+- **PostgreSQL** — database
+- **Prisma 7** — ORM and migrations
+- **JWT** — access + refresh tokens
+- **bcryptjs** — password hashing
+- **helmet, cors, compression, express-rate-limit** — security & performance
+- **express-validator** — request validation
+- **multer** — file uploads (resume)
+- **zod / yaml** — portfolio data import validation
 
 ### Tooling
 
-- **ESLint** — Code linting
-- **Prettier** — Code formatting
-- **npm** — Package manager
+- **ESLint** — linting (`--max-warnings 0`)
+- **Prettier** — formatting
+- **npm** — package manager
+
+## Architecture
+
+The backend follows a clean layered architecture:
+
+```
+Request → Middleware → Routes → Validators → Controllers → Services → Repositories → Database
+                                                                              └→ StorageService
+```
+
+See [docs/architecture.md](docs/architecture.md) for the full design,
+including the authentication flow, resume management, and CRUD architecture.
 
 ## Folder Structure
 
 ```
 portfolio/
-│
-├── frontend/               # Public React application
-│   ├── public/             # Static assets
-│   ├── src/                # Application source code
-│   │   ├── App.jsx         # Root component with routing
-│   │   ├── main.jsx        # Application entry point
-│   │   └── index.css       # Global styles
-│   ├── index.html          # HTML template
-│   ├── vite.config.js      # Vite configuration
-│   ├── .eslintrc.cjs       # ESLint configuration
-│   └── package.json        # Frontend dependencies
-│
-├── admin/                  # Admin dashboard (separate React app)
+├── frontend/                 # Public React website (:5173)
 │   ├── src/
-│   │   ├── components/     # Reusable UI + layout components
-│   │   │   ├── common/     # Button, Modal, DataTable, Badge, etc.
-│   │   │   ├── form/       # FormField, TextInput, Select, Toggle, etc.
-│   │   │   └── layout/     # Sidebar, Topbar, Breadcrumb, AdminLayout
-│   │   ├── context/        # Auth, Theme, Toast providers
-│   │   ├── pages/          # Login, Dashboard, CRUD pages, Settings
-│   │   ├── hooks/          # useCrud, useForm
-│   │   ├── utils/          # Validation helpers
-│   │   └── data/           # Mock data
-│   ├── index.html
-│   ├── vite.config.js      # Port 5174 (separate from public frontend)
+│   │   ├── components/       # Reusable UI
+│   │   ├── pages/            # Route pages
+│   │   ├── services/         # API client + services
+│   │   ├── hooks/            # Data hooks
+│   │   ├── context/          # Theme context
+│   │   ├── data/             # Static copy
+│   │   └── styles/           # Design tokens
+│   └── index.html
+├── admin/                    # Admin dashboard (:5174)
+│   ├── src/
+│   │   ├── components/       # UI kit + layout
+│   │   ├── pages/            # Login, Dashboard, CRUD pages, Resume
+│   │   ├── services/         # apiClient, auth, CRUD services
+│   │   ├── context/          # Auth, Theme, Toast
+│   │   └── hooks/            # useForm, useResource, useDirtyForm
+│   └── index.html
+├── backend/                  # Express API (:5000)
+│   ├── src/
+│   │   ├── config/           # Env, CORS, helmet, rate-limit
+│   │   ├── constants/        # Status codes, error codes, messages
+│   │   ├── controllers/      # Thin HTTP handlers
+│   │   ├── middlewares/      # Auth, error, logging, validation
+│   │   ├── repositories/     # Data access (Prisma)
+│   │   ├── routes/           # Versioned routes (v1)
+│   │   ├── services/         # Business logic
+│   │   ├── storage/          # StorageService + providers
+│   │   ├── utils/            # ApiError, ApiResponse, logger
+│   │   └── validators/       # express-validator rules
+│   ├── prisma/               # Schema, migrations, seed
 │   └── package.json
-│
-├── backend/                # Express API server
-│   ├── src/
-│   │   ├── app.js          # Express app factory
-│   │   ├── server.js       # Server entry point (listens + graceful shutdown)
-│   │   ├── config/         # Environment validation, CORS, Helmet, rate limit
-│   │   ├── constants/      # HTTP status codes, error codes, messages
-│   │   ├── controllers/    # Thin HTTP handlers (validate → call service → respond)
-│   │   ├── data/           # Mock data (moved from frontend)
-│   │   ├── middlewares/    # requestId, requestLogger, validateRequest, errorHandler, notFound
-│   │   ├── repositories/   # Data access layer (mock now, PostgreSQL later)
-│   │   ├── routes/         # API route definitions (versioned under routes/v1)
-│   │   ├── services/       # Business logic layer
-│   │   ├── utils/          # ApiError, ApiResponse, asyncHandler, logger
-│   │   └── validators/     # express-validator rules
-│   ├── .eslintrc.cjs       # ESLint configuration
-│   └── package.json        # Backend dependencies
-│
-├── docs/                   # Documentation
-├── .github/                # GitHub templates and workflows
-├── .prettierrc             # Prettier configuration
-├── .prettierignore         # Files Prettier should ignore
-├── .gitignore              # Git ignore rules
-├── package.json            # Root workspace scripts
-└── README.md               # Project documentation
+├── docs/                     # Architecture, API, deployment docs
+├── .env.example              # Central env reference
+└── package.json              # Root scripts
 ```
 
-## Architecture
+## Prerequisites
 
-The backend follows a layered architecture:
+- Node.js 18+
+- npm 9+
+- PostgreSQL 14+ (local or hosted)
 
+## Setup
+
+```bash
+# 1. Clone and navigate
+git clone <repository-url>
+cd portfolio
+
+# 2. Install all dependencies
+npm install
+npm run install:all
+
+# 3. Configure environment
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp admin/.env.example admin/.env
+# Fill in DATABASE_URL, JWT secrets, and admin password.
+
+# 4. Set up the database (from backend/)
+cd backend
+npm run db:migrate    # apply migrations (dev)
+npm run db:seed       # seed content + admin user
+npm run db:generate   # regenerate Prisma client
+cd ..
 ```
-Request → Middleware stack → Routes → Validators → Controllers → Services → Repositories → Data
+
+## Development
+
+From the repository root:
+
+```bash
+npm run dev        # frontend  → http://localhost:5173
+npm run admin      # admin     → http://localhost:5174
+npm run server     # backend   → http://localhost:5000
 ```
 
-- **Routes** define URL-to-handler mappings and mount validation rules.
-- **Controllers** are thin — they validate the request, call a service, and send a standardized response. No business logic.
-- **Services** contain business logic. They are async so they can later query PostgreSQL without changing controllers.
-- **Repositories** isolate data access. Currently they return mock data; later they will query the database.
-- **Data** holds all mock JSON payloads.
-- **Middlewares** handle cross-cutting concerns (security, logging, rate limiting, error handling).
+## Build
+
+```bash
+npm run build --prefix frontend   # → frontend/dist
+npm run build --prefix admin      # → admin/dist
+```
+
+## Lint & Format
+
+```bash
+npm run lint          # ESLint on all three apps
+npm run format        # Prettier write
+npm run format:check  # Prettier check
+```
+
+## Database Commands (backend/)
+
+| Command                     | Description                         |
+| --------------------------- | ----------------------------------- |
+| `npm run db:migrate`        | Apply migrations in development     |
+| `npm run db:migrate:deploy` | Apply migrations in production      |
+| `npm run db:generate`       | Regenerate the Prisma client        |
+| `npm run db:seed`           | Seed portfolio content + admin user |
+| `npm run db:studio`         | Open Prisma Studio                  |
 
 ## API
 
-All endpoints are versioned under `/api/v1`.
+The API is available at `http://localhost:5000/api/v1`. See
+[docs/api.md](docs/api.md) for the full reference.
 
-### Endpoints
-
-| Method | Path                 | Description                                  |
-| ------ | -------------------- | -------------------------------------------- |
-| GET    | `/api/v1`            | List all available endpoints and API version |
-| GET    | `/api/v1/health`     | Service health status                        |
-| GET    | `/api/v1/projects`   | List all projects                            |
-| GET    | `/api/v1/experience` | Work experience entries                      |
-| GET    | `/api/v1/skills`     | Skills grouped by category                   |
-| GET    | `/api/v1/education`  | Education, certificates, and achievements    |
-| GET    | `/api/v1/profile`    | Profile information                          |
-| GET    | `/api/v1/social`     | Social links                                 |
-| POST   | `/api/v1/contact`    | Submit a contact message (mock, returns 202) |
-
-### Response Format
-
-All successful responses use a consistent envelope:
-
-```json
-{
-  "success": true,
-  "message": "Resource fetched successfully.",
-  "data": {},
-  "meta": {
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "requestId": "0c1d2e3f-..."
-  }
-}
-```
-
-Error responses:
-
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "code": "VALIDATION_ERROR",
-  "errors": [
-    {
-      "field": "email",
-      "message": "A valid email address is required"
-    }
-  ],
-  "meta": {
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "requestId": "0c1d2e3f-..."
-  }
-}
-```
-
-### Example Requests
+Quick examples:
 
 ```bash
 # Health check
@@ -172,138 +185,15 @@ curl http://localhost:5000/api/v1/health
 # List projects
 curl http://localhost:5000/api/v1/projects
 
-# List experience
-curl http://localhost:5000/api/v1/experience
-
-# List skills
-curl http://localhost:5000/api/v1/skills
-
-# List education
-curl http://localhost:5000/api/v1/education
-
-# Profile
-curl http://localhost:5000/api/v1/profile
-
-# Social links
-curl http://localhost:5000/api/v1/social
-
-# Submit a contact message (validated)
-curl -X POST http://localhost:5000/api/v1/contact \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com","subject":"Hello there","message":"This is a test message with enough length."}'
+# Download the latest resume
+curl http://localhost:5000/api/v1/resume/download
 ```
 
-### Contact Validation Rules
+## Documentation
 
-| Field   | Rules                         |
-| ------- | ----------------------------- |
-| name    | required, 2–100 characters    |
-| email   | required, valid email address |
-| subject | required, 5–150 characters    |
-| message | required, 10–2000 characters  |
-
-## Setup
-
-### Prerequisites
-
-- Node.js 18+
-- npm 9+
-
-### Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd portfolio
-
-# Install all dependencies (root, frontend, and backend)
-npm install
-npm run install:all
-```
-
-### Environment Variables
-
-Copy the example environment files and adjust as needed:
-
-```bash
-cp frontend/.env.example frontend/.env
-cp backend/.env.example backend/.env
-```
-
-Backend variables:
-
-| Variable       | Description                         | Default                 |
-| -------------- | ----------------------------------- | ----------------------- |
-| `PORT`         | Server port                         | `5000`                  |
-| `NODE_ENV`     | `development`, `production`, `test` | `development`           |
-| `API_PREFIX`   | Versioned API base path             | `/api/v1`               |
-| `FRONTEND_URL` | Allowed CORS origin(s)              | `http://localhost:5173` |
-
-### Development
-
-Start both frontend and backend simultaneously:
-
-```bash
-# Start the frontend dev server (http://localhost:5173)
-npm run dev
-
-# Start the backend server (http://localhost:5000)
-npm run server
-```
-
-### Linting
-
-```bash
-# Lint both frontend and backend
-npm run lint
-```
-
-### Formatting
-
-```bash
-# Format all files with Prettier
-npm run format
-
-# Check formatting without making changes
-npm run format:check
-```
-
-### Admin Dashboard
-
-```bash
-# Start the admin dashboard (http://localhost:5174)
-npm run admin
-```
-
-### Linting
-
-```bash
-# Lint frontend, backend, and admin
-npm run lint
-```
-
-### Formatting
-
-```bash
-# Format all files with Prettier
-npm run format
-
-# Check formatting without making changes
-npm run format:check
-```
-
-## Development Commands
-
-| Command                    | Description                                   |
-| -------------------------- | --------------------------------------------- |
-| `npm run dev`              | Start frontend dev server on port 5173        |
-| `npm run server`           | Start backend server on port 5000             |
-| `npm run admin`            | Start admin dashboard on port 5174            |
-| `npm run import:portfolio` | Import portfolio data from YAML to PostgreSQL |
-| `npm run lint`             | Run ESLint on all projects                    |
-| `npm run format`           | Format all files with Prettier                |
-| `npm run format:check`     | Check formatting without modifying            |
-| `npm run install:all`      | Install dependencies for all projects         |
+- [docs/architecture.md](docs/architecture.md) — system and code architecture
+- [docs/api.md](docs/api.md) — API reference
+- [docs/deployment.md](docs/deployment.md) — environment, build, and deployment
 
 ## License
 

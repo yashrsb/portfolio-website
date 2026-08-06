@@ -25,7 +25,8 @@ const PLATFORM_LABELS = {
  * @returns {string} Human-readable label.
  */
 const getLabel = (platform) =>
-  PLATFORM_LABELS[platform] || platform.charAt(0).toUpperCase() + platform.slice(1);
+  PLATFORM_LABELS[platform] ||
+  platform.charAt(0).toUpperCase() + platform.slice(1);
 
 /**
  * Site footer with social links, copyright, and a back-to-top button.
