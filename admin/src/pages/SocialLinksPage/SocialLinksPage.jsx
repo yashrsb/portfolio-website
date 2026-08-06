@@ -4,44 +4,47 @@ import Button from '../../components/common/Button/Button';
 import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
+import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
-import Select from '../../components/form/Select/Select';
-import { useCrud } from '../../hooks/useCrud';
-import { socialLinks as initialSocialLinks } from '../../data/mockData';
+import { useResource } from '../../hooks/useResource';
+import { useDirtyForm } from '../../hooks/useDirtyForm';
+import { socialService } from '../../services';
 import { isRequired, isUrl } from '../../utils/validation';
-import { useToast } from '../../context/ToastContext';
 import styles from './SocialLinksPage.module.css';
 
-const PLATFORM_OPTIONS = [
-  { value: 'GitHub', label: 'GitHub' },
-  { value: 'LinkedIn', label: 'LinkedIn' },
-  { value: 'Twitter', label: 'Twitter' },
-  { value: 'Email', label: 'Email' },
-  { value: 'Website', label: 'Website' },
-  { value: 'Other', label: 'Other' },
-];
-
 const EMPTY_FORM = {
-  platform: 'GitHub',
+  platform: '',
   url: '',
   icon: '',
   displayOrder: '',
 };
 
 /**
- * SocialLinksPage — CRUD UI for social links (mock handlers).
+ * SocialLinksPage — CRUD UI for social links backed by socialService.
  */
 function SocialLinksPage() {
-  const { items, createItem, updateItem, deleteItem, getItem } =
-    useCrud(initialSocialLinks);
-  const { showToast } = useToast();
+  const {
+    data: items,
+    loading,
+    error,
+    create,
+    update,
+    remove,
+    reorder,
+    refresh,
+    clearError,
+  } = useResource(socialService);
+  const { markDirty, resetDirty } = useDirtyForm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const openCreate = () => {
     setEditingId(null);
@@ -50,10 +53,9 @@ function SocialLinksPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (id) => {
-    const item = getItem(id);
+  const openEdit = (item) => {
     if (!item) return;
-    setEditingId(id);
+    setEditingId(item.id);
     setForm({
       platform: item.platform,
       url: item.url,
@@ -68,10 +70,12 @@ function SocialLinksPage() {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    markDirty();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
 
     const validationErrors = {};
     if (isRequired(form.platform))
@@ -88,59 +92,98 @@ function SocialLinksPage() {
       displayOrder: Number(form.displayOrder) || 0,
     };
 
-    if (editingId) {
-      updateItem(editingId, payload);
-      showToast('success', 'Social link updated successfully.');
-    } else {
-      createItem(payload);
-      showToast('success', 'Social link created successfully.');
-    }
+    setSubmitting(true);
+    const result = editingId
+      ? await update(editingId, payload)
+      : await create(payload);
 
-    setModalOpen(false);
+    if (result) {
+      resetDirty();
+      setModalOpen(false);
+      setEditingId(null);
+    }
+    setSubmitting(false);
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteItem(deleteTarget.id);
-    showToast('success', 'Social link deleted successfully.');
-    setDeleteTarget(null);
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    const ok = await remove(deleteTarget.id);
+    setDeleting(false);
+    if (ok) setDeleteTarget(null);
+  };
+
+  const handleMove = async (item, direction) => {
+    const index = items.findIndex((i) => i.id === item.id);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= items.length) return;
+
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    const reordered = next.map((i, idx) => ({
+      id: i.id,
+      displayOrder: idx + 1,
+    }));
+    await reorder(reordered);
   };
 
   const columns = [
-    { key: 'platform', label: 'Platform' },
-    {
-      key: 'url',
-      label: 'URL',
-      render: (row) => (
-        <a
-          href={row.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.link}
-        >
-          {row.url}
-        </a>
-      ),
-    },
     {
       key: 'icon',
       label: 'Icon',
       render: (row) => <span aria-hidden="true">{row.icon || '—'}</span>,
+    },
+    { key: 'platform', label: 'Platform' },
+    {
+      key: 'url',
+      label: 'URL',
+      render: (row) =>
+        row.url ? (
+          <a
+            href={row.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.link}
+          >
+            {row.url.replace(/^https?:\/\//, '')}
+          </a>
+        ) : (
+          '—'
+        ),
     },
     { key: 'displayOrder', label: 'Order', type: 'number' },
     {
       key: 'actions',
       label: 'Actions',
       type: 'action',
-      render: (row) => (
+      render: (row, idx) => (
         <div className={styles.actions}>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openEdit(row.id)}
+            onClick={() => openEdit(row)}
             ariaLabel={`Edit ${row.platform}`}
           >
             Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'up')}
+            disabled={idx === 0}
+            ariaLabel={`Move ${row.platform} up`}
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'down')}
+            disabled={idx === items.length - 1}
+            ariaLabel={`Move ${row.platform} down`}
+          >
+            ↓
           </Button>
           <Button
             variant="ghost"
@@ -161,15 +204,37 @@ function SocialLinksPage() {
 
       <div className={styles.header}>
         <h2 className={styles.heading}>Social Links</h2>
-        <Button onClick={openCreate}>+ New Link</Button>
+        <div className={styles.actions}>
+          <Button variant="outline" size="sm" onClick={refresh}>
+            Refresh
+          </Button>
+          <Button onClick={openCreate}>+ New Link</Button>
+        </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={items}
-        caption="Social links"
-        emptyMessage="No social links yet."
-      />
+      {error && (
+        <ApiErrorBanner
+          error={error}
+          onRetry={() => {
+            if (error.isNetworkError) {
+              refresh();
+            } else {
+              clearError();
+            }
+          }}
+        />
+      )}
+
+      {loading ? (
+        <SkeletonTable rows={4} columns={5} />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={items}
+          caption="Social links"
+          emptyMessage="No social links yet."
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}
@@ -179,51 +244,59 @@ function SocialLinksPage() {
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <FormField
             label="Platform"
-            htmlFor="link-platform"
+            htmlFor="social-platform"
             error={errors.platform}
             required
           >
-            <Select
-              id="link-platform"
+            <TextInput
+              id="social-platform"
               name="platform"
               value={form.platform}
               onChange={handleChange}
-              options={PLATFORM_OPTIONS}
               error={errors.platform}
+              disabled={submitting}
             />
           </FormField>
 
-          <FormField label="URL" htmlFor="link-url" error={errors.url} required>
+          <FormField
+            label="URL"
+            htmlFor="social-url"
+            error={errors.url}
+            required
+          >
             <TextInput
-              id="link-url"
+              id="social-url"
               name="url"
               value={form.url}
               onChange={handleChange}
               error={errors.url}
+              disabled={submitting}
             />
           </FormField>
 
           <FormField
             label="Icon"
-            htmlFor="link-icon"
+            htmlFor="social-icon"
             hint="Emoji or short label"
           >
             <TextInput
-              id="link-icon"
+              id="social-icon"
               name="icon"
               value={form.icon}
               onChange={handleChange}
+              disabled={submitting}
             />
           </FormField>
 
-          <FormField label="Display Order" htmlFor="link-order">
+          <FormField label="Display Order" htmlFor="social-order">
             <TextInput
-              id="link-order"
+              id="social-order"
               name="displayOrder"
               type="number"
               value={form.displayOrder}
               onChange={handleChange}
               min={0}
+              disabled={submitting}
             />
           </FormField>
 
@@ -232,10 +305,11 @@ function SocialLinksPage() {
               type="button"
               variant="outline"
               onClick={() => setModalOpen(false)}
+              disabled={submitting}
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" loading={submitting} disabled={submitting}>
               {editingId ? 'Save Changes' : 'Create Link'}
             </Button>
           </div>
@@ -247,7 +321,7 @@ function SocialLinksPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Delete Social Link"
-        message={`Are you sure you want to delete the ${deleteTarget?.platform} link? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${deleteTarget?.platform}"? This action cannot be undone.`}
         confirmLabel="Delete Link"
       />
     </div>

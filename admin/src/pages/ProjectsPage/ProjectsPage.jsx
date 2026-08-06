@@ -6,16 +6,17 @@ import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
 import EmptyState from '../../components/common/EmptyState/EmptyState';
-import Pagination from '../../components/common/Pagination/Pagination';
+import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
 import TextArea from '../../components/form/TextArea/TextArea';
 import Select from '../../components/form/Select/Select';
 import Checkbox from '../../components/form/Checkbox/Checkbox';
-import { useCrud } from '../../hooks/useCrud';
-import { projects as initialProjects } from '../../data/mockData';
+import { useResource } from '../../hooks/useResource';
+import { useDirtyForm } from '../../hooks/useDirtyForm';
+import { projectService } from '../../services';
 import { isRequired, isUrl } from '../../utils/validation';
-import { useToast } from '../../context/ToastContext';
 import styles from './ProjectsPage.module.css';
 
 const STATUS_OPTIONS = [
@@ -44,13 +45,22 @@ const EMPTY_FORM = {
 };
 
 /**
- * ProjectsPage — full CRUD UI for portfolio projects.
- * All handlers are mock (in-memory state) for Phase 7.
+ * ProjectsPage — full CRUD UI for portfolio projects backed by the real
+ * projectService via useResource (optimistic updates, rollback, toasts).
  */
 function ProjectsPage() {
-  const { items, createItem, updateItem, deleteItem, getItem } =
-    useCrud(initialProjects);
-  const { showToast } = useToast();
+  const {
+    data: items,
+    loading,
+    error,
+    create,
+    update,
+    remove,
+    reorder,
+    refresh,
+    clearError,
+  } = useResource(projectService);
+  const { markDirty, resetDirty } = useDirtyForm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -59,6 +69,8 @@ function ProjectsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const filteredItems = items.filter((item) =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -71,10 +83,9 @@ function ProjectsPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (id) => {
-    const item = getItem(id);
+  const openEdit = (item) => {
     if (!item) return;
-    setEditingId(id);
+    setEditingId(item.id);
     setForm({
       title: item.title,
       slug: item.slug,
@@ -91,13 +102,14 @@ function ProjectsPage() {
     setModalOpen(true);
   };
 
-  const openView = (id) => setViewingId(id);
+  const openView = (item) => setViewingId(item);
 
   const handleChange = (event) => {
     const { name, type, value, checked } = event.target;
     const nextValue = type === 'checkbox' ? checked : value;
     setForm((prev) => ({ ...prev, [name]: nextValue }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    markDirty();
   };
 
   const validate = () => {
@@ -113,37 +125,60 @@ function ProjectsPage() {
     return validationErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
+
     const validationErrors = validate();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
 
     const payload = {
       ...form,
       displayOrder: Number(form.displayOrder) || 0,
-      updatedAt: new Date().toISOString(),
     };
 
-    if (editingId) {
-      updateItem(editingId, payload);
-      showToast('success', 'Project updated successfully.');
-    } else {
-      createItem(payload);
-      showToast('success', 'Project created successfully.');
+    setSubmitting(true);
+    const result = editingId
+      ? await update(editingId, payload)
+      : await create(payload);
+
+    if (result) {
+      resetDirty();
+      setModalOpen(false);
+      setEditingId(null);
     }
-
-    setModalOpen(false);
+    setSubmitting(false);
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteItem(deleteTarget.id);
-    showToast('success', 'Project deleted successfully.');
-    setDeleteTarget(null);
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    const ok = await remove(deleteTarget.id);
+    setDeleting(false);
+    if (ok) {
+      setDeleteTarget(null);
+    }
   };
 
-  const viewingItem = viewingId ? getItem(viewingId) : null;
+  const handleMove = async (item, direction) => {
+    const index = items.findIndex((i) => i.id === item.id);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= items.length) return;
+
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    const reordered = next.map((i, idx) => ({
+      id: i.id,
+      displayOrder: idx + 1,
+    }));
+    await reorder(reordered);
+  };
+
+  const viewingItem = viewingId;
 
   const columns = [
     { key: 'title', label: 'Title' },
@@ -169,12 +204,12 @@ function ProjectsPage() {
       key: 'actions',
       label: 'Actions',
       type: 'action',
-      render: (row) => (
+      render: (row, idx) => (
         <div className={styles.actions}>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openView(row.id)}
+            onClick={() => openView(row)}
             ariaLabel={`View ${row.title}`}
           >
             View
@@ -182,10 +217,28 @@ function ProjectsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openEdit(row.id)}
+            onClick={() => openEdit(row)}
             ariaLabel={`Edit ${row.title}`}
           >
             Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'up')}
+            disabled={idx === 0}
+            ariaLabel={`Move ${row.title} up`}
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'down')}
+            disabled={idx === items.length - 1}
+            ariaLabel={`Move ${row.title} down`}
+          >
+            ↓
           </Button>
           <Button
             variant="ghost"
@@ -213,28 +266,43 @@ function ProjectsPage() {
         <input
           type="search"
           className={styles.searchInput}
-          placeholder="Search projects (UI only)..."
+          placeholder="Search projects..."
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           aria-label="Search projects"
         />
+        <Button variant="outline" size="sm" onClick={refresh}>
+          Refresh
+        </Button>
       </div>
 
-      {filteredItems.length === 0 ? (
+      {error && (
+        <ApiErrorBanner
+          error={error}
+          onRetry={() => {
+            if (error.isNetworkError) {
+              refresh();
+            } else {
+              clearError();
+            }
+          }}
+        />
+      )}
+
+      {loading ? (
+        <SkeletonTable rows={6} columns={6} />
+      ) : filteredItems.length === 0 ? (
         <EmptyState
           title="No projects found"
           description="Try adjusting your search or create a new project to get started."
           action={<Button onClick={openCreate}>+ New Project</Button>}
         />
       ) : (
-        <>
-          <DataTable
-            columns={columns}
-            rows={filteredItems}
-            caption="Portfolio projects"
-          />
-          <Pagination currentPage={1} totalPages={1} />
-        </>
+        <DataTable
+          columns={columns}
+          rows={filteredItems}
+          caption="Portfolio projects"
+        />
       )}
 
       {/* Create / Edit modal */}
@@ -258,6 +326,7 @@ function ProjectsPage() {
                 value={form.title}
                 onChange={handleChange}
                 error={errors.title}
+                disabled={submitting}
               />
             </FormField>
 
@@ -273,6 +342,7 @@ function ProjectsPage() {
                 value={form.slug}
                 onChange={handleChange}
                 error={errors.slug}
+                disabled={submitting}
               />
             </FormField>
 
@@ -283,6 +353,7 @@ function ProjectsPage() {
                 value={form.status}
                 onChange={handleChange}
                 options={STATUS_OPTIONS}
+                disabled={submitting}
               />
             </FormField>
 
@@ -294,6 +365,7 @@ function ProjectsPage() {
                 value={form.displayOrder}
                 onChange={handleChange}
                 min={0}
+                disabled={submitting}
               />
             </FormField>
           </div>
@@ -310,6 +382,7 @@ function ProjectsPage() {
               value={form.summary}
               onChange={handleChange}
               error={errors.summary}
+              disabled={submitting}
             />
           </FormField>
 
@@ -320,6 +393,7 @@ function ProjectsPage() {
               value={form.description}
               onChange={handleChange}
               rows={4}
+              disabled={submitting}
             />
           </FormField>
 
@@ -335,6 +409,7 @@ function ProjectsPage() {
                 value={form.githubUrl}
                 onChange={handleChange}
                 error={errors.githubUrl}
+                disabled={submitting}
               />
             </FormField>
 
@@ -349,6 +424,7 @@ function ProjectsPage() {
                 value={form.demoUrl}
                 onChange={handleChange}
                 error={errors.demoUrl}
+                disabled={submitting}
               />
             </FormField>
           </div>
@@ -359,6 +435,7 @@ function ProjectsPage() {
               name="imageUrl"
               value={form.imageUrl}
               onChange={handleChange}
+              disabled={submitting}
             />
           </FormField>
 
@@ -368,6 +445,7 @@ function ProjectsPage() {
             checked={form.featured}
             onChange={handleChange}
             label="Featured project"
+            disabled={submitting}
           />
 
           <div className={styles.formActions}>
@@ -375,10 +453,11 @@ function ProjectsPage() {
               type="button"
               variant="outline"
               onClick={() => setModalOpen(false)}
+              disabled={submitting}
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" loading={submitting} disabled={submitting}>
               {editingId ? 'Save Changes' : 'Create Project'}
             </Button>
           </div>

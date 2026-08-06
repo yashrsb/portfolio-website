@@ -5,13 +5,15 @@ import Badge from '../../components/common/Badge/Badge';
 import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
+import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
 import Select from '../../components/form/Select/Select';
-import { useCrud } from '../../hooks/useCrud';
-import { skills as initialSkills } from '../../data/mockData';
+import { useResource } from '../../hooks/useResource';
+import { useDirtyForm } from '../../hooks/useDirtyForm';
+import { skillService } from '../../services';
 import { isRequired, isValidPercentage } from '../../utils/validation';
-import { useToast } from '../../context/ToastContext';
 import styles from './SkillsPage.module.css';
 
 const CATEGORY_OPTIONS = [
@@ -32,18 +34,29 @@ const EMPTY_FORM = {
 };
 
 /**
- * SkillsPage — CRUD UI for portfolio skills (mock handlers).
+ * SkillsPage — CRUD UI for portfolio skills backed by skillService.
  */
 function SkillsPage() {
-  const { items, createItem, updateItem, deleteItem, getItem } =
-    useCrud(initialSkills);
-  const { showToast } = useToast();
+  const {
+    data: items,
+    loading,
+    error,
+    create,
+    update,
+    remove,
+    reorder,
+    refresh,
+    clearError,
+  } = useResource(skillService);
+  const { markDirty, resetDirty } = useDirtyForm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const openCreate = () => {
     setEditingId(null);
@@ -52,10 +65,9 @@ function SkillsPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (id) => {
-    const item = getItem(id);
+  const openEdit = (item) => {
     if (!item) return;
-    setEditingId(id);
+    setEditingId(item.id);
     setForm({
       name: item.name,
       category: item.category,
@@ -71,10 +83,12 @@ function SkillsPage() {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    markDirty();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
 
     const validationErrors = {};
     if (isRequired(form.name)) validationErrors.name = 'Skill name is required';
@@ -90,22 +104,40 @@ function SkillsPage() {
       displayOrder: Number(form.displayOrder) || 0,
     };
 
-    if (editingId) {
-      updateItem(editingId, payload);
-      showToast('success', 'Skill updated successfully.');
-    } else {
-      createItem(payload);
-      showToast('success', 'Skill created successfully.');
-    }
+    setSubmitting(true);
+    const result = editingId
+      ? await update(editingId, payload)
+      : await create(payload);
 
-    setModalOpen(false);
+    if (result) {
+      resetDirty();
+      setModalOpen(false);
+      setEditingId(null);
+    }
+    setSubmitting(false);
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteItem(deleteTarget.id);
-    showToast('success', 'Skill deleted successfully.');
-    setDeleteTarget(null);
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    const ok = await remove(deleteTarget.id);
+    setDeleting(false);
+    if (ok) setDeleteTarget(null);
+  };
+
+  const handleMove = async (item, direction) => {
+    const index = items.findIndex((i) => i.id === item.id);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= items.length) return;
+
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    const reordered = next.map((i, idx) => ({
+      id: i.id,
+      displayOrder: idx + 1,
+    }));
+    await reorder(reordered);
   };
 
   const columns = [
@@ -130,15 +162,33 @@ function SkillsPage() {
       key: 'actions',
       label: 'Actions',
       type: 'action',
-      render: (row) => (
+      render: (row, idx) => (
         <div className={styles.actions}>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openEdit(row.id)}
+            onClick={() => openEdit(row)}
             ariaLabel={`Edit ${row.name}`}
           >
             Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'up')}
+            disabled={idx === 0}
+            ariaLabel={`Move ${row.name} up`}
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMove(row, 'down')}
+            disabled={idx === items.length - 1}
+            ariaLabel={`Move ${row.name} down`}
+          >
+            ↓
           </Button>
           <Button
             variant="ghost"
@@ -159,15 +209,37 @@ function SkillsPage() {
 
       <div className={styles.header}>
         <h2 className={styles.heading}>Skills</h2>
-        <Button onClick={openCreate}>+ New Skill</Button>
+        <div className={styles.actions}>
+          <Button variant="outline" size="sm" onClick={refresh}>
+            Refresh
+          </Button>
+          <Button onClick={openCreate}>+ New Skill</Button>
+        </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={items}
-        caption="Portfolio skills"
-        emptyMessage="No skills yet. Create your first skill to get started."
-      />
+      {error && (
+        <ApiErrorBanner
+          error={error}
+          onRetry={() => {
+            if (error.isNetworkError) {
+              refresh();
+            } else {
+              clearError();
+            }
+          }}
+        />
+      )}
+
+      {loading ? (
+        <SkeletonTable rows={5} columns={6} />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={items}
+          caption="Portfolio skills"
+          emptyMessage="No skills yet. Create your first skill to get started."
+        />
+      )}
 
       <Modal
         isOpen={modalOpen}
@@ -187,6 +259,7 @@ function SkillsPage() {
               value={form.name}
               onChange={handleChange}
               error={errors.name}
+              disabled={submitting}
             />
           </FormField>
 
@@ -197,6 +270,7 @@ function SkillsPage() {
               value={form.category}
               onChange={handleChange}
               options={CATEGORY_OPTIONS}
+              disabled={submitting}
             />
           </FormField>
 
@@ -215,6 +289,7 @@ function SkillsPage() {
               error={errors.proficiency}
               min={0}
               max={100}
+              disabled={submitting}
             />
           </FormField>
 
@@ -228,6 +303,7 @@ function SkillsPage() {
               name="icon"
               value={form.icon}
               onChange={handleChange}
+              disabled={submitting}
             />
           </FormField>
 
@@ -239,6 +315,7 @@ function SkillsPage() {
               value={form.displayOrder}
               onChange={handleChange}
               min={0}
+              disabled={submitting}
             />
           </FormField>
 
@@ -247,10 +324,11 @@ function SkillsPage() {
               type="button"
               variant="outline"
               onClick={() => setModalOpen(false)}
+              disabled={submitting}
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" loading={submitting} disabled={submitting}>
               {editingId ? 'Save Changes' : 'Create Skill'}
             </Button>
           </div>

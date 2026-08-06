@@ -4,17 +4,19 @@ import Button from '../../components/common/Button/Button';
 import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
+import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
 import TextArea from '../../components/form/TextArea/TextArea';
-import { useCrud } from '../../hooks/useCrud';
+import { useResource } from '../../hooks/useResource';
+import { useDirtyForm } from '../../hooks/useDirtyForm';
 import {
-  education as initialEducation,
-  certificates as initialCertificates,
-  achievements as initialAchievements,
-} from '../../data/mockData';
+  educationService,
+  certificateService,
+  achievementService,
+} from '../../services';
 import { isRequired, isUrl } from '../../utils/validation';
-import { useToast } from '../../context/ToastContext';
 import styles from './EducationPage.module.css';
 
 const EMPTY_EDUCATION = {
@@ -40,18 +42,29 @@ const EMPTY_ACHIEVEMENT = {
   description: '',
 };
 
+const TAB_LABELS = [
+  { value: 'education', label: 'Education' },
+  { value: 'certificates', label: 'Certificates' },
+  { value: 'achievements', label: 'Achievements' },
+];
+
+const MODAL_TITLES = {
+  education: 'Education',
+  certificates: 'Certificate',
+  achievements: 'Achievement',
+};
+
 /**
- * EducationPage — CRUD UI for education, certificates, and achievements.
+ * EducationPage — CRUD UI for education, certificates, and achievements,
+ * each backed by its own service via useResource.
  */
 function EducationPage() {
-  const educationCrud = useCrud(initialEducation);
-  const certificateCrud = useCrud(initialCertificates);
-  const achievementCrud = useCrud(initialAchievements);
-  const { showToast } = useToast();
+  const education = useResource(educationService);
+  const certificates = useResource(certificateService);
+  const achievements = useResource(achievementService);
+  const { markDirty, resetDirty } = useDirtyForm();
 
   const [activeTab, setActiveTab] = useState('education');
-
-  // Shared modal state (type determines which resource is being edited).
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -61,6 +74,15 @@ function EducationPage() {
   const [certificateForm, setCertificateForm] = useState(EMPTY_CERTIFICATE);
   const [achievementForm, setAchievementForm] = useState(EMPTY_ACHIEVEMENT);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const activeResource =
+    activeTab === 'education'
+      ? education
+      : activeTab === 'certificates'
+        ? certificates
+        : achievements;
 
   const openCreate = () => {
     setEditingId(null);
@@ -72,31 +94,33 @@ function EducationPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (resource, id) => {
-    setEditingId(id);
+  const openEdit = (resource, item) => {
+    if (!item) return;
+    setEditingId(item.id);
     setErrors({});
     setModalType(resource);
 
     if (resource === 'education') {
-      const item = educationCrud.getItem(id);
-      if (!item) return;
-      setEducationForm({ ...item });
+      setEducationForm({
+        institution: item.institution,
+        degree: item.degree,
+        field: item.field,
+        startYear: String(item.startYear),
+        endYear: String(item.endYear),
+        description: item.description,
+      });
     } else if (resource === 'certificates') {
-      const item = certificateCrud.getItem(id);
-      if (!item) return;
       setCertificateForm({
         name: item.name,
         issuer: item.issuer,
-        year: item.year,
+        year: String(item.year),
         url: item.url,
       });
     } else if (resource === 'achievements') {
-      const item = achievementCrud.getItem(id);
-      if (!item) return;
       setAchievementForm({
         title: item.title,
         organization: item.organization,
-        year: item.year,
+        year: String(item.year),
         description: item.description,
       });
     }
@@ -104,29 +128,18 @@ function EducationPage() {
     setModalOpen(true);
   };
 
-  const handleEducationChange = (event) => {
+  const handleChange = (setter) => (event) => {
     const { name, value } = event.target;
-    setEducationForm((prev) => ({ ...prev, [name]: value }));
+    setter((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    markDirty();
   };
 
-  const handleCertificateChange = (event) => {
-    const { name, value } = event.target;
-    setCertificateForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleAchievementChange = (event) => {
-    const { name, value } = event.target;
-    setAchievementForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
 
     const validationErrors = {};
-
     if (modalType === 'education') {
       if (isRequired(educationForm.institution))
         validationErrors.institution = 'Institution is required';
@@ -137,53 +150,73 @@ function EducationPage() {
         validationErrors.name = 'Certificate name is required';
       if (isRequired(certificateForm.issuer))
         validationErrors.issuer = 'Issuer is required';
+      if (isRequired(certificateForm.year))
+        validationErrors.year = 'Year is required';
       if (certificateForm.url && !isUrl(certificateForm.url))
         validationErrors.url = 'Enter a valid URL';
     } else if (modalType === 'achievements') {
       if (isRequired(achievementForm.title))
         validationErrors.title = 'Title is required';
+      if (isRequired(achievementForm.organization))
+        validationErrors.organization = 'Organization is required';
+      if (isRequired(achievementForm.year))
+        validationErrors.year = 'Year is required';
     }
 
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
-
-    if (modalType === 'education') {
-      if (editingId) {
-        educationCrud.updateItem(editingId, educationForm);
-        showToast('success', 'Education updated successfully.');
-      } else {
-        educationCrud.createItem(educationForm);
-        showToast('success', 'Education created successfully.');
-      }
-    } else if (modalType === 'certificates') {
-      if (editingId) {
-        certificateCrud.updateItem(editingId, certificateForm);
-        showToast('success', 'Certificate updated successfully.');
-      } else {
-        certificateCrud.createItem(certificateForm);
-        showToast('success', 'Certificate created successfully.');
-      }
-    } else if (modalType === 'achievements') {
-      if (editingId) {
-        achievementCrud.updateItem(editingId, achievementForm);
-        showToast('success', 'Achievement updated successfully.');
-      } else {
-        achievementCrud.createItem(achievementForm);
-        showToast('success', 'Achievement created successfully.');
-      }
+    if (Object.keys(validationErrors).length > 0) {
+      return;
     }
 
-    setModalOpen(false);
+    let payload;
+    let result;
+    if (modalType === 'education') {
+      payload = {
+        ...educationForm,
+        startYear: Number(educationForm.startYear),
+        endYear: Number(educationForm.endYear),
+      };
+      result = editingId
+        ? await education.update(editingId, payload)
+        : await education.create(payload);
+    } else if (modalType === 'certificates') {
+      payload = {
+        ...certificateForm,
+        year: String(certificateForm.year),
+      };
+      result = editingId
+        ? await certificates.update(editingId, payload)
+        : await certificates.create(payload);
+    } else {
+      payload = {
+        ...achievementForm,
+        year: Number(achievementForm.year),
+      };
+      result = editingId
+        ? await achievements.update(editingId, payload)
+        : await achievements.create(payload);
+    }
+
+    if (result) {
+      resetDirty();
+      setModalOpen(false);
+      setEditingId(null);
+    }
+    setSubmitting(false);
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
     const { resource, id } = deleteTarget;
-    if (resource === 'education') educationCrud.deleteItem(id);
-    if (resource === 'certificates') certificateCrud.deleteItem(id);
-    if (resource === 'achievements') achievementCrud.deleteItem(id);
-    showToast('success', 'Entry deleted successfully.');
-    setDeleteTarget(null);
+    const ok =
+      resource === 'education'
+        ? await education.remove(id)
+        : resource === 'certificates'
+          ? await certificates.remove(id)
+          : await achievements.remove(id);
+    setDeleting(false);
+    if (ok) setDeleteTarget(null);
   };
 
   const deleteColumns = [
@@ -191,26 +224,31 @@ function EducationPage() {
       key: 'actions',
       label: 'Actions',
       type: 'action',
-      render: (row) => (
-        <div className={styles.actions}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => openEdit(activeTab, row.id)}
-            ariaLabel={`Edit ${row.title || row.name || row.institution}`}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setDeleteTarget({ resource: activeTab, id: row.id })}
-            ariaLabel={`Delete ${row.title || row.name || row.institution}`}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
+      render: (row) => {
+        const label = row.title || row.name || row.institution;
+        return (
+          <div className={styles.actions}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => openEdit(activeTab, row)}
+              ariaLabel={`Edit ${label}`}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setDeleteTarget({ resource: activeTab, id: row.id })
+              }
+              ariaLabel={`Delete ${label}`}
+            >
+              Delete
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -227,7 +265,7 @@ function EducationPage() {
       return (
         <DataTable
           columns={columns}
-          rows={educationCrud.items}
+          rows={education.data}
           caption="Education entries"
           emptyMessage="No education entries yet."
         />
@@ -261,7 +299,7 @@ function EducationPage() {
       return (
         <DataTable
           columns={columns}
-          rows={certificateCrud.items}
+          rows={certificates.data}
           caption="Certificates"
           emptyMessage="No certificates yet."
         />
@@ -277,7 +315,7 @@ function EducationPage() {
     return (
       <DataTable
         columns={columns}
-        rows={achievementCrud.items}
+        rows={achievements.data}
         caption="Achievements"
         emptyMessage="No achievements yet."
       />
@@ -298,8 +336,9 @@ function EducationPage() {
               id="edu-institution"
               name="institution"
               value={educationForm.institution}
-              onChange={handleEducationChange}
+              onChange={handleChange(setEducationForm)}
               error={errors.institution}
+              disabled={submitting}
             />
           </FormField>
           <FormField
@@ -312,8 +351,9 @@ function EducationPage() {
               id="edu-degree"
               name="degree"
               value={educationForm.degree}
-              onChange={handleEducationChange}
+              onChange={handleChange(setEducationForm)}
               error={errors.degree}
+              disabled={submitting}
             />
           </FormField>
           <FormField label="Field of Study" htmlFor="edu-field">
@@ -321,7 +361,8 @@ function EducationPage() {
               id="edu-field"
               name="field"
               value={educationForm.field}
-              onChange={handleEducationChange}
+              onChange={handleChange(setEducationForm)}
+              disabled={submitting}
             />
           </FormField>
           <div className={styles.formGrid}>
@@ -330,7 +371,8 @@ function EducationPage() {
                 id="edu-start-year"
                 name="startYear"
                 value={educationForm.startYear}
-                onChange={handleEducationChange}
+                onChange={handleChange(setEducationForm)}
+                disabled={submitting}
               />
             </FormField>
             <FormField label="End Year" htmlFor="edu-end-year">
@@ -338,7 +380,8 @@ function EducationPage() {
                 id="edu-end-year"
                 name="endYear"
                 value={educationForm.endYear}
-                onChange={handleEducationChange}
+                onChange={handleChange(setEducationForm)}
+                disabled={submitting}
               />
             </FormField>
           </div>
@@ -347,8 +390,9 @@ function EducationPage() {
               id="edu-description"
               name="description"
               value={educationForm.description}
-              onChange={handleEducationChange}
+              onChange={handleChange(setEducationForm)}
               rows={4}
+              disabled={submitting}
             />
           </FormField>
         </>
@@ -368,8 +412,9 @@ function EducationPage() {
               id="cert-name"
               name="name"
               value={certificateForm.name}
-              onChange={handleCertificateChange}
+              onChange={handleChange(setCertificateForm)}
               error={errors.name}
+              disabled={submitting}
             />
           </FormField>
           <FormField
@@ -382,17 +427,25 @@ function EducationPage() {
               id="cert-issuer"
               name="issuer"
               value={certificateForm.issuer}
-              onChange={handleCertificateChange}
+              onChange={handleChange(setCertificateForm)}
               error={errors.issuer}
+              disabled={submitting}
             />
           </FormField>
           <div className={styles.formGrid}>
-            <FormField label="Year" htmlFor="cert-year">
+            <FormField
+              label="Year"
+              htmlFor="cert-year"
+              error={errors.year}
+              required
+            >
               <TextInput
                 id="cert-year"
                 name="year"
                 value={certificateForm.year}
-                onChange={handleCertificateChange}
+                onChange={handleChange(setCertificateForm)}
+                error={errors.year}
+                disabled={submitting}
               />
             </FormField>
             <FormField
@@ -404,8 +457,9 @@ function EducationPage() {
                 id="cert-url"
                 name="url"
                 value={certificateForm.url}
-                onChange={handleCertificateChange}
+                onChange={handleChange(setCertificateForm)}
                 error={errors.url}
+                disabled={submitting}
               />
             </FormField>
           </div>
@@ -425,24 +479,34 @@ function EducationPage() {
             id="ach-title"
             name="title"
             value={achievementForm.title}
-            onChange={handleAchievementChange}
+            onChange={handleChange(setAchievementForm)}
             error={errors.title}
+            disabled={submitting}
           />
         </FormField>
-        <FormField label="Organization" htmlFor="ach-org">
+        <FormField
+          label="Organization"
+          htmlFor="ach-org"
+          error={errors.organization}
+          required
+        >
           <TextInput
             id="ach-org"
             name="organization"
             value={achievementForm.organization}
-            onChange={handleAchievementChange}
+            onChange={handleChange(setAchievementForm)}
+            error={errors.organization}
+            disabled={submitting}
           />
         </FormField>
-        <FormField label="Year" htmlFor="ach-year">
+        <FormField label="Year" htmlFor="ach-year" error={errors.year} required>
           <TextInput
             id="ach-year"
             name="year"
             value={achievementForm.year}
-            onChange={handleAchievementChange}
+            onChange={handleChange(setAchievementForm)}
+            error={errors.year}
+            disabled={submitting}
           />
         </FormField>
         <FormField label="Description" htmlFor="ach-description">
@@ -450,25 +514,14 @@ function EducationPage() {
             id="ach-description"
             name="description"
             value={achievementForm.description}
-            onChange={handleAchievementChange}
+            onChange={handleChange(setAchievementForm)}
             rows={4}
+            disabled={submitting}
           />
         </FormField>
       </>
     );
   };
-
-  const modalTitles = {
-    education: 'Education',
-    certificates: 'Certificate',
-    achievements: 'Achievement',
-  };
-
-  const tabLabels = [
-    { value: 'education', label: 'Education' },
-    { value: 'certificates', label: 'Certificates' },
-    { value: 'achievements', label: 'Achievements' },
-  ];
 
   return (
     <div className={styles.page}>
@@ -476,15 +529,33 @@ function EducationPage() {
 
       <div className={styles.header}>
         <h2 className={styles.heading}>Education</h2>
-        <Button onClick={openCreate}>+ New Entry</Button>
+        <div className={styles.actions}>
+          <Button variant="outline" size="sm" onClick={activeResource.refresh}>
+            Refresh
+          </Button>
+          <Button onClick={openCreate}>+ New Entry</Button>
+        </div>
       </div>
+
+      {activeResource.error && (
+        <ApiErrorBanner
+          error={activeResource.error}
+          onRetry={() => {
+            if (activeResource.error.isNetworkError) {
+              activeResource.refresh();
+            } else {
+              activeResource.clearError();
+            }
+          }}
+        />
+      )}
 
       <div
         className={styles.tabs}
         role="tablist"
         aria-label="Education sections"
       >
-        {tabLabels.map((tab) => (
+        {TAB_LABELS.map((tab) => (
           <button
             key={tab.value}
             type="button"
@@ -498,12 +569,16 @@ function EducationPage() {
         ))}
       </div>
 
-      {renderTabContent()}
+      {activeResource.loading ? (
+        <SkeletonTable rows={4} columns={6} />
+      ) : (
+        renderTabContent()
+      )}
 
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={`${editingId ? 'Edit' : 'New'} ${modalTitles[modalType] || 'Entry'}`}
+        title={`${editingId ? 'Edit' : 'New'} ${MODAL_TITLES[modalType] || 'Entry'}`}
       >
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {renderModalForm()}
@@ -512,10 +587,11 @@ function EducationPage() {
               type="button"
               variant="outline"
               onClick={() => setModalOpen(false)}
+              disabled={submitting}
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" loading={submitting} disabled={submitting}>
               {editingId ? 'Save Changes' : 'Create Entry'}
             </Button>
           </div>
