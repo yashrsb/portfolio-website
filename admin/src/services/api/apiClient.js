@@ -1,12 +1,18 @@
 import axios from 'axios';
 import { getAccessToken, setAccessToken, clearSession } from '../tokenStore';
 import { normalizeApiError } from '../../utils/apiErrors';
-
-/** Base URL of the backend API. */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-
-/** Requests that should never be replayed after a token refresh. */
-const NON_RETRYABLE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+import {
+  API_BASE_URL,
+  REQUEST_TIMEOUT,
+  RETRY,
+  AUTH_ENDPOINTS,
+} from '../../constants/api';
+import {
+  isRetryableMethod,
+  isRetryableError,
+  getBackoffDelay,
+  sleep,
+} from '../../utils/retry';
 
 /**
  * Single-flight refresh promise. Prevents concurrent /auth/refresh calls.
@@ -16,7 +22,7 @@ let refreshPromise = null;
 
 /**
  * Requests that arrived while a refresh was in flight.
- * @type {Array<{resolve: Function}>}
+ * @type {Array<{resolve: Function, reject: Function}>}
  */
 let pendingQueue = [];
 
@@ -56,7 +62,7 @@ const refreshAccessToken = async () => {
     // The refresh token lives in an httpOnly cookie, so credentials are
     // required. The server rotates it and sets a new cookie automatically.
     const response = await axios.post(
-      `${API_BASE_URL}/auth/refresh`,
+      `${API_BASE_URL}${AUTH_ENDPOINTS.refresh}`,
       {},
       { withCredentials: true },
     );
@@ -92,11 +98,11 @@ const redirectToLogin = () => {
  * - includes credentials (refresh cookie)
  * - enforces a request timeout
  * - attaches the access token on every request
- * - transparently refreshes an expired token, retries once, then logs out
+ * - transparently refreshes an expired token, retries GETs, then logs out
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: REQUEST_TIMEOUT,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -104,22 +110,29 @@ const apiClient = axios.create({
 });
 
 // Attach the current access token to every outgoing request.
+// Also record the original method so the retry interceptor can decide.
 apiClient.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config._originalMethod = (config.method || 'GET').toUpperCase();
   return config;
 });
 
 // Handle token expiration by refreshing once, replaying the original request.
+// Also implement exponential-backoff retry for idempotent GET requests.
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const method = (originalRequest?._originalMethod || 'GET').toUpperCase();
     const isUnauthorized = error.response?.status === 401;
-    const isRefreshCall = originalRequest?.url?.includes('/auth/refresh');
+    const isRefreshCall = originalRequest?.url?.includes(
+      AUTH_ENDPOINTS.refresh,
+    );
 
+    // --- Token refresh flow ---
     if (
       isUnauthorized &&
       !originalRequest._retried &&
@@ -127,13 +140,12 @@ apiClient.interceptors.response.use(
       getAccessToken()
     ) {
       originalRequest._retried = true;
-
       try {
         const token = await refreshAccessToken();
         originalRequest.headers.Authorization = `Bearer ${token}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        if (NON_RETRYABLE_METHODS.has(originalRequest.method?.toUpperCase())) {
+        if (RETRY.nonRetryableMethods.has(method)) {
           redirectToLogin();
         }
         return Promise.reject(refreshError);
@@ -142,6 +154,19 @@ apiClient.interceptors.response.use(
 
     if (isUnauthorized && !getAccessToken()) {
       redirectToLogin();
+    }
+
+    // --- Retry flow (GET only, network/5xx errors, exponential backoff) ---
+    const attempt = originalRequest?._retryCount || 0;
+    if (
+      isRetryableMethod(method) &&
+      isRetryableError(error) &&
+      attempt < RETRY.maxAttempts
+    ) {
+      originalRequest._retryCount = attempt + 1;
+      const delay = getBackoffDelay(attempt);
+      await sleep(delay);
+      return apiClient(originalRequest);
     }
 
     return Promise.reject(normalizeApiError(error));

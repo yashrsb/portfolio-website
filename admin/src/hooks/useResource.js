@@ -13,26 +13,25 @@ const TOAST_MESSAGES = {
 /**
  * useResource — manages a collection backed by a CRUD service.
  *
- * Provides loading/error state, CRUD helpers, optimistic updates with
- * rollback, and automatic toasts. Pages only need:
- *   const { data, loading, error, create, update, remove, reorder, refresh } =
- *     useResource(projectService);
+ * Supports loading/error state, CRUD helpers, optimistic updates with
+ * rollback, automatic toasts, in-flight request cancellation on unmount,
+ * a lightweight client-side cache, background refetch, and stale-response
+ * protection.
  *
  * @template T
  * @param {{
- *   list: () => Promise<Array<T>>,
+ *   list: (query?: object, signal?: AbortSignal) => Promise<Array<T>|object>,
  *   create: (payload: object) => Promise<T>,
  *   update: (id: string, payload: object) => Promise<T>,
  *   remove: (id: string) => Promise<object>,
  *   reorder: (items: Array<object>) => Promise<object>,
- * }} service - The resource service (from createCrudService).
+ *   invalidateCache: () => void,
+ * }} service - The resource service.
  * @param {object} [options] - Configuration.
  * @param {boolean} [options.autoLoad=true] - Fetch data on mount.
+ * @param {boolean} [options.backgroundRefetch=false] - Refetch in background
+ *   from cache instead of blocking with a spinner.
  * @param {object} [options.toasts] - Custom toast messages per operation.
- * @param {object} [options.toasts.create] - Custom create message.
- * @param {object} [options.toasts.update] - Custom update message.
- * @param {object} [options.toasts.remove] - Custom remove message.
- * @param {object} [options.toasts.reorder] - Custom reorder message.
  * @returns {{
  *   data: Array<T>,
  *   loading: boolean,
@@ -47,51 +46,86 @@ const TOAST_MESSAGES = {
  * }}
  */
 function useResource(service, options = {}) {
-  const { autoLoad = true, toasts = {} } = options;
+  const { autoLoad = true, backgroundRefetch = false, toasts = {} } = options;
   const { showToast } = useToast();
 
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(autoLoad);
+  const [loading, setLoading] = useState(autoLoad && !backgroundRefetch);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const mountedRef = useRef(true);
+  const abortRef = useRef(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      // Cancel any in-flight request when the component unmounts to prevent
+      // memory leaks and stale responses overwriting unmounted state.
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
     };
   }, []);
 
   /**
-   * Loads the collection. Sets `loading` the first time and `refreshing`
-   * on subsequent calls.
+   * Aborts the previous in-flight request and issues a fresh AbortController.
+   * @returns {AbortController} The new controller.
+   */
+  const newRequest = () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    // Bump the request id so stale responses are ignored.
+    requestIdRef.current += 1;
+    return controller;
+  };
+
+  /**
+   * Loads the collection. Sets `loading` the first time and `refreshing` on
+   * subsequent calls. Requests are cancelled on unmount and stale responses
+   * (from superseded requests) are ignored.
    * @param {boolean} isRefresh - Whether this is a background refresh.
    */
   const load = useCallback(
     async (isRefresh = false) => {
+      const controller = newRequest();
+      const requestId = requestIdRef.current;
+
       if (isRefresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
       setError(null);
+
       try {
-        const result = await service.list();
-        if (mountedRef.current) {
+        const result = await service.list({}, controller.signal);
+        // Ignore stale responses from aborted/superseded requests.
+        if (mountedRef.current && requestId === requestIdRef.current) {
           setData(result || []);
         }
       } catch (err) {
-        if (mountedRef.current) {
+        // Ignore abort errors caused by unmount or a newer request.
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
+          return;
+        }
+        if (mountedRef.current && requestId === requestIdRef.current) {
           const normalized = normalizeApiError(err);
           setError(normalized);
           if (normalized.isAuthError) {
-            showToast('error', 'Your session has expired. Please log in again.');
+            showToast(
+              'error',
+              'Your session has expired. Please log in again.',
+            );
           }
         }
       } finally {
-        if (mountedRef.current) {
+        if (mountedRef.current && requestId === requestIdRef.current) {
           setLoading(false);
           setRefreshing(false);
         }
@@ -108,7 +142,8 @@ function useResource(service, options = {}) {
   }, [autoLoad, load]);
 
   /**
-   * Applies an optimistic mutation and rolls back on failure.
+   * Applies an optimistic mutation and rolls back on failure. Invalidates the
+   * service cache on success so subsequent list() calls refetch fresh data.
    * @template R
    * @param {() => Promise<R>} request - The service call.
    * @param {{ optimistic: () => void, rollback: () => void, success: (result: R) => void }} handlers
@@ -121,6 +156,10 @@ function useResource(service, options = {}) {
         const result = await request();
         if (mountedRef.current) {
           handlers.success(result);
+          // Cache invalidation after mutations.
+          if (typeof service.invalidateCache === 'function') {
+            service.invalidateCache();
+          }
         }
         return result;
       } catch (err) {
@@ -142,7 +181,7 @@ function useResource(service, options = {}) {
         return null;
       }
     },
-    [showToast],
+    [showToast, service],
   );
 
   /**
@@ -154,21 +193,19 @@ function useResource(service, options = {}) {
     (payload) => {
       const tempId = `temp-${Date.now()}`;
       const optimisticItem = { ...payload, id: tempId };
-      return runMutation(
-        () => service.create(payload),
-        {
-          optimistic: () =>
-            setData((prev) => [...prev, optimisticItem]),
-          rollback: () =>
-            setData((prev) => prev.filter((item) => item.id !== tempId)),
-          success: (created) =>
-            setData((prev) =>
-              prev.map((item) =>
-                item.id === tempId ? { ...item, ...created, id: created.id } : item,
-              ),
+      return runMutation(() => service.create(payload), {
+        optimistic: () => setData((prev) => [...prev, optimisticItem]),
+        rollback: () =>
+          setData((prev) => prev.filter((item) => item.id !== tempId)),
+        success: (created) =>
+          setData((prev) =>
+            prev.map((item) =>
+              item.id === tempId
+                ? { ...item, ...created, id: created.id }
+                : item,
             ),
-        },
-      ).then((created) => {
+          ),
+      }).then((created) => {
         if (created) {
           showToast('success', toasts.create || TOAST_MESSAGES.create);
         }
@@ -187,22 +224,19 @@ function useResource(service, options = {}) {
   const update = useCallback(
     (id, payload) => {
       const previousData = data;
-      return runMutation(
-        () => service.update(id, payload),
-        {
-          optimistic: () =>
-            setData((prev) =>
-              prev.map((item) =>
-                item.id === id ? { ...item, ...payload } : item,
-              ),
+      return runMutation(() => service.update(id, payload), {
+        optimistic: () =>
+          setData((prev) =>
+            prev.map((item) =>
+              item.id === id ? { ...item, ...payload } : item,
             ),
-          rollback: () => setData(previousData),
-          success: (updated) =>
-            setData((prev) =>
-              prev.map((item) => (item.id === id ? updated : item)),
-            ),
-        },
-      ).then((updated) => {
+          ),
+        rollback: () => setData(previousData),
+        success: (updated) =>
+          setData((prev) =>
+            prev.map((item) => (item.id === id ? updated : item)),
+          ),
+      }).then((updated) => {
         if (updated) {
           showToast('success', toasts.update || TOAST_MESSAGES.update);
         }
@@ -220,15 +254,12 @@ function useResource(service, options = {}) {
   const remove = useCallback(
     (id) => {
       const previousData = data;
-      return runMutation(
-        () => service.remove(id),
-        {
-          optimistic: () =>
-            setData((prev) => prev.filter((item) => item.id !== id)),
-          rollback: () => setData(previousData),
-          success: () => {},
-        },
-      ).then((updated) => {
+      return runMutation(() => service.remove(id), {
+        optimistic: () =>
+          setData((prev) => prev.filter((item) => item.id !== id)),
+        rollback: () => setData(previousData),
+        success: () => {},
+      }).then((updated) => {
         if (updated !== null) {
           showToast('success', toasts.remove || TOAST_MESSAGES.remove);
           return true;
@@ -247,14 +278,11 @@ function useResource(service, options = {}) {
   const reorder = useCallback(
     (items) => {
       const previousData = data;
-      return runMutation(
-        () => service.reorder(items),
-        {
-          optimistic: () => setData(items),
-          rollback: () => setData(previousData),
-          success: () => {},
-        },
-      ).then((updated) => {
+      return runMutation(() => service.reorder(items), {
+        optimistic: () => setData(items),
+        rollback: () => setData(previousData),
+        success: () => {},
+      }).then((updated) => {
         if (updated !== null) {
           showToast('success', toasts.reorder || TOAST_MESSAGES.reorder);
           return true;

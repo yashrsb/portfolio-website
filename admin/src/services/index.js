@@ -1,6 +1,7 @@
 /**
  * Service layer barrel — central exports for the admin data layer.
  */
+export { default as BaseCrudService } from './BaseCrudService';
 export { default as authService } from './authService';
 export { default as projectService } from './projectService';
 export { default as skillService } from './skillService';

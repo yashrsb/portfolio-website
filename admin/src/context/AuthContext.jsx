@@ -1,5 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 import { authService } from '../services';
 import { clearSession } from '../services/tokenStore';
 import { normalizeApiError } from '../utils/apiErrors';
@@ -58,7 +64,7 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-/**
+  /**
    * Logs a user in with real credentials.
    * @param {string} email - User email.
    * @param {string} password - User password.
