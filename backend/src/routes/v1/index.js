@@ -10,6 +10,7 @@ import {
   postContactHandler,
 } from '../../controllers/index.js';
 import { contactValidationRules } from '../../validators/contactValidator.js';
+import { downloadResumeHandler } from '../../controllers/resumeController.js';
 import validateRequest from '../../middlewares/validateRequest.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import { HTTP_STATUS } from '../../constants/httpStatus.js';
@@ -43,6 +44,11 @@ router.get('/', (req, res) => {
     },
     { method: 'GET', path: '/profile', description: 'Profile information' },
     { method: 'GET', path: '/social', description: 'Social links' },
+    {
+      method: 'GET',
+      path: '/resume/download',
+      description: 'Download the latest resume (public)',
+    },
     {
       method: 'POST',
       path: '/contact',
@@ -114,6 +120,10 @@ router.get('/skills', getSkillsHandler);
 router.get('/education', getEducationHandler);
 router.get('/profile', getProfileHandler);
 router.get('/social', getSocialHandler);
+
+// Public resume download
+router.get('/resume/download', downloadResumeHandler);
+
 router.post(
   '/contact',
   contactValidationRules,

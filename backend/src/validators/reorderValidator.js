@@ -27,7 +27,7 @@ export const reorderValidator = [
     .withMessage(
       'Each item must include a displayOrder integer between 0 and 100000.',
     ),
-  body('items').custom(hasUniqueIds).withMessage(
-    'items must not contain duplicate ids.',
-  ),
+  body('items')
+    .custom(hasUniqueIds)
+    .withMessage('items must not contain duplicate ids.'),
 ];

@@ -9,6 +9,13 @@ import {
   deleteContactMessageHandler,
   getStatsHandler,
 } from '../../controllers/adminController.js';
+import {
+  getResumeHandler,
+  uploadResumeHandler,
+  replaceResumeHandler,
+  deleteResumeHandler,
+} from '../../controllers/resumeController.js';
+import upload from '../../middlewares/upload.js';
 import authenticate from '../../middlewares/authenticate.js';
 import authorize from '../../middlewares/authorize.js';
 import validateRequest from '../../middlewares/validateRequest.js';
@@ -291,5 +298,11 @@ router.delete(
   validateRequest,
   deleteContactMessageHandler,
 );
+
+// Resume (single file)
+router.get('/resume', getResumeHandler);
+router.post('/resume', upload.single('resume'), uploadResumeHandler);
+router.put('/resume', upload.single('resume'), replaceResumeHandler);
+router.delete('/resume', deleteResumeHandler);
 
 export default router;

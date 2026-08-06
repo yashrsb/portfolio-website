@@ -6,6 +6,11 @@ import { ERROR_CODES } from '../constants/errorCodes.js';
 const PRISMA_UNIQUE_CONSTRAINT = 'P2002';
 const PRISMA_RECORD_NOT_FOUND = 'P2025';
 const PRISMA_CONNECTION_ERRORS = new Set(['P1000', 'P1001', 'P1002', 'P1017']);
+
+// Multer error codes for file upload constraints.
+const MULTER_LIMIT_FILE_SIZE = 'LIMIT_FILE_SIZE';
+const MULTER_LIMIT_UNEXPECTED_FILE = 'LIMIT_UNEXPECTED_FILE';
+const MULTER_LIMIT_FILE_COUNT = 'LIMIT_FILE_COUNT';
 const PRISMA_DATABASE_UNAVAILABLE_ERRORS = new Set([
   'ECONNREFUSED',
   'ECONNRESET',
@@ -73,6 +78,26 @@ const normalizeError = (err) => {
     if (mapped) {
       return mapped;
     }
+  }
+
+  // Multer file-upload constraint errors.
+  if (err.code === MULTER_LIMIT_FILE_SIZE) {
+    return new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      'The uploaded file exceeds the maximum allowed size of 5 MB.',
+      ERROR_CODES.FILE_TOO_LARGE,
+    );
+  }
+
+  if (
+    err.code === MULTER_LIMIT_UNEXPECTED_FILE ||
+    err.code === MULTER_LIMIT_FILE_COUNT
+  ) {
+    return new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      'Exactly one file must be uploaded.',
+      ERROR_CODES.INVALID_FILE_TYPE,
+    );
   }
 
   // Node.js connection-level failures surface as system errors.
