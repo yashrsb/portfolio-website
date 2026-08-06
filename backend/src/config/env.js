@@ -14,6 +14,9 @@ const DEFAULT_ACCESS_TOKEN_TTL = '15m';
 const DEFAULT_REFRESH_TOKEN_TTL_DAYS = 7;
 const DEFAULT_ADMIN_EMAIL = 'admin@example.com';
 const DEFAULT_ADMIN_NAME = 'Admin';
+const DEFAULT_STORAGE_DRIVER = 'local';
+const DEFAULT_UPLOAD_DIR = 'uploads';
+const DEFAULT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 const VALID_ENVIRONMENTS = ['development', 'production', 'test'];
 
@@ -84,6 +87,25 @@ export const env = {
       name: process.env.ADMIN_NAME || DEFAULT_ADMIN_NAME,
       email: process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL,
     },
+  },
+  storage: {
+    driver: process.env.STORAGE_DRIVER || DEFAULT_STORAGE_DRIVER,
+    local: {
+      uploadDir: process.env.STORAGE_LOCAL_UPLOAD_DIR || DEFAULT_UPLOAD_DIR,
+      publicBaseUrl:
+        process.env.STORAGE_LOCAL_PUBLIC_BASE_URL ||
+        `http://localhost:${process.env.PORT || DEFAULT_PORT}${process.env.API_PREFIX || DEFAULT_API_PREFIX}`,
+    },
+    maxSizeBytes: Number.parseInt(
+      process.env.STORAGE_MAX_SIZE_BYTES || String(DEFAULT_MAX_FILE_SIZE_BYTES),
+      10,
+    ),
+    allowedMimeTypes: (
+      process.env.STORAGE_ALLOWED_MIME_TYPES || 'application/pdf'
+    )
+      .split(',')
+      .map((type) => type.trim())
+      .filter(Boolean),
   },
 };
 

@@ -1,11 +1,24 @@
 import app from './app.js';
 import { env } from './config/env.js';
 import logger from './utils/logger.js';
+import storage from './storage/index.js';
 
-const server = app.listen(env.port, () => {
-  logger.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`);
-  logger.info(`API available at http://localhost:${env.port}${env.apiPrefix}`);
-});
+let server;
+
+/**
+ * Boots the storage layer then starts the HTTP server.
+ * @returns {Promise<void>}
+ */
+const bootstrap = async () => {
+  await storage.init();
+
+  server = app.listen(env.port, () => {
+    logger.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`);
+    logger.info(
+      `API available at http://localhost:${env.port}${env.apiPrefix}`,
+    );
+  });
+};
 
 /**
  * Gracefully shuts down the server.
@@ -27,5 +40,13 @@ const shutdown = (signal) => {
 
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+bootstrap().catch((err) => {
+  logger.error('Failed to start server', {
+    error: err.message,
+    stack: err.stack,
+  });
+  process.exit(1);
+});
 
 export { server };

@@ -200,14 +200,17 @@ model RefreshToken {
 }
 
 model ResumeFile {
-  id          String   @id @default(uuid())
-  filename    String
+  id           String   @id @default(uuid())
+  filename     String
   originalName String
-  mimeType    String
-  size        Int
-  storageKey  String   @unique
-  url         String
-  uploadedAt  DateTime @default(now())
+  mimeType     String
+  size         Int
+  storageKey   String   @unique
+  storagePath  String
+  storedName   String
+  url          String
+  uploadedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([storageKey])
 }
