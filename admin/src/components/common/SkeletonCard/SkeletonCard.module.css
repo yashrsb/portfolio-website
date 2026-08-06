@@ -1,0 +1,43 @@
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+}
+
+.block {
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-border, #e0e0e0) 25%,
+    var(--color-border-hover, #ececec) 37%,
+    var(--color-border, #e0e0e0) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.title {
+  height: 18px;
+  width: 60%;
+  margin-bottom: var(--spacing-md);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.line {
+  height: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}

@@ -1,0 +1,56 @@
+.table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.header,
+.row {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+}
+
+.header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.block {
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-border, #e0e0e0) 25%,
+    var(--color-border-hover, #ececec) 37%,
+    var(--color-border, #e0e0e0) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.headerCell {
+  height: 14px;
+}
+
+.cell {
+  height: 24px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
