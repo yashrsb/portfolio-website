@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+/* eslint-disable react-refresh/only-export-components */
+import { createBrowserRouter } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/layout/AdminLayout/AdminLayout';
 import ToastStack from './components/ToastStack/ToastStack';
@@ -14,51 +15,61 @@ import SettingsPage from './pages/SettingsPage/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 
 /**
- * Admin application root.
+ * Shared layout element: ToastStack + protected admin shell.
+ */
+const AdminShell = () => (
+  <>
+    <ToastStack />
+    <ProtectedRoute>
+      <AdminLayout />
+    </ProtectedRoute>
+  </>
+);
+
+/**
+ * Admin application router (data router).
+ *
+ * A data router (createBrowserRouter) is required because some pages use
+ * useDirtyForm → useBlocker, which only works with a data router.
+ *
  * Route structure:
  * - /login — public
  * - Everything else is wrapped in ProtectedRoute + AdminLayout
  */
-function App() {
-  return (
-    <>
-      <ToastStack />
+const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: (
+      <>
+        <ToastStack />
+        <LoginPage />
+      </>
+    ),
+  },
+  {
+    path: '/',
+    element: <AdminShell />,
+    children: [
+      { index: true, element: <DashboardPage /> },
+      { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'projects', element: <ProjectsPage /> },
+      { path: 'skills', element: <SkillsPage /> },
+      { path: 'experience', element: <ExperiencePage /> },
+      { path: 'education', element: <EducationPage /> },
+      { path: 'social-links', element: <SocialLinksPage /> },
+      { path: 'resume', element: <ResumePage /> },
+      { path: 'settings', element: <SettingsPage /> },
+    ],
+  },
+  {
+    path: '*',
+    element: (
+      <>
+        <ToastStack />
+        <NotFoundPage />
+      </>
+    ),
+  },
+]);
 
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-
-        <Route
-          element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/skills" element={<SkillsPage />} />
-          <Route path="/experience" element={<ExperiencePage />} />
-          <Route path="/education" element={<EducationPage />} />
-          <Route path="/social-links" element={<SocialLinksPage />} />
-          <Route path="/resume" element={<ResumePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
-
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardPage />} />
-        </Route>
-
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </>
-  );
-}
-
-export default App;
+export default router;

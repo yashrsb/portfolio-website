@@ -85,11 +85,20 @@ const refreshAccessToken = async () => {
 /**
  * Redirects the browser to the login page, preserving the current location
  * so the user can be returned after re-authentication.
+ *
+ * Guards against an infinite reload loop:
+ * - If already on /login, do nothing (the login page shows itself).
+ * - Use only the pathname (ignoring any existing `redirect` query param) so a
+ *   nested, ever-growing redirect string can never be produced.
  */
 const redirectToLogin = () => {
-  const currentPath =
-    window.location.pathname + window.location.search + window.location.hash;
-  window.location.assign(`/login?redirect=${encodeURIComponent(currentPath)}`);
+  const { pathname } = window.location;
+
+  if (pathname === '/login') {
+    return;
+  }
+
+  window.location.assign(`/login?redirect=${encodeURIComponent(pathname)}`);
 };
 
 /**

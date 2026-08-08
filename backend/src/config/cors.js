@@ -6,9 +6,23 @@ import { ERROR_CODES } from '../constants/errorCodes.js';
 // Admin runs on :5174 alongside the public frontend on :5173.
 const DEFAULT_FRONTEND_URLS = 'http://localhost:5173,http://localhost:5174';
 
-const allowedOrigins = (env.frontendUrl || DEFAULT_FRONTEND_URLS)
-  .split(',')
-  .map((origin) => origin.trim());
+// In development, always allow the local frontend and admin origins so CORS
+// works out of the box even if FRONTEND_URL is not fully configured.
+const LOCAL_DEV_ORIGINS = DEFAULT_FRONTEND_URLS.split(',');
+
+const buildAllowedOrigins = () => {
+  const configured = (env.frontendUrl || DEFAULT_FRONTEND_URLS)
+    .split(',')
+    .map((origin) => origin.trim());
+
+  if (env.nodeEnv === 'development') {
+    return [...new Set([...configured, ...LOCAL_DEV_ORIGINS])];
+  }
+
+  return configured;
+};
+
+const allowedOrigins = buildAllowedOrigins();
 
 /**
  * CORS configuration. Only allows origins declared in FRONTEND_URL.
