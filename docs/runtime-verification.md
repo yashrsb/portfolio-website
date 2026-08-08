@@ -122,6 +122,20 @@ For each resource, verify:
 - [ ] Response envelope is consistent: `success`, `message`, `data`, `meta`.
 - [ ] No sensitive data (passwords, refresh token hashes, secrets) is returned.
 
+## Admin Router Fix (useBlocker / data router)
+
+The admin app previously used `BrowserRouter`. CRUD pages (e.g. Projects,
+Experience) use `useDirtyForm` → React Router's `useBlocker`, which **only works
+with a data router** and throws an invariant when used with `BrowserRouter`,
+causing a blank page. The app was migrated to `createBrowserRouter` +
+`RouterProvider` (in `src/App.jsx` / `src/main.jsx`) and wrapped in an
+`ErrorBoundary` so any future render error shows a readable fallback instead of
+a blank screen.
+
+- **Files changed:** `admin/src/App.jsx` (router def), `admin/src/main.jsx`
+  (`RouterProvider`), `admin/src/components/ErrorBoundary.jsx` (new).
+- **Verified:** `npm run build` passes; ESLint clean on changed files.
+
 ## 8. Build & Static Checks (already verified)
 
 - [ ] Backend/eslint, frontend/eslint, admin/eslint all clean (`--max-warnings 0`).
