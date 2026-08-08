@@ -35,14 +35,45 @@ by a human against a real environment before release.
 
 ## 2. Authentication
 
-- [ ] `POST /api/v1/auth/login` with seeded admin credentials returns an access
-      token and sets an HttpOnly refresh cookie.
-- [ ] Login with wrong password returns `401` and does not set a token.
-- [ ] Login with a deactivated account returns `403`.
-- [ ] `GET /api/v1/auth/me` returns the current user with a valid token.
-- [ ] `POST /api/v1/auth/refresh` rotates the refresh token (new cookie).
-- [ ] Reusing an already-rotated refresh token revokes the whole family (`401`).
-- [ ] `POST /api/v1/auth/logout` revokes the token and clears the cookie.
+Base URL: `http://localhost:5000/api/v1`
+Refresh cookie: `portfolio_refresh` (HttpOnly, path `/api/v1/auth`)
+Access token: sent as `Authorization: Bearer <token>`
+Login payload: `{ "email": "...", "password": "..." }`
+
+- [ ] `POST /auth/login` — seeded admin credentials → `200`, access token in
+      body + HttpOnly refresh cookie.
+```bash
+  curl -X POST http://localhost:5000/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"admin@example.com","password":"YOUR_PASSWORD"}' \
+    -c cookies.txt
+  ```
+- [ ] Login with wrong password → `401`, no token/cookie.
+  ```bash
+  curl -X POST http://localhost:5000/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"admin@example.com","password":"wrong-password"}'
+  ```
+- [ ] Login with a deactivated account → `403`.
+- [ ] `GET /auth/me` with valid token → `200` current user.
+  ```bash
+  curl -X GET http://localhost:5000/api/v1/auth/me \
+    -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+  ```
+- [ ] `POST /auth/refresh` (send the cookie) → `200`, rotates token + new cookie.
+  ```bash
+  curl -X POST http://localhost:5000/api/v1/auth/refresh -b cookies.txt -c cookies.txt
+  ```
+- [ ] Reuse an already-rotated refresh token → `401` and revokes the whole
+      family (`revokeAllUserTokens`).
+  ```bash
+  curl -X POST http://localhost:5000/api/v1/auth/refresh \
+    -H "Cookie: portfolio_refresh=THE_REVOKED_TOKEN"
+  ```
+- [ ] `POST /auth/logout` (send the cookie) → `200`, clears cookie + revokes.
+  ```bash
+  curl -X POST http://localhost:5000/api/v1/auth/logout -b cookies.txt -c cookies.txt
+  ```
 
 ## 3. Admin Dashboard
 
