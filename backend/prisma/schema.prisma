@@ -57,20 +57,27 @@ model Profile {
 }
 
 model Project {
-  id           String        @id @default(uuid())
-  slug         String        @unique
-  title        String
-  description  String
-  summary      String?
-  imageUrl     String?
-  githubUrl    String?
-  demoUrl      String?
-  status       ProjectStatus @default(live)
-  featured     Boolean       @default(false)
-  displayOrder Int           @default(0)
-  tags         String[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  slug             String        @unique
+  title            String
+  description      String
+  summary          String?
+  imageUrl         String?
+  githubUrl        String?
+  demoUrl          String?
+  status           ProjectStatus @default(live)
+  featured         Boolean       @default(false)
+  displayOrder     Int           @default(0)
+  tags             String[]
+  features         String[]      @default([])
+  techStack        Json?
+  challenges       String[]      @default([])
+  lessonsLearned   String[]      @default([])
+  architecture     String?
+  architectureImage String?
+  screenshots      Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([featured, displayOrder])
   @@index([status])

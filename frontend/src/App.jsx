@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { MainLayout } from './layouts';
 import {
@@ -7,20 +7,11 @@ import {
   Experience,
   Skills,
   Projects,
+  ProjectDetailPage,
   Education,
   Contact,
   NotFound,
 } from './pages';
-
-const PAGE_COMPONENTS = {
-  '/': Home,
-  '/about': About,
-  '/experience': Experience,
-  '/skills': Skills,
-  '/projects': Projects,
-  '/education': Education,
-  '/contact': Contact,
-};
 
 /**
  * App — root component defining all routes wrapped in the main layout.
@@ -28,7 +19,7 @@ const PAGE_COMPONENTS = {
  */
 function App() {
   const location = useLocation();
-  const [activePath, setActivePath] = useState(location.pathname);
+  const [activeLocation, setActiveLocation] = useState(location);
   const [fading, setFading] = useState(false);
   const previousPath = useRef(location.pathname);
 
@@ -37,29 +28,30 @@ function App() {
 
     setFading(true);
     const timer = setTimeout(() => {
-      setActivePath(location.pathname);
+      setActiveLocation(location);
       setFading(false);
       previousPath.current = location.pathname;
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [location.pathname]);
-
-  const PageComponent =
-    PAGE_COMPONENTS[activePath] ||
-    PAGE_COMPONENTS[
-      Object.keys(PAGE_COMPONENTS).find(
-        (k) => k !== '/' && activePath.startsWith(k),
-      )
-    ] ||
-    NotFound;
+  }, [location]);
 
   return (
     <MainLayout>
       <div
         className={fading ? 'page-transition-exit' : 'page-transition-enter'}
       >
-        <PageComponent />
+        <Routes location={activeLocation}>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/experience" element={<Experience />} />
+          <Route path="/skills" element={<Skills />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+          <Route path="/education" element={<Education />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
     </MainLayout>
   );

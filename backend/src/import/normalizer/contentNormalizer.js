@@ -106,6 +106,13 @@ export function normalizeProject(item, index) {
     featured: Boolean(item.featured),
     displayOrder: index,
     tags: item.tags || [],
+    features: item.features || [],
+    techStack: item.techStack || null,
+    challenges: item.challenges || [],
+    lessonsLearned: item.lessonsLearned || [],
+    architecture: item.architecture || null,
+    architectureImage: item.architectureImage || null,
+    screenshots: item.screenshots || null,
   };
 }
 

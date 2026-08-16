@@ -1,5 +1,6 @@
 import {
   getProjects,
+  getProjectBySlug,
   getExperience,
   getSkills,
   getEducation,
@@ -10,6 +11,7 @@ import {
 } from '../services/index.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import ApiError from '../utils/ApiError.js';
 import { HTTP_STATUS } from '../constants/httpStatus.js';
 import { MESSAGES } from '../constants/messages.js';
 
@@ -45,6 +47,22 @@ export const getProjectsHandler = asyncHandler(async (req, res) => {
     HTTP_STATUS.OK,
     MESSAGES.RESOURCE_FETCHED,
     data,
+    buildMeta(req),
+  ).send(res);
+});
+
+/**
+ * Handles GET /projects/:slug.
+ */
+export const getProjectBySlugHandler = asyncHandler(async (req, res) => {
+  const project = await getProjectBySlug(req.params.slug);
+  if (!project) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Project not found', 'NOT_FOUND');
+  }
+  new ApiResponse(
+    HTTP_STATUS.OK,
+    MESSAGES.RESOURCE_FETCHED,
+    project,
     buildMeta(req),
   ).send(res);
 });

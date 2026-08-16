@@ -1,0 +1,332 @@
+/* ============================================ */
+/* ProjectDetailPage                          */
+/* ============================================ */
+
+.page {
+  padding: var(--spacing-3xl) 0;
+}
+
+/* ---- Hero ---- */
+
+.hero {
+  padding: var(--spacing-3xl) 0;
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 768px) {
+  .heroGrid {
+    grid-template-columns: 1fr 400px;
+    gap: var(--spacing-3xl);
+    align-items: start;
+  }
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.heroImage {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.heroImageImg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---- Summary ---- */
+
+.summary {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* ---- Hero Meta ---- */
+
+.heroMeta {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+/* ---- CTAs ---- */
+
+.ctas {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.githubLink a {
+  text-decoration: none;
+}
+
+/* ---- Tech Preview ---- */
+
+.techPreview {
+  margin-top: var(--spacing-md);
+}
+
+/* ---- Section Label ---- */
+
+.sectionLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ---- Tags Section ---- */
+
+.tagsSection {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.tags {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+/* ---- Description ---- */
+
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ---- Feature List ---- */
+
+.featureList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .featureList {
+    grid-template-columns: 1fr;
+  }
+}
+
+.featureCard {
+  height: 100%;
+}
+
+.featureText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* ---- Tech Stack ---- */
+
+.techStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.techCategory {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.techCategoryTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.techTags {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+/* ---- Architecture ---- */
+
+.architectureImage {
+  margin-bottom: var(--spacing-lg);
+}
+
+.architectureImage img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.architectureText {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-line;
+}
+
+/* ---- Screenshot Gallery ---- */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--spacing-md);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+}
+
+.galleryItem {
+  list-style: none;
+}
+
+.galleryButton {
+  all: unset;
+  display: block;
+  cursor: pointer;
+  width: 100%;
+}
+
+.galleryImage {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-base);
+}
+
+.galleryButton:hover .galleryImage {
+  transform: scale(1.03);
+}
+
+.galleryCaption {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+}
+
+/* ---- Lightbox ---- */
+
+.lightboxOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+}
+
+.lightboxImage {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.lightboxCaption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  all: unset;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--color-text-inverse);
+  opacity: 0.7;
+}
+
+.lightboxClose:hover {
+  opacity: 1;
+}
+
+.lightboxNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  all: unset;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--color-text-inverse);
+  opacity: 0.6;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.lightboxNav:hover {
+  opacity: 1;
+}
+
+.lightboxNavPrev {
+  left: var(--spacing-lg);
+}
+
+.lightboxNavNext {
+  right: var(--spacing-lg);
+}
+
+/* ---- Footer CTA ---- */
+
+.footerCta {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-3xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+/* ---- Not Found ---- */
+
+.notFound {
+  text-align: center;
+  padding: var(--spacing-4xl) 0;
+}
+
+.notFoundCode {
+  font-size: 4rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+}
+
+.notFoundText {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xl);
+}

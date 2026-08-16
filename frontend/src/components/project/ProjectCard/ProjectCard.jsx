@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import styles from './ProjectCard.module.css';
 import Tag from '../../common/Tag/Tag';
 import Button from '../../common/Button/Button';
@@ -7,12 +8,13 @@ import Button from '../../common/Button/Button';
  */
 
 /**
- * Project card with image placeholder, title, description, tech tags, and action buttons.
+ * Project card with image, title, description, tech tags, and action buttons.
  *
  * @param {Object} props
  * @param {string} props.title - Project title
  * @param {string} props.description - Short project description
  * @param {string[]} props.tags - Technology tags (e.g., ["React", "Node.js"])
+ * @param {string} [props.slug] - Project slug for the case study link
  * @param {boolean} [props.featured=false] - Whether to show a featured badge
  * @param {ProjectStatus} [props.status] - Optional status badge
  * @param {string} [props.githubUrl] - GitHub repository URL
@@ -25,6 +27,7 @@ function ProjectCard({
   title,
   description,
   tags = [],
+  slug,
   featured = false,
   status,
   githubUrl,
@@ -120,6 +123,15 @@ function ProjectCard({
             >
               Live Demo
             </Button>
+          )}
+          {slug && (
+            <Link
+              to={`/projects/${slug}`}
+              className={styles.caseStudyLink}
+              ariaLabel={`View ${title} case study`}
+            >
+              View Case Study
+            </Link>
           )}
         </div>
       </div>

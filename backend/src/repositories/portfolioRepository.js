@@ -15,6 +15,14 @@ export const findProjects = async () =>
   });
 
 /**
+ * Fetches a single project by its slug.
+ * @param {string} slug - Project slug.
+ * @returns {Promise<object|null>} Project or null if not found.
+ */
+export const findProjectBySlug = async (slug) =>
+  prisma.project.findUnique({ where: { slug } });
+
+/**
  * Fetches work experience entries.
  * @returns {Promise<Array>} Experience array.
  */

@@ -1,5 +1,6 @@
 export { useProfile } from './useProfile';
 export { useProjects } from './useProjects';
+export { useProject } from './useProject';
 export { useExperience } from './useExperience';
 export { useSkills } from './useSkills';
 export { useEducation } from './useEducation';

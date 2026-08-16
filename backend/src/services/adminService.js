@@ -68,6 +68,14 @@ const toDbProject = (form) => ({
   status: form.status || 'live',
   featured: Boolean(form.featured),
   displayOrder: Number(form.displayOrder) || 0,
+  tags: form.tags || [],
+  features: form.features || [],
+  techStack: form.techStack || null,
+  challenges: form.challenges || [],
+  lessonsLearned: form.lessonsLearned || [],
+  architecture: form.architecture || null,
+  architectureImage: form.architectureImage || null,
+  screenshots: form.screenshots || null,
 });
 
 const toDbSkill = (form) => ({

@@ -31,14 +31,20 @@ const toProjectPayload = (project, index) => ({
   slug: project.id,
   title: project.title,
   description: project.description,
-  summary: null,
-  imageUrl: null,
+  summary: project.summary || null,
+  imageUrl: project.imageUrl || null,
   githubUrl: project.githubUrl || null,
   demoUrl: project.liveUrl || null,
   status: project.status || 'live',
   featured: Boolean(project.featured),
   displayOrder: index,
   tags: project.tags || [],
+  features: project.features || [],
+  challenges: project.challenges || [],
+  lessonsLearned: project.lessonsLearned || [],
+  architecture: project.architecture || null,
+  architectureImage: project.architectureImage || null,
+  screenshots: project.screenshots || null,
 });
 
 /**

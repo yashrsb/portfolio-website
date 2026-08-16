@@ -1,5 +1,6 @@
 import {
   findProjects,
+  findProjectBySlug,
   findExperience,
   findSkills,
   findEducation,
@@ -23,6 +24,13 @@ import logger from '../utils/logger.js';
  * @returns {Promise<Array>} Projects array.
  */
 export const getProjects = async () => findProjects();
+
+/**
+ * Returns a single project by slug.
+ * @param {string} slug - Project slug.
+ * @returns {Promise<object|null>} Project or null if not found.
+ */
+export const getProjectBySlug = async (slug) => findProjectBySlug(slug);
 
 /**
  * Returns work experience entries.

@@ -136,7 +136,25 @@ a blank screen.
   (`RouterProvider`), `admin/src/components/ErrorBoundary.jsx` (new).
 - **Verified:** `npm run build` passes; ESLint clean on changed files.
 
-## 8. Build & Static Checks (already verified)
+## 8. Project Showcase (Phase 11)
+
+- [ ] `GET /api/v1/projects/:slug` returns a single project with showcase fields.
+- [ ] `GET /api/v1/projects/:slug` with a non-existent slug returns `404`.
+- [ ] `/projects` list page shows project cards with a "View Case Study" link.
+- [ ] `/projects/:slug` renders the dedicated project detail page.
+- [ ] Project detail page shows: overview, features, tech stack, architecture,
+      screenshots (with lightbox), challenges, lessons learned, GitHub, and
+      optional live demo.
+- [ ] Live Demo button is omitted when `demoUrl` is null (no placeholder "#").
+- [ ] GitHub button is omitted when `githubUrl` is null.
+- [ ] Screenshot section is hidden when no screenshots exist.
+- [ ] Empty optional sections (features, challenges, etc.) are not rendered.
+- [ ] Admin "create/edit" form saves new fields to PostgreSQL.
+- [ ] Editing a project in admin immediately reflects on the public page after refresh.
+- [ ] SEO meta tags (title, description, OG) update dynamically per project.
+- [ ] Screenshot lightbox: click to enlarge, Escape to close, arrow keys to navigate.
+
+## 9. Build & Static Checks (already verified)
 
 - [ ] Backend/eslint, frontend/eslint, admin/eslint all clean (`--max-warnings 0`).
 - [ ] Prettier check clean across all files.

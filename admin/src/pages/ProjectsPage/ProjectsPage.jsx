@@ -42,7 +42,33 @@ const EMPTY_FORM = {
   demoUrl: '',
   imageUrl: '',
   displayOrder: '',
+  tags: '',
+  features: '',
+  challenges: '',
+  lessonsLearned: '',
+  architecture: '',
+  architectureImage: '',
+  techStack: '',
+  screenshots: '',
 };
+
+/**
+ * Splits a multiline string into a trimmed array of strings.
+ * @param {string} value
+ * @returns {string[]}
+ */
+const linesToArray = (value) =>
+  (value || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+/**
+ * Joins an array of strings into a multiline string.
+ * @param {string[]} arr
+ * @returns {string}
+ */
+const arrayToLines = (arr) => (arr || []).join('\n');
 
 /**
  * ProjectsPage — full CRUD UI for portfolio projects backed by the real
@@ -86,17 +112,31 @@ function ProjectsPage() {
   const openEdit = (item) => {
     if (!item) return;
     setEditingId(item.id);
+    const techStack = item.techStack
+      ? JSON.stringify(item.techStack, null, 2)
+      : '';
+    const screenshots = item.screenshots
+      ? JSON.stringify(item.screenshots, null, 2)
+      : '';
     setForm({
       title: item.title,
       slug: item.slug,
-      summary: item.summary,
-      description: item.description,
+      summary: item.summary || '',
+      description: item.description || '',
       status: item.status,
       featured: item.featured,
-      githubUrl: item.githubUrl,
-      demoUrl: item.demoUrl,
-      imageUrl: item.imageUrl,
+      githubUrl: item.githubUrl || '',
+      demoUrl: item.demoUrl || '',
+      imageUrl: item.imageUrl || '',
       displayOrder: String(item.displayOrder),
+      tags: arrayToLines(item.tags),
+      features: arrayToLines(item.features),
+      challenges: arrayToLines(item.challenges),
+      lessonsLearned: arrayToLines(item.lessonsLearned),
+      architecture: item.architecture || '',
+      architectureImage: item.architectureImage || '',
+      techStack,
+      screenshots,
     });
     setErrors({});
     setModalOpen(true);
@@ -122,6 +162,32 @@ function ProjectsPage() {
       validationErrors.githubUrl = 'Enter a valid URL';
     if (form.demoUrl && !isUrl(form.demoUrl))
       validationErrors.demoUrl = 'Enter a valid URL';
+    if (form.imageUrl && !isUrl(form.imageUrl))
+      validationErrors.imageUrl = 'Enter a valid URL';
+    if (form.architectureImage && !isUrl(form.architectureImage))
+      validationErrors.architectureImage = 'Enter a valid URL';
+    if (form.techStack && form.techStack.trim()) {
+      try {
+        const parsed = JSON.parse(form.techStack);
+        if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+          validationErrors.techStack =
+            'Tech Stack must be a JSON object (e.g. {"Frontend": ["React"]})';
+        }
+      } catch {
+        validationErrors.techStack = 'Tech Stack must be valid JSON';
+      }
+    }
+    if (form.screenshots && form.screenshots.trim()) {
+      try {
+        const parsed = JSON.parse(form.screenshots);
+        if (!Array.isArray(parsed)) {
+          validationErrors.screenshots =
+            'Screenshots must be a JSON array of objects';
+        }
+      } catch {
+        validationErrors.screenshots = 'Screenshots must be valid JSON';
+      }
+    }
     return validationErrors;
   };
 
@@ -138,6 +204,20 @@ function ProjectsPage() {
     const payload = {
       ...form,
       displayOrder: Number(form.displayOrder) || 0,
+      tags: linesToArray(form.tags),
+      features: linesToArray(form.features),
+      challenges: linesToArray(form.challenges),
+      lessonsLearned: linesToArray(form.lessonsLearned),
+      techStack:
+        form.techStack && form.techStack.trim()
+          ? JSON.parse(form.techStack)
+          : null,
+      screenshots:
+        form.screenshots && form.screenshots.trim()
+          ? JSON.parse(form.screenshots)
+          : null,
+      architecture: form.architecture || null,
+      architectureImage: form.architectureImage || null,
     };
 
     setSubmitting(true);
@@ -435,6 +515,117 @@ function ProjectsPage() {
               name="imageUrl"
               value={form.imageUrl}
               onChange={handleChange}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField
+            label="Architecture Image URL"
+            htmlFor="project-architecture-image"
+            error={errors.architectureImage}
+          >
+            <TextInput
+              id="project-architecture-image"
+              name="architectureImage"
+              value={form.architectureImage}
+              onChange={handleChange}
+              error={errors.architectureImage}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField label="Architecture" htmlFor="project-architecture">
+            <TextArea
+              id="project-architecture"
+              name="architecture"
+              value={form.architecture}
+              onChange={handleChange}
+              rows={4}
+              disabled={submitting}
+              placeholder="Explain how the system works — e.g. Client → API → Services → Repository → Database"
+            />
+          </FormField>
+
+          <FormField label="Tags (one per line)" htmlFor="project-tags">
+            <TextArea
+              id="project-tags"
+              name="tags"
+              value={form.tags}
+              onChange={handleChange}
+              rows={3}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField label="Features (one per line)" htmlFor="project-features">
+            <TextArea
+              id="project-features"
+              name="features"
+              value={form.features}
+              onChange={handleChange}
+              rows={4}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField
+            label="Challenges (one per line)"
+            htmlFor="project-challenges"
+          >
+            <TextArea
+              id="project-challenges"
+              name="challenges"
+              value={form.challenges}
+              onChange={handleChange}
+              rows={4}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField
+            label="Lessons Learned (one per line)"
+            htmlFor="project-lessons"
+          >
+            <TextArea
+              id="project-lessons"
+              name="lessonsLearned"
+              value={form.lessonsLearned}
+              onChange={handleChange}
+              rows={4}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField
+            label="Tech Stack (JSON object)"
+            htmlFor="project-tech-stack"
+            error={errors.techStack}
+            hint='e.g. {"Frontend": ["React"], "Backend": ["Node.js"]}'
+          >
+            <TextArea
+              id="project-tech-stack"
+              name="techStack"
+              value={form.techStack}
+              onChange={handleChange}
+              error={errors.techStack}
+              rows={6}
+              disabled={submitting}
+            />
+          </FormField>
+
+          <FormField
+            label="Screenshots (JSON array)"
+            htmlFor="project-screenshots"
+            error={errors.screenshots}
+            hint='e.g. [{"src": "...", "alt": "...", "caption": "..."}]'
+          >
+            <TextArea
+              id="project-screenshots"
+              name="screenshots"
+              value={form.screenshots}
+              onChange={handleChange}
+              error={errors.screenshots}
+              rows={6}
               disabled={submitting}
             />
           </FormField>

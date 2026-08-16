@@ -1,6 +1,6 @@
 export { apiClient, ApiError } from './apiClient';
 export { fetchProfile } from './profileService';
-export { fetchProjects } from './projectService';
+export { fetchProjects, fetchProjectBySlug } from './projectService';
 export { fetchExperience } from './experienceService';
 export { fetchSkills } from './skillService';
 export { fetchEducation } from './educationService';
