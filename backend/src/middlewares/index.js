@@ -6,3 +6,4 @@ export { default as notFound } from './notFound.js';
 export { default as authenticate } from './authenticate.js';
 export { default as authorize } from './authorize.js';
 export { default as upload } from './upload.js';
+export { default as spamProtection } from './spamProtection.js';

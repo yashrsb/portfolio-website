@@ -173,20 +173,20 @@ npm run format:check  # Prettier check
 
 ## API
 
-The API is available at `http://localhost:5000/api/v1`. See
+The API is available at `http://localhost:5001/api/v1`. See
 [docs/api.md](docs/api.md) for the full reference.
 
 Quick examples:
 
 ```bash
 # Health check
-curl http://localhost:5000/api/v1/health
+curl http://localhost:5001/api/v1/health
 
 # List projects
-curl http://localhost:5000/api/v1/projects
+curl http://localhost:5001/api/v1/projects
 
 # Download the latest resume
-curl http://localhost:5000/api/v1/resume/download
+curl http://localhost:5001/api/v1/resume/download
 ```
 
 ## Documentation

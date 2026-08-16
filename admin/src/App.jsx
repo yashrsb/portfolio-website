@@ -10,6 +10,7 @@ import SkillsPage from './pages/SkillsPage/SkillsPage';
 import ExperiencePage from './pages/ExperiencePage/ExperiencePage';
 import EducationPage from './pages/EducationPage/EducationPage';
 import SocialLinksPage from './pages/SocialLinksPage/SocialLinksPage';
+import ContactMessagesPage from './pages/ContactMessagesPage/ContactMessagesPage';
 import ResumePage from './pages/ResumePage/ResumePage';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
       { path: 'experience', element: <ExperiencePage /> },
       { path: 'education', element: <EducationPage /> },
       { path: 'social-links', element: <SocialLinksPage /> },
+      { path: 'contact-messages', element: <ContactMessagesPage /> },
       { path: 'resume', element: <ResumePage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],

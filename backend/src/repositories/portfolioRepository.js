@@ -65,9 +65,31 @@ export const findSocial = async () =>
   prisma.socialLink.findMany({ orderBy: { displayOrder: 'asc' } });
 
 /**
- * Creates a contact message in the database.
- * @param {object} contact - Validated contact payload.
+ * Creates a contact message in the database with optional metadata.
+ * @param {object} contact - Validated contact payload (name, email, subject, message).
+ * @param {object} [metadata={}] - Request metadata (ipAddress, userAgent).
  * @returns {Promise<object>} Created contact message.
  */
-export const createContactMessage = async (contact) =>
-  prisma.contactMessage.create({ data: contact });
+export const createContactMessage = async (contact, metadata = {}) =>
+  prisma.contactMessage.create({
+    data: {
+      name: contact.name,
+      email: contact.email,
+      subject: contact.subject,
+      message: contact.message,
+      ipAddress: metadata.ipAddress || null,
+      userAgent: metadata.userAgent || null,
+    },
+  });
+
+/**
+ * Updates the email notification status for a contact message.
+ * @param {string} id - Contact message id.
+ * @param {object} data - Partial update payload (emailStatus, emailSentAt, emailError).
+ * @returns {Promise<object>} Updated contact message.
+ */
+export const updateContactEmailStatus = async (id, data) =>
+  prisma.contactMessage.update({
+    where: { id },
+    data,
+  });

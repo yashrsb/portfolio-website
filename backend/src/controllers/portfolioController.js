@@ -118,7 +118,17 @@ export const getSocialHandler = asyncHandler(async (req, res) => {
  * Handles POST /contact.
  */
 export const postContactHandler = asyncHandler(async (req, res) => {
-  const data = await submitContact(req.body);
+  const contact = {
+    name: req.body.name,
+    email: req.body.email,
+    subject: req.body.subject,
+    message: req.body.message,
+  };
+  const metadata = {
+    ipAddress: req.ip,
+    userAgent: req.get('user-agent') || '',
+  };
+  const data = await submitContact(contact, metadata);
   new ApiResponse(
     HTTP_STATUS.ACCEPTED,
     MESSAGES.CONTACT_RECEIVED,
