@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/skills', label: 'Skills', icon: '🧠' },
   { to: '/education', label: 'Education', icon: '🎓' },
   { to: '/social-links', label: 'Social Links', icon: '🔗' },
+  { to: '/contact-messages', label: 'Contact Messages', icon: '✉️' },
   { to: '/resume', label: 'Resume', icon: '📄' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
 ];

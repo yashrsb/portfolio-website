@@ -12,6 +12,8 @@ import {
 import { contactValidationRules } from '../../validators/contactValidator.js';
 import { downloadResumeHandler } from '../../controllers/resumeController.js';
 import validateRequest from '../../middlewares/validateRequest.js';
+import { spamProtection } from '../../middlewares/index.js';
+import { contactRateLimiter } from '../../config/index.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import { HTTP_STATUS } from '../../constants/httpStatus.js';
 import { env } from '../../config/env.js';
@@ -52,7 +54,7 @@ router.get('/', (req, res) => {
     {
       method: 'POST',
       path: '/contact',
-      description: 'Submit a contact message (mock)',
+      description: 'Submit a contact message (validated, rate-limited)',
     },
     {
       method: 'GET',
@@ -126,6 +128,8 @@ router.get('/resume/download', downloadResumeHandler);
 
 router.post(
   '/contact',
+  contactRateLimiter,
+  spamProtection,
   contactValidationRules,
   validateRequest,
   postContactHandler,

@@ -25,14 +25,14 @@ secrets.
 | `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Admin seed account (used by `db:seed`)  | `Admin` / `admin@example.com` / changeme      |
 | `STORAGE_DRIVER`                                | Storage backend (`local`)               | `local`                                       |
 | `STORAGE_LOCAL_UPLOAD_DIR`                      | Local upload directory                  | `uploads`                                     |
-| `STORAGE_LOCAL_PUBLIC_BASE_URL`                 | Public base URL for uploaded files      | `http://localhost:5000/api/v1`                |
+| `STORAGE_LOCAL_PUBLIC_BASE_URL`                 | Public base URL for uploaded files      | `http://localhost:5001/api/v1`                |
 | `STORAGE_MAX_SIZE_BYTES`                        | Max upload size in bytes                | `5242880` (5 MB)                              |
 | `STORAGE_ALLOWED_MIME_TYPES`                    | Comma-separated allowed MIME types      | `application/pdf`                             |
 
 Frontend and admin each read `VITE_API_BASE_URL`:
 
 ```
-VITE_API_BASE_URL=http://localhost:5000/api/v1
+VITE_API_BASE_URL=http://localhost:5001/api/v1
 ```
 
 > Note: Vite env vars are inlined at build time. Set them before running

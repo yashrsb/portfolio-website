@@ -113,7 +113,7 @@ function DashboardPage() {
           label: 'Messages',
           value: stats.messages,
           icon: '✉️',
-          to: '/settings',
+          to: '/contact-messages',
         },
       ]
     : [];

@@ -1,0 +1,14 @@
+process.env.NODE_ENV = 'test';
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_ACCESS_SECRET = 'test-access-secret';
+process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
+process.env.JWT_ACCESS_SECRET_TTL = '15m';
+process.env.JWT_REFRESH_SECRET_TTL_DAYS = '7';
+process.env.ADMIN_EMAIL = 'admin@example.com';
+process.env.ADMIN_NAME = 'Admin';
+process.env.ADMIN_PASSWORD = 'test-password';
+process.env.EMAIL_PROVIDER = 'smtp';
+process.env.EMAIL_FROM = 'Portfolio <admin@example.com>';
+process.env.CONTACT_NOTIFICATION_EMAIL = 'admin@example.com';
+process.env.CONTACT_RATE_LIMIT_WINDOW_MS = '60000';
+process.env.CONTACT_RATE_LIMIT_MAX = '3';

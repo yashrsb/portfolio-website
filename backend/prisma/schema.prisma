@@ -33,6 +33,12 @@ enum ContactMessageStatus {
   archived
 }
 
+enum ContactEmailStatus {
+  pending
+  sent
+  failed
+}
+
 model Profile {
   id              String   @id @default(uuid())
   name            String
@@ -159,15 +165,21 @@ model SocialLink {
 }
 
 model ContactMessage {
-  id        String              @id @default(uuid())
-  name      String
-  email     String
-  subject   String
-  message   String
-  status    ContactMessageStatus @default(new)
-  createdAt DateTime            @default(now())
+  id          String              @id @default(uuid())
+  name        String
+  email       String
+  subject     String
+  message     String
+  status      ContactMessageStatus @default(new)
+  createdAt   DateTime            @default(now())
+  ipAddress   String?
+  userAgent   String?
+  emailStatus ContactEmailStatus  @default(pending)
+  emailSentAt DateTime?
+  emailError  String?
 
   @@index([status, createdAt])
+  @@index([emailStatus])
 }
 
 model User {

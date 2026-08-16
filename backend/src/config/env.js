@@ -18,6 +18,9 @@ const DEFAULT_STORAGE_DRIVER = 'local';
 const DEFAULT_UPLOAD_DIR = 'uploads';
 const DEFAULT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
+const DEFAULT_CONTACT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const DEFAULT_CONTACT_RATE_LIMIT_MAX = 5; // max 5 submissions per window per IP
+
 const VALID_ENVIRONMENTS = ['development', 'production', 'test'];
 
 /**
@@ -106,6 +109,33 @@ export const env = {
       .split(',')
       .map((type) => type.trim())
       .filter(Boolean),
+  },
+  email: {
+    provider: process.env.EMAIL_PROVIDER || 'smtp',
+    from: process.env.EMAIL_FROM || `${DEFAULT_ADMIN_NAME} <${DEFAULT_ADMIN_EMAIL}>`,
+    contactNotificationEmail:
+      process.env.CONTACT_NOTIFICATION_EMAIL || DEFAULT_ADMIN_EMAIL,
+    smtp: {
+      host: process.env.EMAIL_SMTP_HOST,
+      port: process.env.EMAIL_SMTP_PORT
+        ? Number.parseInt(process.env.EMAIL_SMTP_PORT, 10)
+        : undefined,
+      secure: process.env.EMAIL_SMTP_SECURE === 'true',
+      user: process.env.EMAIL_SMTP_USER,
+      pass: process.env.EMAIL_SMTP_PASS,
+    },
+  },
+  contactRateLimit: {
+    windowMs: Number.parseInt(
+      process.env.CONTACT_RATE_LIMIT_WINDOW_MS ||
+        String(DEFAULT_CONTACT_RATE_LIMIT_WINDOW_MS),
+      10,
+    ),
+    max: Number.parseInt(
+      process.env.CONTACT_RATE_LIMIT_MAX ||
+        String(DEFAULT_CONTACT_RATE_LIMIT_MAX),
+      10,
+    ),
   },
 };
 

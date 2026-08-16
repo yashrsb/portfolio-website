@@ -11,7 +11,8 @@
     "lint": "npm run lint --prefix frontend && npm run lint --prefix backend && npm run lint --prefix admin",
     "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
-    "install:all": "npm install --prefix frontend && npm install --prefix backend && npm install --prefix admin"
+    "install:all": "npm install --prefix frontend && npm install --prefix backend && npm install --prefix admin",
+    "test": "npm run test --prefix backend && npm run test --prefix frontend && npm run test --prefix admin"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

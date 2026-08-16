@@ -3,7 +3,7 @@
 The API is versioned and mounted under `/api/v1`. The base URL is:
 
 ```
-http://localhost:5000/api/v1
+http://localhost:5001/api/v1
 ```
 
 ## Response Envelope

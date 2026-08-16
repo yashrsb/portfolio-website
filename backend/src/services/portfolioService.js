@@ -6,8 +6,11 @@ import {
   findProfile,
   findSocial,
   createContactMessage,
+  updateContactEmailStatus,
 } from '../repositories/index.js';
+import { sendContactNotification } from './emailService.js';
 import { env } from '../config/env.js';
+import logger from '../utils/logger.js';
 
 /**
  * Business logic layer for portfolio resources.
@@ -52,11 +55,64 @@ export const getProfile = async () => findProfile();
 export const getSocial = async () => findSocial();
 
 /**
- * Accepts a contact message.
- * @param {object} contact - Validated contact payload.
- * @returns {Promise<object>} Accepted contact payload.
+ * Accepts a contact message: persists it, attempts an email notification,
+ * and updates the email status accordingly.
+ *
+ * The visitor always receives a successful response as long as the message
+ * is safely stored — even if the notification email fails.
+ *
+ * @param {object} contact - Validated contact payload (name, email, subject, message).
+ * @param {object} [metadata={}] - Request metadata (ipAddress, userAgent).
+ * @returns {Promise<{id: string, createdAt: Date}>} Safe response payload.
  */
-export const submitContact = async (contact) => createContactMessage(contact);
+export const submitContact = async (contact, metadata = {}) => {
+  const created = await createContactMessage(contact, metadata);
+
+  logger.info('Contact submission accepted', {
+    messageId: created.id,
+    ipAddress: metadata.ipAddress,
+  });
+
+  try {
+    await sendContactNotification({
+      name: created.name,
+      email: created.email,
+      subject: created.subject,
+      message: created.message,
+      createdAt: created.createdAt.toISOString(),
+      ipAddress: created.ipAddress,
+    });
+
+    await updateContactEmailStatus(created.id, {
+      emailStatus: 'sent',
+      emailSentAt: new Date(),
+      emailError: null,
+    });
+
+    logger.info('Contact notification email sent', {
+      messageId: created.id,
+    });
+  } catch (error) {
+    logger.error('Contact notification email failed', {
+      messageId: created.id,
+      error: error.message,
+    });
+
+    try {
+      await updateContactEmailStatus(created.id, {
+        emailStatus: 'failed',
+        emailError: error.message,
+      });
+    } catch (dbError) {
+      logger.error('Failed to update email status in database', {
+        messageId: created.id,
+        error: dbError.message,
+      });
+    }
+  }
+
+  return { id: created.id, createdAt: created.createdAt };
+};
 
 /**
  * Returns service health information.

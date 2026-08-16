@@ -7,7 +7,7 @@
 
 /** Base URL of the backend API. */
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
 
 /** HTTP methods. */
 export const HTTP_METHODS = Object.freeze({
@@ -73,6 +73,7 @@ export const ADMIN_ENDPOINTS = Object.freeze({
   resume: '/admin/resume',
   stats: '/admin/stats',
   profile: '/admin/profile',
+  'contact-messages': '/admin/contact-messages',
 });
 
 export default {
