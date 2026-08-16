@@ -178,7 +178,7 @@ function useResource(service, options = {}) {
             showToast('error', normalized.message);
           }
         }
-        return null;
+        return undefined;
       }
     },
     [showToast, service],
@@ -260,7 +260,7 @@ function useResource(service, options = {}) {
         rollback: () => setData(previousData),
         success: () => {},
       }).then((updated) => {
-        if (updated !== null) {
+        if (updated !== undefined) {
           showToast('success', toasts.remove || TOAST_MESSAGES.remove);
           return true;
         }
