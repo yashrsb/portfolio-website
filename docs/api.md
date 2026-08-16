@@ -49,8 +49,9 @@ Errors:
 | GET    | `/`                | List available endpoints              | No   |
 | GET    | `/health`          | Service health status                 | No   |
 | GET    | `/profile`         | Profile information                   | No   |
-| GET    | `/projects`        | List projects                         | No   |
-| GET    | `/experience`      | Work experience                       | No   |
+| GET    | `/projects`        | List projects (brief card data)     | No   |
+| GET    | `/projects/:slug`  | Get a single project by slug        | No   |
+| GET    | `/experience`      | Work experience                     | No   |
 | GET    | `/skills`          | Skills grouped by category            | No   |
 | GET    | `/education`       | Education, certificates, achievements | No   |
 | GET    | `/social`          | Social links                          | No   |
@@ -67,6 +68,37 @@ Errors:
 | email   | required, valid email address |
 | subject | required, 5–150 characters    |
 | message | required, 10–2000 characters  |
+
+### Projects
+
+`GET /projects` — returns a brief card-shaped array of all projects.
+
+`GET /projects/:slug` — returns a single project by its slug. Returns `404 NOT_FOUND` when the slug does not match any project.
+
+The extended project model includes the following fields beyond the original card data:
+
+| Field             | Type          | Nullable | Description                                  |
+| ----------------- | ------------- | -------- | -------------------------------------------- |
+| title             | string        | no       | Project title                                |
+| slug              | string        | no       | URL-friendly unique identifier               |
+| description       | string        | no       | Detailed project description                 |
+| summary           | string        | yes      | Short one-line summary                       |
+| imageUrl          | string(url)   | yes      | Optional project image                       |
+| githubUrl         | string(url)   | yes      | GitHub repository URL                        |
+| demoUrl           | string(url)   | yes      | Live demo URL (optional)                     |
+| status            | enum          | no       | `live`, `wip`, or `archived`                 |
+| featured          | boolean       | no       | Whether the project is featured              |
+| displayOrder      | integer       | no       | Sort order                                   |
+| tags              | string[]      | no       | Technology tags                                |
+| features          | string[]      | no       | Key features                                 |
+| techStack         | json          | yes      | Grouped tech stack (e.g. `{Frontend: [...]}`)|
+| challenges        | string[]      | no       | Engineering challenges                       |
+| lessonsLearned    | string[]      | no       | Engineering takeaways                        |
+| architecture      | string        | yes      | Architecture description                     |
+| architectureImage | string(url)   | yes      | Optional architecture diagram URL            |
+| screenshots       | json          | yes      | Array of `{src, alt, caption}` objects        |
+| createdAt         | datetime      | no       | Creation timestamp                           |
+| updatedAt         | datetime      | no       | Last update timestamp                        |
 
 ## Authentication
 

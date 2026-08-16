@@ -111,4 +111,38 @@
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-border);
   transition: gap var(--transition-base);
+  flex-wrap: wrap;
+}
+
+.caseStudyLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  line-height: var(--line-height-tight);
+  padding: var(--spacing-xs) var(--spacing-md);
+  min-height: 32px;
+  color: var(--color-primary);
+  background-color: transparent;
+}
+
+.caseStudyLink:hover:not(:disabled) {
+  background-color: var(--color-primary-light);
+  box-shadow: var(--shadow-md);
 }

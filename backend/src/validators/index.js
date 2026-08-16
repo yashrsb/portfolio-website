@@ -1,6 +1,6 @@
 export { contactValidationRules } from './contactValidator.js';
 export { loginValidator, refreshValidator } from './authValidator.js';
-export { idValidator } from './idValidator.js';
+export { idValidator, slugValidator } from './idValidator.js';
 export { reorderValidator } from './reorderValidator.js';
 export { projectValidators } from './projectValidator.js';
 export { skillValidators } from './skillValidator.js';

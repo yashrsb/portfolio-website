@@ -17,9 +17,9 @@
 # Profile
 # ---------------------------------------------------------------------------
 profile:
-  name: "Yash Raj Singh Bisht"
-  headline: "Senior Software Engineer"
-  tagline: "Building scalable backend systems and cloud-native applications with modern technologies."
+  name: 'Yash Raj Singh Bisht'
+  headline: 'Senior Software Engineer'
+  tagline: 'Building scalable backend systems and cloud-native applications with modern technologies.'
   bio: |
     As a Senior Software Engineer with over 5 years of professional experience,
     I specialize in designing and building scalable, high-performance backend systems
@@ -50,31 +50,31 @@ profile:
     - API Design (REST, GraphQL, gRPC)
     - Database Performance Optimization
     - System Design
-  profileImageUrl: "https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/yash-ghibli_vlahxv"
+  profileImageUrl: 'https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/yash-ghibli_vlahxv'
   stats:
-    experience: "5+"
+    experience: '5+'
     projects: 10
     technologies: 25
     openSourceContributions: 5
   contact:
-    email: "yrajsingh0001@gmail.com"
-    phone: "+91-9278557002"
-    location: "Delhi, India"
-    linkedin: "https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/"
-    github: "https://github.com/yashrsb"
-  resumeUrl: "https://github.com/user-attachments/files/30660899/Yash-Resume.pdf"
+    email: 'yrajsingh0001@gmail.com'
+    phone: '+91-9278557002'
+    location: 'Delhi, India'
+    linkedin: 'https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/'
+    github: 'https://github.com/yashrsb'
+  resumeUrl: 'https://github.com/user-attachments/files/30660899/Yash-Resume.pdf'
 
 # ---------------------------------------------------------------------------
 # Work Experience
 # ---------------------------------------------------------------------------
 experience:
-  - company: "thinkBridge"
-    companyWebsite: "https://www.thinkbridge.com/"
-    role: "Senior Software Engineer – Backend"
-    startDate: "Jul 2025"
+  - company: 'thinkBridge'
+    companyWebsite: 'https://www.thinkbridge.com/'
+    role: 'Senior Software Engineer – Backend'
+    startDate: 'Jul 2025'
     endDate: null
     current: true
-    location: "India (Remote)"
+    location: 'India (Remote)'
     description: |
       Working as a Senior Backend Engineer on scalable transportation and
       ride-assignment systems. Focused on improving system performance, database
@@ -101,13 +101,13 @@ experience:
       - Implemented Fraud, Waste, and Abuse (FWA) safeguards within SQL-based auto-assignment engine, reducing policy violations by 70%
       - Resolved critical Kafka producer issue that prevented vendor from receiving reservation updates, reducing message delivery failures by 90%
 
-  - company: "Compliance Innovation"
-    companyWebsite: "https://complianceinnovation.ai/"
-    role: "Software Engineer"
-    startDate: "Jul 2024"
-    endDate: "Jul 2025"
+  - company: 'Compliance Innovation'
+    companyWebsite: 'https://complianceinnovation.ai/'
+    role: 'Software Engineer'
+    startDate: 'Jul 2024'
+    endDate: 'Jul 2025'
     current: false
-    location: "India (Remote)"
+    location: 'India (Remote)'
     description: |
       Developed fintech and compliance solutions from the ground up, including
       cloud deployment, authentication, document processing, and e-signature workflows.
@@ -131,13 +131,13 @@ experience:
       - Resolved critical OAuth session issue in OIDC flow, improving signup success rates by 85%
       - Optimized Pipelines microservice backend with decoupled scalable modules, boosting performance by 40%
 
-  - company: "Kampd"
-    companyWebsite: "https://www.kampd.com/"
-    role: "Software Engineer"
-    startDate: "Nov 2021"
-    endDate: "Jul 2024"
+  - company: 'Kampd'
+    companyWebsite: 'https://www.kampd.com/'
+    role: 'Software Engineer'
+    startDate: 'Nov 2021'
+    endDate: 'Jul 2024'
     current: false
-    location: "India"
+    location: 'India'
     description: |
       Worked on scalable backend services, real-time messaging, and performance
       optimization for a customer engagement platform.
@@ -166,11 +166,11 @@ experience:
 # Projects
 # ---------------------------------------------------------------------------
 projects:
-  - slug: "portfolio-website"
-    title: "Personal Portfolio Website"
-    description: "A production-ready personal portfolio website built with React, Express, and PostgreSQL. Features a public frontend, REST API, admin dashboard, and Markdown-based content import system."
-    summary: "Full-stack portfolio with admin dashboard and content import from YAML"
-    status: "live"
+  - slug: 'portfolio-website'
+    title: 'Personal Portfolio Website'
+    description: 'A production-ready personal portfolio website built with React, Express, and PostgreSQL. Features a public frontend, REST API, admin dashboard, and Markdown-based content import system.'
+    summary: 'Full-stack portfolio with admin dashboard and content import from YAML'
+    status: 'live'
     featured: true
     tags:
       - React
@@ -179,12 +179,57 @@ projects:
       - PostgreSQL
       - Prisma
       - Docker
+    features:
+      - 'Three-tier deployment: public React frontend, Express API backend, and React-based admin dashboard'
+      - 'YAML-driven content import pipeline with validation and normalization'
+      - 'Admin dashboard with full CRUD for all portfolio entities (projects, skills, experience, education)'
+      - 'Optimistic UI updates with automatic rollback on error'
+      - 'Responsive design with CSS Modules and mobile-first approach'
+      - 'Accessibility-first components with keyboard navigation and ARIA labels'
+    techStack:
+      Frontend:
+        - React
+        - Vite
+        - CSS Modules
+        - React Router
+      Backend:
+        - Node.js
+        - Express
+        - Prisma ORM
+      Database:
+        - PostgreSQL (Neon)
+      Infrastructure:
+        - Docker
+        - Redis
+      Testing:
+        - Vitest
+        - Testing Library
+      Observability:
+        - Sentry
+        - LogRocket (planned)
+    architecture: 'Client (React + Vite) makes HTTP requests to the Express API. The API delegates to a service layer, which calls repository methods that query PostgreSQL via Prisma. Data is imported from YAML through a CLI pipeline (parser → validator → normalizer → importer). The admin panel is a separate React app behind JWT-based authentication, consuming the same API through protected `/admin/*` routes.'
+    architectureImage: null
+    challenges:
+      - 'Designing a content import pipeline that validates, normalizes, and safely upserts YAML data into PostgreSQL without breaking existing records'
+      - 'Implementing real-time admin table updates with optimistic UI without a state management library'
+      - 'Ensuring the public frontend gracefully handles API failures with proper loading, error, and empty states'
+    lessonsLearned:
+      - 'Layered architecture (API → Service → Repository → Prisma) keeps business logic decoupled from HTTP concerns and makes testing tractable'
+      - 'CSS Modules with a consistent naming convention eliminates style leakage across components in a multi-app monorepo'
+      - 'A standardized API response envelope (`{ success, message, data, meta }`) simplifies client-side error handling across all endpoints'
+    screenshots:
+      - src: 'https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/portfolio-showcase_zlahxv'
+        alt: 'Portfolio website project detail page'
+        caption: 'The project showcase detail page with architecture section and screenshot gallery'
+      - src: 'https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/portfolio-admin_ajkwer'
+        alt: 'Admin dashboard projects table'
+        caption: 'Admin dashboard with full CRUD and reorder support for portfolio projects'
 
-  - slug: "auto-assignment-engine"
-    title: "Automated Trip Assignment Engine"
-    description: "Scalable backend system for automated trip assignment in transportation and ride-sharing platforms. Replaced legacy SQL Server Agent jobs with a queue-based microservice architecture."
-    summary: "High-throughput trip assignment system for transportation platforms"
-    status: "live"
+  - slug: 'auto-assignment-engine'
+    title: 'Automated Trip Assignment Engine'
+    description: 'Scalable backend system for automated trip assignment in transportation and ride-sharing platforms. Replaced legacy SQL Server Agent jobs with a queue-based microservice architecture.'
+    summary: 'High-throughput trip assignment system for transportation platforms'
+    status: 'live'
     featured: true
     tags:
       - Node.js
@@ -193,118 +238,148 @@ projects:
       - Kafka
       - gRPC
       - AWS
+    features:
+      - 'Replaced legacy SQL Server Agent jobs with a scalable queue-based microservice for trip assignment'
+      - 'Fraud, Waste, and Abuse (FWA) safeguards integrated into the auto-assignment engine'
+      - 'Kafka-based message delivery for vendor reservation updates'
+      - 'gRPC for low-latency read requests from the main API'
+    techStack:
+      Backend:
+        - Node.js
+        - TypeScript
+      Databases:
+        - SQL Server
+        - PostgreSQL
+      Messaging:
+        - Apache Kafka
+      RPC:
+        - gRPC
+      Infrastructure:
+        - AWS
+      Observability:
+        - OpenTelemetry
+        - Zipkin
+    architecture: 'A Kafka consumer service polls trip data from a message topic. The assignment engine queries SQL Server to determine eligible trips, applies FWA rules, and assigns trips to drivers. Results are published back via Kafka. A gRPC service provides low-latency read access to assignment status for the main API layer.'
+    challenges:
+      - 'Migrating from SQL Server Agent jobs to a queue-based microservice without downtime during peak hours'
+      - 'Implementing FWA safeguards that reduce policy violations by 70% without impacting assignment throughput'
+      - 'Debugging a critical Kafka producer issue that prevented vendor reservation updates, causing 90% message delivery failures'
+    lessonsLearned:
+      - 'Queue-based processing scales better than scheduled SQL agents for variable workloads'
+      - 'Decoupling assignment logic from the transport layer (SQL Server Agents) enabled seamless replacement with Kafka'
+      - 'OTel instrumentation was invaluable for diagnosing the Kafka producer failure — it surfaced a serialization mismatch that would have been invisible without distributed tracing'
 
 # ---------------------------------------------------------------------------
 # Skills
 # ---------------------------------------------------------------------------
 skills:
-  - name: "JavaScript"
-    category: "languages"
+  - name: 'JavaScript'
+    category: 'languages'
     proficiency: 95
-    icon: "🟨"
-  - name: "TypeScript"
-    category: "languages"
+    icon: '🟨'
+  - name: 'TypeScript'
+    category: 'languages'
     proficiency: 90
-    icon: "🔷"
-  - name: "Python"
-    category: "languages"
+    icon: '🔷'
+  - name: 'Python'
+    category: 'languages'
     proficiency: 70
-    icon: "🐍"
-  - name: "SQL"
-    category: "languages"
+    icon: '🐍'
+  - name: 'SQL'
+    category: 'languages'
     proficiency: 85
-    icon: "🗃️"
-  - name: "Golang"
-    category: "languages"
+    icon: '🗃️'
+  - name: 'Golang'
+    category: 'languages'
     proficiency: 50
-    icon: "🐹"
-  - name: "React"
-    category: "frontend"
+    icon: '🐹'
+  - name: 'React'
+    category: 'frontend'
     proficiency: 80
-    icon: "⚛️"
-  - name: "Node.js"
-    category: "backend"
+    icon: '⚛️'
+  - name: 'Node.js'
+    category: 'backend'
     proficiency: 95
-    icon: "💚"
-  - name: "Express"
-    category: "backend"
+    icon: '💚'
+  - name: 'Express'
+    category: 'backend'
     proficiency: 90
-    icon: "🚂"
-  - name: "NestJS"
-    category: "backend"
+    icon: '🚂'
+  - name: 'NestJS'
+    category: 'backend'
     proficiency: 70
-    icon: "🏗️"
-  - name: "REST APIs"
-    category: "backend"
+    icon: '🏗️'
+  - name: 'REST APIs'
+    category: 'backend'
     proficiency: 95
-    icon: "🔌"
-  - name: "GraphQL"
-    category: "backend"
+    icon: '🔌'
+  - name: 'GraphQL'
+    category: 'backend'
     proficiency: 80
-    icon: "◈"
-  - name: "gRPC"
-    category: "backend"
+    icon: '◈'
+  - name: 'gRPC'
+    category: 'backend'
     proficiency: 75
-    icon: "🔗"
-  - name: "PostgreSQL"
-    category: "databases"
+    icon: '🔗'
+  - name: 'PostgreSQL'
+    category: 'databases'
     proficiency: 85
-    icon: "🐘"
-  - name: "MongoDB"
-    category: "databases"
+    icon: '🐘'
+  - name: 'MongoDB'
+    category: 'databases'
     proficiency: 80
-    icon: "🍃"
-  - name: "SQL Server"
-    category: "databases"
+    icon: '🍃'
+  - name: 'SQL Server'
+    category: 'databases'
     proficiency: 80
-    icon: "🗄️"
-  - name: "Redis"
-    category: "databases"
+    icon: '🗄️'
+  - name: 'Redis'
+    category: 'databases'
     proficiency: 70
-    icon: "🔴"
-  - name: "AWS"
-    category: "cloud"
+    icon: '🔴'
+  - name: 'AWS'
+    category: 'cloud'
     proficiency: 80
-    icon: "☁️"
-  - name: "Docker"
-    category: "cloud"
+    icon: '☁️'
+  - name: 'Docker'
+    category: 'cloud'
     proficiency: 85
-    icon: "🐳"
-  - name: "Kubernetes"
-    category: "cloud"
+    icon: '🐳'
+  - name: 'Kubernetes'
+    category: 'cloud'
     proficiency: 60
-    icon: "☸️"
-  - name: "CI/CD"
-    category: "cloud"
+    icon: '☸️'
+  - name: 'CI/CD'
+    category: 'cloud'
     proficiency: 85
-    icon: "🔄"
-  - name: "Git"
-    category: "tools"
+    icon: '🔄'
+  - name: 'Git'
+    category: 'tools'
     proficiency: 95
-    icon: "📦"
-  - name: "Apache Kafka"
-    category: "tools"
+    icon: '📦'
+  - name: 'Apache Kafka'
+    category: 'tools'
     proficiency: 80
-    icon: "📨"
-  - name: "OpenTelemetry"
-    category: "tools"
+    icon: '📨'
+  - name: 'OpenTelemetry'
+    category: 'tools'
     proficiency: 75
-    icon: "📊"
-  - name: "System Design"
-    category: "tools"
+    icon: '📊'
+  - name: 'System Design'
+    category: 'tools'
     proficiency: 85
-    icon: "🏛️"
+    icon: '🏛️'
 
 # ---------------------------------------------------------------------------
 # Education
 # ---------------------------------------------------------------------------
 education:
-  - institution: "A.K.T.U. University, Lucknow, U.P."
-    degree: "Bachelor of Technology"
-    fieldOfStudy: "Computer Science and Engineering"
+  - institution: 'A.K.T.U. University, Lucknow, U.P.'
+    degree: 'Bachelor of Technology'
+    fieldOfStudy: 'Computer Science and Engineering'
     startYear: 2018
     endYear: 2022
-    grade: "8.76"
+    grade: '8.76'
     highlights:
       - Computer Science and Engineering
 
@@ -312,35 +387,35 @@ education:
 # Certificates
 # ---------------------------------------------------------------------------
 certificates:
-  - name: "The Complete Web Developer Masterclass: Beginner To Advanced"
-    issuer: "UDEMY"
-    date: "Oct 2021"
-    url: "https://www.udemy.com/certificate/UC-f8b33eb8-07c1-4848-844e-c9655ca16391/"
-  - name: "Everyday AI Concepts"
-    issuer: "LINKEDIN LEARNING"
-    date: "May 2026"
-    url: "https://www.linkedin.com/learning/certificates/34d91152eca10d4ee05592004cf5a042b8ac0b05530de42422e9e51456b5ff7e"
-  - name: "Introduction to Cloud Computing on AWS for Beginners [2026]"
-    issuer: "Udemy"
-    date: "Apr 2026"
-    url: "https://www.udemy.com/certificate/UC-b6501459-8015-42a0-aa85-474dc00dcadf/"
+  - name: 'The Complete Web Developer Masterclass: Beginner To Advanced'
+    issuer: 'UDEMY'
+    date: 'Oct 2021'
+    url: 'https://www.udemy.com/certificate/UC-f8b33eb8-07c1-4848-844e-c9655ca16391/'
+  - name: 'Everyday AI Concepts'
+    issuer: 'LINKEDIN LEARNING'
+    date: 'May 2026'
+    url: 'https://www.linkedin.com/learning/certificates/34d91152eca10d4ee05592004cf5a042b8ac0b05530de42422e9e51456b5ff7e'
+  - name: 'Introduction to Cloud Computing on AWS for Beginners [2026]'
+    issuer: 'Udemy'
+    date: 'Apr 2026'
+    url: 'https://www.udemy.com/certificate/UC-b6501459-8015-42a0-aa85-474dc00dcadf/'
 
 # ---------------------------------------------------------------------------
 # Achievements
 # ---------------------------------------------------------------------------
 achievements:
-  - title: "Engineering Excellence"
-    organization: "thinkBridge"
+  - title: 'Engineering Excellence'
+    organization: 'thinkBridge'
     year: 2025
-    description: "Recognized for outstanding contributions to platform architecture, production reliability, and team mentorship."
+    description: 'Recognized for outstanding contributions to platform architecture, production reliability, and team mentorship.'
 
 # ---------------------------------------------------------------------------
 # Social Links
 # ---------------------------------------------------------------------------
 socialLinks:
-  - platform: "github"
-    url: "https://github.com/yashrsb"
-  - platform: "linkedin"
-    url: "https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/"
-  - platform: "leetcode"
-    url: "https://leetcode.com/u/YRaj001/"
+  - platform: 'github'
+    url: 'https://github.com/yashrsb'
+  - platform: 'linkedin'
+    url: 'https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/'
+  - platform: 'leetcode'
+    url: 'https://leetcode.com/u/YRaj001/'

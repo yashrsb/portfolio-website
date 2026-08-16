@@ -43,10 +43,12 @@ function Projects() {
               title={project.title}
               description={project.description}
               tags={project.tags}
+              slug={project.slug}
               featured={project.featured}
               status={project.status}
               githubUrl={project.githubUrl}
-              liveUrl={project.liveUrl}
+              liveUrl={project.demoUrl}
+              imageUrl={project.imageUrl}
               imageAlt={`${project.title} screenshot`}
             />
           </Reveal>

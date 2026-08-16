@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getHealthHandler,
   getProjectsHandler,
+  getProjectBySlugHandler,
   getExperienceHandler,
   getSkillsHandler,
   getEducationHandler,
@@ -19,6 +20,7 @@ import { HTTP_STATUS } from '../../constants/httpStatus.js';
 import { env } from '../../config/env.js';
 import adminRoutes from './adminRoutes.js';
 import authRoutes from './authRoutes.js';
+import { slugValidator } from '../../validators/idValidator.js';
 
 const router = Router();
 
@@ -29,6 +31,11 @@ router.get('/', (req, res) => {
   const endpoints = [
     { method: 'GET', path: '/health', description: 'Service health status' },
     { method: 'GET', path: '/projects', description: 'List all projects' },
+    {
+      method: 'GET',
+      path: '/projects/:slug',
+      description: 'Get a single project by slug',
+    },
     {
       method: 'GET',
       path: '/experience',
@@ -117,6 +124,12 @@ router.get('/', (req, res) => {
 
 router.get('/health', getHealthHandler);
 router.get('/projects', getProjectsHandler);
+router.get(
+  '/projects/:slug',
+  slugValidator,
+  validateRequest,
+  getProjectBySlugHandler,
+);
 router.get('/experience', getExperienceHandler);
 router.get('/skills', getSkillsHandler);
 router.get('/education', getEducationHandler);
