@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -254,7 +254,7 @@ describe('ContactMessagesPage', () => {
 
   it('deletes a message when confirmation is confirmed', async () => {
     const user = userEvent.setup();
-    mockRemove.mockResolvedValue({ data: null });
+    mockRemove.mockResolvedValue(true);
 
     render(<ContactMessagesPage />);
 
@@ -269,6 +269,56 @@ describe('ContactMessagesPage', () => {
     );
 
     expect(mockRemove).toHaveBeenCalledWith('msg-1');
+  });
+
+  it('successful deletion closes the confirmation dialog', async () => {
+    const user = userEvent.setup();
+    mockRemove.mockResolvedValue(true);
+
+    render(<ContactMessagesPage />);
+
+    await user.click(
+      screen.getByRole('button', { name: /delete message from alice smith/i }),
+    );
+
+    const dialog = await screen.findByRole('dialog', { name: /delete message/i });
+    expect(dialog).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /^delete message$/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('dialog', { name: /delete message/i }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('successful deletion clears the selected message state', async () => {
+    const user = userEvent.setup();
+    mockRemove.mockResolvedValue(true);
+
+    render(<ContactMessagesPage />);
+
+    await user.click(
+      screen.getByRole('button', { name: /delete message from alice smith/i }),
+    );
+
+    await screen.findByRole('dialog', { name: /delete message/i });
+    expect(
+      screen.getByText(/Are you sure you want to delete the message from/i),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /^delete message$/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('dialog', { name: /delete message/i }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it('closes the delete confirmation when cancel is clicked', async () => {
@@ -330,5 +380,98 @@ describe('ContactMessagesPage', () => {
     const rows = screen.getAllByRole('row');
     // Header row + 3 data rows
     expect(rows).toHaveLength(4);
+  });
+
+  it('failed deletion keeps the confirmation dialog open', async () => {
+    const user = userEvent.setup();
+    mockRemove.mockResolvedValue(false);
+
+    render(<ContactMessagesPage />);
+
+    await user.click(
+      screen.getByRole('button', { name: /delete message from alice smith/i }),
+    );
+
+    await screen.findByRole('dialog', { name: /delete message/i });
+
+    await user.click(
+      screen.getByRole('button', { name: /^delete message$/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('dialog', { name: /delete message/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('allows retry after failed deletion', async () => {
+    const user = userEvent.setup();
+    mockRemove
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    render(<ContactMessagesPage />);
+
+    await user.click(
+      screen.getByRole('button', { name: /delete message from alice smith/i }),
+    );
+
+    await screen.findByRole('dialog', { name: /delete message/i });
+
+    await user.click(
+      screen.getByRole('button', { name: /^delete message$/i }),
+    );
+
+    await waitFor(() => {
+      expect(mockRemove).toHaveBeenCalledTimes(1);
+    });
+
+    expect(
+      screen.getByRole('dialog', { name: /delete message/i }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /^delete message$/i }),
+    );
+
+    await waitFor(() => {
+      expect(mockRemove).toHaveBeenCalledTimes(2);
+      expect(
+        screen.queryByRole('dialog', { name: /delete message/i }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('prevents duplicate delete requests while request is pending', async () => {
+    const user = userEvent.setup();
+    let resolveDelete;
+    mockRemove.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDelete = resolve;
+      }),
+    );
+
+    render(<ContactMessagesPage />);
+
+    await user.click(
+      screen.getByRole('button', { name: /delete message from alice smith/i }),
+    );
+
+    await screen.findByRole('dialog', { name: /delete message/i });
+
+    await user.click(
+      screen.getByRole('button', { name: /^delete message$/i }),
+    );
+
+    expect(screen.getByRole('button', { name: /^delete message$/i })).toBeDisabled();
+
+    resolveDelete(true);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('dialog', { name: /delete message/i }),
+      ).not.toBeInTheDocument();
+    });
   });
 });

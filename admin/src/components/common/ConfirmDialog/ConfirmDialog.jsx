@@ -13,6 +13,7 @@ import styles from './ConfirmDialog.module.css';
  * @param {string} [props.message=''] - Confirmation message
  * @param {string} [props.confirmLabel='Delete'] - Confirm button label
  * @param {string} [props.cancelLabel='Cancel'] - Cancel button label
+ * @param {boolean} [props.loading=false] - Loading state for confirm action
  */
 function ConfirmDialog({
   isOpen,
@@ -22,15 +23,16 @@ function ConfirmDialog({
   message = '',
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
+  loading = false,
 }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <p className={styles.message}>{message}</p>
       <div className={styles.actions}>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} disabled={loading}>
           {cancelLabel}
         </Button>
-        <Button variant="danger" onClick={onConfirm}>
+        <Button variant="danger" onClick={onConfirm} loading={loading}>
           {confirmLabel}
         </Button>
       </div>
