@@ -11,6 +11,7 @@
  * Options:
  *   --file=<path>     Path to the YAML data file (default: docs/portfolio-data.yaml)
  *   --dry-run         Parse, validate, and normalize without writing to the database
+ *   --only=<sections> Comma-separated list of sections to sync (e.g. projects,skills,achievements)
  *   --help            Show this help message
  */
 
@@ -44,13 +45,14 @@ const showHelp = () => {
   Options:
     --file=<path>     Path to the YAML data file (default: docs/portfolio-data.yaml)
     --dry-run         Parse, validate, and normalize without writing to the database
+    --only=<sections> Comma-separated list of sections to sync
     --help, -h        Show this help message
   `);
   process.exit(0);
 };
 
 const parseArgs = () => {
-  const options = { file: null, dryRun: false };
+  const options = { file: null, dryRun: false, only: null };
 
   for (const arg of args) {
     if (HELP_FLAGS.has(arg)) {
@@ -62,6 +64,14 @@ const parseArgs = () => {
     }
     if (arg.startsWith('--file=')) {
       options.file = arg.slice('--file='.length);
+      continue;
+    }
+    if (arg.startsWith('--only=')) {
+      const sections = arg.slice('--only='.length);
+      options.only = sections
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       continue;
     }
   }
@@ -115,6 +125,10 @@ const main = async () => {
     console.log('');
 
     // 4. Dry-run check
+    if (options.only) {
+      console.log(`  🔒 Only syncing: ${options.only.join(', ')}`);
+    }
+
     if (options.dryRun) {
       console.log('  🏁 Dry-run mode — no data written to database.');
       console.log('');
@@ -161,7 +175,7 @@ const main = async () => {
     // 5. Import
     startTime = Date.now();
     console.log('  💾 Importing into PostgreSQL...');
-    const summary = await importContent(normalized);
+    const summary = await importContent(normalized, options.only);
     console.log(`  ✓ Import completed (${Date.now() - startTime}ms)`);
     console.log('');
 
