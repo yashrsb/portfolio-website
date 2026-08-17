@@ -1,0 +1,178 @@
+.searchContainer {
+  margin-bottom: 1.5rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 32rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 6px;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text, #1a1a1a);
+  transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-accent, #2563eb);
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filterLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #555);
+}
+
+.filterButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 4px;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text-secondary, #555);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterButton:hover {
+  background: var(--color-bg-tertiary, #f8f9fa);
+}
+
+.filterButtonActive {
+  background: var(--color-accent, #2563eb);
+  color: #ffffff;
+  border-color: var(--color-accent, #2563eb);
+}
+
+.clearFilter {
+  font-size: 0.8rem;
+  color: var(--color-accent, #2563eb);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.clearFilter:hover {
+  text-decoration: underline;
+}
+
+.postGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-secondary, #666);
+}
+
+.error {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-error, #dc2626);
+}
+
+.retryButton {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 6px;
+  background: var(--color-bg, #ffffff);
+  cursor: pointer;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.pageButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 6px;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text, #1a1a1a);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: var(--color-bg-tertiary, #f8f9fa);
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #666);
+}
+
+.tagCloud {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border, #e2e2e2);
+}
+
+.tagCloudTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary, #555);
+}
+
+.tagCloudList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tagButton {
+  display: inline-block;
+  padding: 0.375rem 0.85rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 20px;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text-secondary, #555);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tagButton:hover {
+  background: var(--color-bg-tertiary, #f8f9fa);
+  border-color: var(--color-accent, #2563eb);
+}
+
+.tagButtonActive {
+  background: var(--color-accent, #2563eb);
+  color: #ffffff;
+  border-color: var(--color-accent, #2563eb);
+}
+
+@media (max-width: 768px) {
+  .postGrid {
+    grid-template-columns: 1fr;
+  }
+}

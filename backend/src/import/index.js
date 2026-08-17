@@ -143,6 +143,16 @@ const main = async () => {
         console.log(
           `    • Social Links: ${normalized.socialLinks.length} records`,
         );
+      if (normalized.blog?.categories.length)
+        console.log(
+          `    • Blog Categories: ${normalized.blog?.categories.length} records`,
+        );
+      if (normalized.blog?.tags.length)
+        console.log(`    • Blog Tags: ${normalized.blog?.tags.length} records`);
+      if (normalized.blog?.posts.length)
+        console.log(
+          `    • Blog Posts: ${normalized.blog?.posts.length} records`,
+        );
       console.log('');
       console.log('  Run without --dry-run to import into PostgreSQL.');
       process.exit(0);
@@ -173,6 +183,14 @@ const main = async () => {
       console.log(`  ✓ Achievements: ${summary.achievements.count} records`);
     if (summary.socialLinks)
       console.log(`  ✓ Social Links: ${summary.socialLinks.count} records`);
+    if (summary.blogCategories)
+      console.log(
+        `  ✓ Blog Categories: ${summary.blogCategories.count} records`,
+      );
+    if (summary.blogTags)
+      console.log(`  ✓ Blog Tags: ${summary.blogTags.count} records`);
+    if (summary.blogPosts)
+      console.log(`  ✓ Blog Posts: ${summary.blogPosts.count} records`);
     console.log('');
     console.log('  ✅ Import completed successfully.');
     console.log('');

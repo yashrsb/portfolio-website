@@ -1,0 +1,29 @@
+.page {
+  padding: 1rem 0;
+}
+
+.backLink {
+  display: inline-block;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+  color: var(--color-accent, #2563eb);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.error {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.backButton {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 6px;
+  background: var(--color-bg, #ffffff);
+  cursor: pointer;
+}
