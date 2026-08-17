@@ -419,3 +419,606 @@ socialLinks:
     url: 'https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/'
   - platform: 'leetcode'
     url: 'https://leetcode.com/u/YRaj001/'
+
+# ---------------------------------------------------------------------------
+# Blog — categories
+# ---------------------------------------------------------------------------
+blog:
+  categories:
+    - slug: 'backend'
+      name: 'Backend'
+      description: 'Server-side architecture, APIs, databases, and infrastructure.'
+    - slug: 'system-design'
+      name: 'System Design'
+      description: 'Scalability, distributed systems, and architecture decisions.'
+    - slug: 'devops'
+      name: 'DevOps'
+      description: 'CI/CD, containers, deployment, and infrastructure as code.'
+    - slug: 'javascript'
+      name: 'JavaScript'
+      description: 'Language deep-dives, patterns, and best practices.'
+    - slug: 'database'
+      name: 'Database'
+      description: 'Database design, optimization, and engineering.'
+    - slug: 'career'
+      name: 'Career'
+      description: 'Engineering leadership, interviews, and career growth.'
+
+  tags:
+    - slug: 'nodejs'
+      name: 'Node.js'
+    - slug: 'postgresql'
+      name: 'PostgreSQL'
+    - slug: 'redis'
+      name: 'Redis'
+    - slug: 'react'
+      name: 'React'
+    - slug: 'docker'
+      name: 'Docker'
+    - slug: 'aws'
+      name: 'AWS'
+    - slug: 'prisma'
+      name: 'Prisma'
+    - slug: 'typescript'
+      name: 'TypeScript'
+    - slug: 'docker-compose'
+      name: 'Docker Compose'
+    - slug: 'nginx'
+      name: 'Nginx'
+    - slug: 'kafka'
+      name: 'Kafka'
+    - slug: 'testing'
+      name: 'Testing'
+    - slug: 'python'
+      name: 'Python'
+    - slug: 'fastapi'
+      name: 'FastAPI'
+    - slug: 'celery'
+      name: 'Celery'
+    - slug: 'kubernetes'
+      name: 'Kubernetes'
+    - slug: 'express'
+      name: 'Express'
+    - slug: 'mongodb'
+      name: 'MongoDB'
+
+  posts:
+    - slug: 'building-a-real-time-leaderboard'
+      title: 'Building a Real-Time Leaderboard with Redis and PostgreSQL'
+      excerpt: 'How to design and implement a scalable real-time leaderboard using Redis for fast writes and PostgreSQL for persistence, with Node.js.'
+      content: |
+        # Building a Real-Time Leaderboard with Redis and PostgreSQL
+
+        This article walks through the architecture and implementation of a
+        real-time leaderboard service, built with Node.js, Redis, and
+        PostgreSQL. The leaderboard must handle thousands of score updates
+        per second while providing low-latency reads for the top-N rankings.
+
+        ## Problem Statement
+
+        A gaming platform needs a leaderboard that updates in real time as
+        players earn points. The read pattern is dominated by "top 10" and
+        "top 100" queries, while writes are individual score submissions.
+
+        ## Architecture Overview
+
+        ```
+        Client → API Gateway → Node.js Service → Redis (writes)
+                                          ↓
+                                    PostgreSQL (persistence)
+        ```
+
+        We use Redis as the primary store for live scores (in-memory sorted
+        sets) and PostgreSQL as the durable store for score history.
+
+        ## Redis Sorted Sets
+
+        Redis sorted sets are the perfect data structure for a leaderboard.
+        Each player's score is stored as a member of a sorted set with the
+        score as the ZSET member value:
+
+        ```javascript
+        await redis.zadd('leaderboard', score, playerId);
+        ```
+
+        Retrieving the top N players is a single `ZRANGE` call:
+
+        ```javascript
+        const top = await redis.zrevrange('leaderboard', 0, 9, 'WITHSCORES');
+        ```
+
+        ## PostgreSQL Persistence
+
+        Every score update is also written to PostgreSQL for durability:
+
+        ```sql
+        INSERT INTO score_events (player_id, score, created_at)
+        VALUES ($1, $2, NOW());
+        ```
+
+        A background job periodically flushes Redis to PostgreSQL and
+        rebuilds the sorted set from the database on startup.
+
+        ## Performance Results
+
+        With this architecture we achieved:
+
+        - 99th percentile latency under 10ms for top-100 reads
+        - 50,000+ writes per second on a single Redis instance
+        - < 1ms latency for individual score submissions
+
+        ## Lessons Learned
+
+        - Redis sorted sets are ideal for ranking use cases
+        - Always treat Redis as a cache in front of PostgreSQL
+        - Batch write-through for persistence to avoid write amplification
+      status: 'PUBLISHED'
+      author: 'Yash R. S. B.'
+      publishedAt: '2025-03-10T00:00:00.000Z'
+      featured: true
+      coverImage: null
+      seoTitle: null
+      seoDescription: null
+      canonicalUrl: null
+      categoryId: 'backend'
+      tagIds: ['nodejs', 'redis', 'postgresql']
+
+    - slug: 'designing-a-notification-platform'
+      title: 'Designing a Notification Platform with FastAPI and Celery'
+      excerpt: 'A deep dive into building a scalable notification platform handling millions of messages daily, with support for email, SMS, push, and in-app delivery.'
+      content: |
+        # Designing a Notification Platform with FastAPI and Celery
+
+        Notifications are a critical part of any modern web application. This
+        article explores the architecture of a notification platform that
+        handles millions of messages daily, supporting email, SMS, push, and
+        in-app delivery.
+
+        ## Core Requirements
+
+        - Multi-channel delivery (email, SMS, push, in-app)
+        - Guaranteed delivery with retries
+        - Fan-out for broadcast messages to millions of users
+        - Template-based content rendering
+        - User preferences and quiet hours
+
+        ## Architecture
+
+        The platform follows a producer-consumer pattern:
+
+        1. **API Service** accepts notification requests and stores them in
+           a database with `pending` status.
+        2. **Message Queue** (RabbitMQ or Kafka) decouples the API from the
+           delivery workers.
+        3. **Delivery Workers** consume messages and dispatch to the
+           appropriate channel provider.
+        4. **Status Store** tracks delivery state for each notification.
+
+        ## Fan-Out Strategy
+
+        For broadcast notifications (e.g., system announcements), we use a
+        two-level fan-out:
+
+        ```
+        Broadcast → Per-user queue → Delivery worker
+        ```
+
+        This allows us to leverage parallel processing and avoid contention
+        on a single queue.
+
+        ## Idempotency
+
+        Each notification message includes a unique ID. Delivery workers
+        check this ID before sending to prevent duplicate deliveries from
+        retries.
+
+        ## Observability
+
+        We instrument the platform with:
+
+        - Prometheus metrics for delivery rates, latencies, and failure rates
+        - Distributed tracing via OpenTelemetry
+        - Structured logging for audit trails
+      status: 'PUBLISHED'
+      author: 'Yash R. S. B.'
+      publishedAt: '2025-01-15T00:00:00.000Z'
+      featured: false
+      coverImage: null
+      seoTitle: null
+      seoDescription: null
+      canonicalUrl: null
+      categoryId: 'system-design'
+      tagIds: ['python', 'fastapi', 'celery', 'kafka', 'redis']
+
+    - slug: 'building-a-production-ready-node-api'
+      title: 'Building a Production-Ready Node.js API'
+      excerpt: 'A comprehensive guide to building a robust, secure, and scalable REST API with Node.js, Express, PostgreSQL, and Prisma.'
+      content: |
+        # Building a Production-Ready Node.js API
+
+        This guide covers the essential practices for building a production-ready
+        REST API with Node.js, Express, PostgreSQL, and Prisma. It is based on
+        real-world experience running APIs that serve thousands of requests
+        per second.
+
+        ## Project Structure
+
+        We use a layered architecture that separates concerns:
+
+        ```
+        src/
+          config/         # Environment and configuration
+          controllers/     # HTTP request handlers
+          services/       # Business logic
+          repositories/   # Data access (Prisma queries)
+          routes/         # Express router definitions
+          middlewares/    # Auth, validation, error handling
+          utils/          # Helpers (logger, ApiResponse, etc.)
+          validators/     # express-validator rule chains
+          lib/            # Prisma client instance
+        ```
+
+        Each layer has a single responsibility. Controllers are thin — they
+        delegate to services, which delegate to repositories. This makes
+        testing straightforward.
+
+        ## Error Handling
+
+        We use a centralized error handler that catches errors at the end
+        of the middleware chain:
+
+        ```javascript
+        app.use(errorHandler);
+        ```
+
+        The `errorHandler` middleware formats errors into a consistent
+        JSON response:
+
+        ```json
+        {
+          "success": false,
+          "message": "Validation failed",
+          "errors": [
+            { "field": "email", "message": "Invalid email" }
+          ]
+        }
+        ```
+
+        ## Input Validation
+
+        All routes use express-validator to validate request data:
+
+        ```javascript
+        router.post(
+          '/users',
+          userValidators.create,
+          validateRequest,
+          createUserHandler,
+        );
+        ```
+
+        This chain ensures that invalid data never reaches the controller.
+
+        ## Rate Limiting
+
+        We apply rate limiting at two levels:
+
+        1. Global — `express-rate-limit` with 100 requests per 15 minutes
+           per IP.
+        2. Resource-specific — e.g., contact form limited to 5 submissions
+           per 15 minutes per IP.
+
+        ## Logging
+
+        We use a structured logger (Pino) that writes JSON logs:
+
+        ```json
+        {
+          "level": 30,
+          "time": 1710000000000,
+          "pid": 12345,
+          "hostname": "api-server",
+          "msg": "GET /api/v1/projects 200 12ms"
+        }
+        ```
+
+        ## Security
+
+        Key security measures:
+
+        - **Helmet** for security headers (CSP, HSTS, X-Frame-Options)
+        - **CORS** restricted to known origins
+        - **JWT** access tokens (15min TTL) with refresh token rotation
+        - **Cookie-based** refresh tokens (httpOnly, SameSite=Lax)
+        - **Input sanitization** via express-validator and xss-clean
+        - **Password hashing** with bcrypt (12 rounds)
+
+        ## Database Migrations
+
+        We use Prisma Migrate for schema management. Every schema change
+        goes through a migration file, never `db push` in production.
+
+        ## Health Checks
+
+        A `/health` endpoint returns service status:
+
+        ```javascript
+        router.get('/health', (req, res) => {
+          new ApiResponse(200, 'OK', { status: 'healthy' }).send(res);
+        });
+        ```
+
+        ## Monitoring
+
+        We track key metrics:
+
+        - Request latency (p50, p95, p99)
+        - Error rate (4xx, 5xx)
+        - Database query latency
+        - External API call latency
+      status: 'PUBLISHED'
+      author: 'Yash R. S. B.'
+      publishedAt: '2024-11-20T00:00:00.000Z'
+      featured: true
+      coverImage: null
+      seoTitle: null
+      seoDescription: null
+      canonicalUrl: null
+      categoryId: 'backend'
+      tagIds: ['nodejs', 'postgresql', 'prisma', 'express', 'docker']
+
+    - slug: 'postgresql-vs-mongodb'
+      title: 'PostgreSQL vs MongoDB: Choosing the Right Database'
+      excerpt: 'A practical comparison of PostgreSQL and MongoDB for modern web applications, covering query patterns, scalability, and operational complexity.'
+      content: |
+        # PostgreSQL vs MongoDB: Choosing the Right Database
+
+        The choice between PostgreSQL and MongoDB is one of the most
+        consequential decisions in system design. This article compares
+        both databases across several dimensions to help you make an
+        informed decision.
+
+        ## Data Model
+
+        **PostgreSQL** is a relational database with a fixed schema.
+        Tables have columns with defined types, and relationships are
+        expressed through foreign keys.
+
+        **MongoDB** is a document database with a flexible schema.
+        Documents in a collection can have different shapes, which is
+        useful for evolving data models.
+
+        ## Query Language
+
+        **PostgreSQL** uses SQL, a declarative language with decades of
+        optimization. Complex queries with joins, aggregations, and
+        window functions are straightforward.
+
+        **MongoDB** uses a JSON-like query API. Queries are expressed as
+        objects, which can be more intuitive for developers already
+        familiar with JavaScript.
+
+        ### Example: Top 10 Authors by Book Count
+
+        **PostgreSQL:**
+
+        ```sql
+        SELECT a.name, COUNT(b.id) as book_count
+        FROM authors a
+        JOIN books b ON b.author_id = a.id
+        GROUP BY a.id
+        ORDER BY book_count DESC
+        LIMIT 10;
+        ```
+
+        **MongoDB:**
+
+        ```javascript
+        db.authors.aggregate([
+          { $lookup: {
+              from: 'books',
+              localField: '_id',
+              foreignField: 'authorId',
+              as: 'books'
+          }},
+          { $project: {
+              name: 1,
+              bookCount: { $size: '$books' }
+          }},
+          { $sort: { bookCount: -1 }},
+          { $limit: 10 }
+        ]);
+        ```
+
+        For this query, PostgreSQL's SQL is more concise and performant.
+
+        ## Transactions
+
+        **PostgreSQL** has full ACID transaction support, including
+        multi-statement transactions.
+
+        **MongoDB** added multi-document transactions in version 4.0,
+        but they come with a performance penalty and are not as mature.
+
+        ## Scalability
+
+        **PostgreSQL** scales vertically (bigger server) and horizontally
+        via sharding (Citus, TimescaleDB).
+
+        **MongoDB** has built-in horizontal sharding, making it easier
+        to scale across multiple nodes.
+
+        ## When to Choose Which
+
+        Choose **PostgreSQL** when:
+
+        - Data has a well-defined structure
+        - Complex queries with joins are required
+        - ACID transactions are important
+        - Read-heavy workload with analytical queries
+
+        Choose **MongoDB** when:
+
+        - The schema evolves frequently
+        - Horizontal scaling is a primary concern
+        - The data model is hierarchical (documents with nested arrays)
+        - Development speed is prioritized over query flexibility
+
+        ## Hybrid Approach
+
+        In many applications, the best approach is to use **both**:
+
+        - PostgreSQL for structured, relational data (users, orders, etc.)
+        - MongoDB for flexible, document-oriented data (logs, events, etc.)
+
+        The key is to match the database to the specific use case rather
+        than applying a one-size-fits-all approach.
+      status: 'PUBLISHED'
+      author: 'Yash R. S. B.'
+      publishedAt: '2024-08-05T00:00:00.000Z'
+      featured: false
+      coverImage: null
+      seoTitle: null
+      seoDescription: null
+      canonicalUrl: null
+      categoryId: 'database'
+      tagIds: ['postgresql', 'mongodb', 'redis']
+
+    - slug: 'dockerizing-a-node-app'
+      title: 'Dockerizing a Node.js Application: A Practical Guide'
+      excerpt: 'Step-by-step guide to containerizing a Node.js application with Docker, including multi-stage builds, production optimization, and Docker Compose.'
+      content: |
+        # Dockerizing a Node.js Application: A Practical Guide
+
+        Containerization is essential for modern deployment. This guide
+        walks through Dockerizing a Node.js application with best practices
+        for production.
+
+        ## Project Structure
+
+        ```
+        app/
+          src/
+          Dockerfile
+          .dockerignore
+          docker-compose.yml
+        ```
+
+        ## Multi-Stage Dockerfile
+
+        Using multi-stage builds keeps the final image small:
+
+        ```dockerfile
+        # Build stage
+        FROM node:20-alpine AS builder
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci --only=production
+        COPY . .
+
+        # Production stage
+        FROM node:20-alpine
+        WORKDIR /app
+        COPY --from=builder /app/node_modules ./node_modules
+        COPY --from=builder /app/src ./src
+        EXPOSE 3000
+        CMD ["node", "src/index.js"]
+        ```
+
+        ## .dockerignore
+
+        Keep the image lean by ignoring development files:
+
+        ```
+        node_modules
+        npm-debug.log
+        Dockerfile
+        docker-compose.yml
+        .git
+        .gitignore
+        README.md
+        ```
+
+        ## Docker Compose
+
+        For local development with dependencies:
+
+        ```yaml
+        version: '3.8'
+
+        services:
+          app:
+            build: .
+            ports:
+              - '3000:3000'
+            environment:
+              - DATABASE_URL=postgresql://postgres:postgres@db:5432/app
+            depends_on:
+              - db
+            volumes:
+              - .:/app
+              - /app/node_modules
+
+          db:
+            image: postgres:16-alpine
+            environment:
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_DB: app
+            ports:
+              - '5432:5432'
+            volumes:
+              - postgres_data:/var/lib/postgresql/data
+
+        volumes:
+          postgres_data:
+        ```
+
+        ## Production Considerations
+
+        1. **Never run as root** — add `USER node` to the Dockerfile
+        2. **Use specific node versions** — pin to `node:20.11.1-alpine`
+        3. **Health checks** — add a `/health` endpoint and Docker HEALTHCHECK
+        4. **Environment variables** — use `.env` files, never hardcode
+        5. **Log to stdout/stderr** — don't log to files inside the container
+
+        ## Kubernetes Deployment
+
+        For production scaling, deploy to Kubernetes with a Helm chart:
+
+        ```yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: node-app
+        spec:
+          replicas: 3
+          selector:
+            matchLabels:
+              app: node-app
+          template:
+            metadata:
+              labels:
+                app: node-app
+            spec:
+              containers:
+                - name: app
+                  image: node-app:1.0.0
+                  ports:
+                    - containerPort: 3000
+                  readinessProbe:
+                    httpGet:
+                      path: /health
+                      port: 3000
+                    initialDelaySeconds: 5
+                    periodSeconds: 10
+        ```
+      status: 'DRAFT'
+      author: 'Yash R. S. B.'
+      publishedAt: null
+      featured: false
+      coverImage: null
+      seoTitle: null
+      seoDescription: null
+      canonicalUrl: null
+      categoryId: 'devops'
+      tagIds: ['docker', 'nodejs', 'kubernetes', 'docker-compose']

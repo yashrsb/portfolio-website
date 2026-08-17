@@ -1,0 +1,13 @@
+.page {
+  padding: 1rem 0;
+}
+
+.intro {
+  margin-bottom: 2rem;
+}
+
+.intro p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary, #555);
+}

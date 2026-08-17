@@ -14,6 +14,9 @@ import ContactMessagesPage from './pages/ContactMessagesPage/ContactMessagesPage
 import ResumePage from './pages/ResumePage/ResumePage';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
+import BlogPostsPage from './pages/BlogPostsPage/BlogPostsPage';
+import BlogCategoriesPage from './pages/BlogCategoriesPage/BlogCategoriesPage';
+import BlogTagsPage from './pages/BlogTagsPage/BlogTagsPage';
 
 /**
  * Shared layout element: ToastStack + protected admin shell.
@@ -59,6 +62,9 @@ const router = createBrowserRouter([
       { path: 'education', element: <EducationPage /> },
       { path: 'social-links', element: <SocialLinksPage /> },
       { path: 'contact-messages', element: <ContactMessagesPage /> },
+      { path: 'blog', element: <BlogPostsPage /> },
+      { path: 'blog/categories', element: <BlogCategoriesPage /> },
+      { path: 'blog/tags', element: <BlogTagsPage /> },
       { path: 'resume', element: <ResumePage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],
