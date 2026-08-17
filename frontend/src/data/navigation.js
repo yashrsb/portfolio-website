@@ -8,6 +8,7 @@ const navigation = [
   { label: 'Experience', path: '/experience' },
   { label: 'Skills', path: '/skills' },
   { label: 'Projects', path: '/projects' },
+  { label: 'Blog', path: '/blog' },
   { label: 'Education', path: '/education' },
   { label: 'Contact', path: '/contact' },
 ];

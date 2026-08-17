@@ -10,6 +10,10 @@ import {
   ProjectDetailPage,
   Education,
   Contact,
+  Blog,
+  BlogPost,
+  CategoryPosts,
+  TagPosts,
   NotFound,
 } from './pages';
 
@@ -50,6 +54,10 @@ function App() {
           <Route path="/projects/:slug" element={<ProjectDetailPage />} />
           <Route path="/education" element={<Education />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/category/:slug" element={<CategoryPosts />} />
+          <Route path="/blog/tag/:slug" element={<TagPosts />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

@@ -8,10 +8,14 @@ import styles from './AdminLayout.module.css';
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
   '/projects': 'Projects',
+  '/blog': 'Blog Posts',
+  '/blog/categories': 'Categories',
+  '/blog/tags': 'Tags',
   '/experience': 'Experience',
   '/skills': 'Skills',
   '/education': 'Education',
   '/social-links': 'Social Links',
+  '/contact-messages': 'Contact Messages',
   '/resume': 'Resume',
   '/settings': 'Settings',
 };
@@ -23,7 +27,12 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  const pageTitle = PAGE_TITLES[location.pathname] || 'Admin';
+  const pageTitle =
+    PAGE_TITLES[location.pathname] ||
+    Object.entries(PAGE_TITLES).find(([path]) =>
+      location.pathname.startsWith(path),
+    )?.[1] ||
+    'Admin';
 
   const closeSidebar = () => setSidebarOpen(false);
 

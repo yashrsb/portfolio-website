@@ -9,4 +9,13 @@ export { educationValidators } from './educationValidator.js';
 export { certificateValidators } from './certificateValidator.js';
 export { achievementValidators } from './achievementValidator.js';
 export { socialLinkValidators } from './socialLinkValidator.js';
+export {
+  blogPostValidators,
+  blogCategoryValidators,
+  blogTagValidators,
+  blogSlugValidator,
+  blogCategorySlugValidator,
+  blogTagSlugValidator,
+  blogPaginationValidator,
+} from './blogValidator.js';
 export { validateRequest } from '../middlewares/validateRequest.js';

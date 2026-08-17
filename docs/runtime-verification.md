@@ -154,6 +154,69 @@ a blank screen.
 - [ ] SEO meta tags (title, description, OG) update dynamically per project.
 - [ ] Screenshot lightbox: click to enlarge, Escape to close, arrow keys to navigate.
 
+## 10. Blog Engine (Phase 12)
+
+### Public API (Base URL: `http://localhost:5001/api/v1`)
+
+- [ ] `GET /blog/posts` — paginated list of published posts returns `200` with
+      `data` (post cards) and `meta.pagination`.
+- [ ] `GET /blog/posts?limit=5` — respects limit param.
+- [ ] `GET /blog/posts?search=redis` — filters posts by keyword in title/excerpt.
+- [ ] `GET /blog/posts?category=backend` — filters posts by category slug.
+- [ ] `GET /blog/posts?tag=redis` — filters posts by tag slug.
+- [ ] `GET /blog/posts?featured=true` — returns only featured posts.
+- [ ] `GET /blog/posts/draft-post-slug` — unpublished draft returns `404`.
+- [ ] `GET /blog/posts/:slug` — returns full post with `content`, category, tags.
+- [ ] `GET /blog/posts/:slug` with non-existent slug returns `404`.
+- [ ] `GET /blog/featured` — returns featured posts ordered by `publishedAt`.
+- [ ] `GET /blog/categories` — returns all unique categories used by published posts.
+- [ ] `GET /blog/categories/:slug/posts` — posts filtered by category.
+- [ ] `GET /blog/tags` — returns all unique tags with post counts.
+- [ ] `GET /blog/tags/:slug/posts` — posts filtered by tag.
+- [ ] `GET /blog/sitemap` — returns JSON array of all published post slugs + dates.
+
+### Feed / SEO (Root-level URLs)
+
+- [ ] `GET http://localhost:5001/rss.xml` — returns RSS 2.0 XML with `<item>`
+      entries per published post (title, link, description, date, author, category).
+- [ ] `GET http://localhost:5001/sitemap.xml` — returns XML sitemap including
+      static routes and `/blog/:slug` URLs.
+- [ ] `GET http://localhost:5001/robots.txt` — allows `/` and disallows `/admin`.
+- [ ] RSS feed excludes draft posts (verify count matches published API).
+- [ ] Draft post slug does not appear in `sitemap.xml`.
+
+### Frontend (Blog pages)
+
+- [ ] `/blog` — renders blog listing with search box, category filters, tag cloud.
+- [ ] `/blog` — pagination renders and navigates correctly.
+- [ ] `/blog/:slug` — renders full Markdown article with Table of Contents sidebar.
+- [ ] `/blog/:slug` — displays reading time (200 WPM calculation).
+- [ ] `/blog/:slug` — shows social sharing buttons (X, LinkedIn, Copy Link).
+- [ ] `/blog/:slug` — `<title>`, `<meta>`, and `<script type="application/ld+json">`
+      update with article data.
+- [ ] `/blog/category/:slug` — shows posts filtered by category.
+- [ ] `/blog/tag/:slug` — shows posts filtered by tag.
+- [ ] `/` navigation includes a "Blog" link.
+- [ ] Markdown code blocks are syntax-highlighted.
+- [ ] External links open in a new tab with `rel="noopener noreferrer"`.
+
+### Admin
+
+- [ ] Admin sidebar has a "Blog" dropdown with Posts, Categories, Tags.
+- [ ] `/blog` — admin lists all posts with status badges and publish/unpublish.
+- [ ] `/blog` — "New Post" opens modal with title, slug, excerpt, Markdown editor,
+      category, tags, status, featured, published date, SEO fields.
+- [ ] Admin Markdown preview uses the same rendering pipeline as the public page.
+- [ ] `/blog/categories` — CRUD categories.
+- [ ] `/blog/tags` — CRUD tags.
+- [ ] Creating/editing/deleting a post in admin persists to PostgreSQL.
+- [ ] Publish/unpublish toggles post status and removes drafts from the live feed.
+
+### Content Import
+
+- [ ] `npm run import:portfolio` seeds 4 published posts + 1 draft post.
+- [ ] Draft posts do not appear in `/blog/posts`, `/rss.xml`, or `/sitemap.xml`.
+
 ## 9. Build & Static Checks (already verified)
 
 - [ ] Backend/eslint, frontend/eslint, admin/eslint all clean (`--max-warnings 0`).
