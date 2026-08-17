@@ -9,6 +9,14 @@ import {
   getProfileHandler,
   getSocialHandler,
   postContactHandler,
+  listPostsHandler,
+  getPostHandler,
+  getFeaturedPostsHandler,
+  getCategoriesHandler,
+  getCategoryPostsHandler,
+  getTagsHandler,
+  getTagPostsHandler,
+  getSitemapHandler,
 } from '../../controllers/index.js';
 import { contactValidationRules } from '../../validators/contactValidator.js';
 import { downloadResumeHandler } from '../../controllers/resumeController.js';
@@ -21,6 +29,11 @@ import { env } from '../../config/env.js';
 import adminRoutes from './adminRoutes.js';
 import authRoutes from './authRoutes.js';
 import { slugValidator } from '../../validators/idValidator.js';
+import {
+  blogSlugValidator,
+  blogCategorySlugValidator,
+  blogTagSlugValidator,
+} from '../../validators/blogValidator.js';
 
 const router = Router();
 
@@ -108,6 +121,37 @@ router.get('/', (req, res) => {
       path: '/admin/contact-messages',
       description: 'Admin contact message management (authenticated)',
     },
+    {
+      method: 'GET|POST|PUT|PATCH|DELETE',
+      path: '/admin/blog/posts',
+      description: 'Admin blog post CRUD (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|DELETE',
+      path: '/admin/blog/categories',
+      description: 'Admin blog category CRUD (authenticated)',
+    },
+    {
+      method: 'GET|POST|PUT|DELETE',
+      path: '/admin/blog/tags',
+      description: 'Admin blog tag CRUD (authenticated)',
+    },
+    {
+      method: 'POST',
+      path: '/admin/blog/posts/:id/publish',
+      description: 'Publish a blog post (authenticated)',
+    },
+    {
+      method: 'POST',
+      path: '/admin/blog/posts/:id/unpublish',
+      description: 'Unpublish a blog post (authenticated)',
+    },
+    { method: 'GET', path: '/rss.xml', description: 'RSS feed for blog posts' },
+    {
+      method: 'GET',
+      path: '/blog/sitemap',
+      description: 'JSON sitemap data for blog posts',
+    },
   ];
   const data = {
     version: env.apiVersion,
@@ -147,6 +191,31 @@ router.post(
   validateRequest,
   postContactHandler,
 );
+
+// Public blog routes
+router.get('/blog/posts', listPostsHandler);
+router.get(
+  '/blog/posts/:slug',
+  blogSlugValidator,
+  validateRequest,
+  getPostHandler,
+);
+router.get('/blog/featured', getFeaturedPostsHandler);
+router.get('/blog/categories', getCategoriesHandler);
+router.get(
+  '/blog/categories/:slug/posts',
+  blogCategorySlugValidator,
+  validateRequest,
+  getCategoryPostsHandler,
+);
+router.get('/blog/tags', getTagsHandler);
+router.get(
+  '/blog/tags/:slug/posts',
+  blogTagSlugValidator,
+  validateRequest,
+  getTagPostsHandler,
+);
+router.get('/blog/sitemap', getSitemapHandler);
 
 // Auth routes
 router.use('/auth', authRoutes);
