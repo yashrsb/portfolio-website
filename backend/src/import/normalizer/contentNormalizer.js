@@ -199,6 +199,57 @@ export function normalizeSocialLink(item, index) {
 }
 
 /**
+ * Normalizes a blog category entry for Prisma.
+ * @param {object} category - Parsed category data.
+ * @returns {object} Prisma-compatible category payload.
+ */
+export function normalizeBlogCategory(category) {
+  return {
+    slug: category.slug,
+    name: category.name,
+    description: category.description || null,
+  };
+}
+
+/**
+ * Normalizes a blog tag entry for Prisma.
+ * @param {object} tag - Parsed tag data.
+ * @returns {object} Prisma-compatible tag payload.
+ */
+export function normalizeBlogTag(tag) {
+  return {
+    slug: tag.slug,
+    name: tag.name,
+  };
+}
+
+/**
+ * Normalizes a blog post entry for Prisma.
+ * Tags are resolved by slug (must be imported first).
+ * @param {object} post - Parsed blog post data.
+ * @param {number} index - Display order index.
+ * @returns {object} Prisma-compatible blog post payload.
+ */
+export function normalizeBlogPost(post) {
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt || null,
+    content: post.content,
+    coverImage: post.coverImage || null,
+    status: post.status || 'DRAFT',
+    publishedAt: post.publishedAt ? new Date(post.publishedAt) : null,
+    author: post.author || null,
+    featured: Boolean(post.featured),
+    seoTitle: post.seoTitle || null,
+    seoDescription: post.seoDescription || null,
+    canonicalUrl: post.canonicalUrl || null,
+    categoryId: post.categoryId || null,
+    tagIds: post.tagIds || [],
+  };
+}
+
+/**
  * Normalizes all portfolio data sections into Prisma-compatible payloads.
  * @param {object} data - Validated parsed YAML data.
  * @returns {object} Object with normalized sections.
@@ -231,6 +282,13 @@ export function normalizePortfolioData(data) {
 
   // Social Links
   result.socialLinks = (data.socialLinks || []).map(normalizeSocialLink);
+
+  // Blog
+  result.blog = {
+    categories: (data.blog?.categories || []).map(normalizeBlogCategory),
+    tags: (data.blog?.tags || []).map(normalizeBlogTag),
+    posts: (data.blog?.posts || []).map(normalizeBlogPost),
+  };
 
   return result;
 }

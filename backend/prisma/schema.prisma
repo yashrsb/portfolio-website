@@ -39,6 +39,12 @@ enum ContactEmailStatus {
   failed
 }
 
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model Profile {
   id              String   @id @default(uuid())
   name            String
@@ -232,5 +238,65 @@ model ResumeFile {
   updatedAt    DateTime @updatedAt
 
   @@index([storageKey])
+}
+
+model BlogPost {
+  id             String        @id @default(uuid())
+  slug           String        @unique
+  title          String
+  excerpt        String?
+  content        String
+  coverImage     String?
+  status         BlogPostStatus @default(DRAFT)
+  publishedAt    DateTime?
+  author         String?
+  featured       Boolean       @default(false)
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  categoryId     String?
+  category       BlogCategory?  @relation(fields: [categoryId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  tags           BlogPostTag[]
+
+  @@index([status, publishedAt])
+  @@index([featured, publishedAt])
+  @@index([categoryId])
+}
+
+model BlogCategory {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  posts       BlogPost[]
+
+  @@index([slug])
+}
+
+model BlogTag {
+  id        String        @id @default(uuid())
+  slug      String        @unique
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  posts     BlogPostTag[]
+
+  @@index([slug])
+}
+
+model BlogPostTag {
+  id        String   @id @default(uuid())
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
 }
 

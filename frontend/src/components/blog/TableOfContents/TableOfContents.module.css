@@ -1,0 +1,71 @@
+/* Table of contents sidebar / dropdown */
+
+.toc {
+  position: sticky;
+  top: 2rem;
+  align-self: start;
+  max-width: 16rem;
+}
+
+.tocTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary, #666);
+}
+
+.tocList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-left: 2px solid var(--color-border, #e2e2e2);
+}
+
+.tocItem {
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
+.tocItem.indent {
+  padding-left: 1.25rem;
+}
+
+.tocItem.active {
+  border-left-color: var(--color-accent, #2563eb);
+}
+
+.tocLink {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #555);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tocLink:hover {
+  color: var(--color-accent, #2563eb);
+}
+
+.tocItem.active .tocLink {
+  color: var(--color-accent, #2563eb);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .toc {
+    position: static;
+    max-width: 100%;
+  }
+}
