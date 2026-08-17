@@ -166,209 +166,215 @@ experience:
 # Projects
 # ---------------------------------------------------------------------------
 projects:
-  - slug: 'portfolio-website'
-    title: 'Personal Portfolio Website'
-    description: 'A production-ready personal portfolio website built with React, Express, and PostgreSQL. Features a public frontend, REST API, admin dashboard, and Markdown-based content import system.'
-    summary: 'Full-stack portfolio with admin dashboard and content import from YAML'
-    status: 'live'
+  - slug: "candidate-engagement-chatbot"
+    title: "Candidate Engagement Chatbot"
+    description: "An AI-powered candidate engagement chatbot built with React, TypeScript, Node.js, and Gemini. Provides guided conversational interactions, answers candidate questions, maintains conversation context, and extracts structured candidate information from free-form responses using keyword extraction, pattern matching, and simple NLU logic."
+    summary: "AI-powered recruitment chatbot with conversational context and candidate information extraction"
+    status: "live"
     featured: true
     tags:
       - React
       - Node.js
-      - Express
-      - PostgreSQL
-      - Prisma
-      - Docker
-    features:
-      - 'Three-tier deployment: public React frontend, Express API backend, and React-based admin dashboard'
-      - 'YAML-driven content import pipeline with validation and normalization'
-      - 'Admin dashboard with full CRUD for all portfolio entities (projects, skills, experience, education)'
-      - 'Optimistic UI updates with automatic rollback on error'
-      - 'Responsive design with CSS Modules and mobile-first approach'
-      - 'Accessibility-first components with keyboard navigation and ARIA labels'
-    techStack:
-      Frontend:
-        - React
-        - Vite
-        - CSS Modules
-        - React Router
-      Backend:
-        - Node.js
-        - Express
-        - Prisma ORM
-      Database:
-        - PostgreSQL (Neon)
-      Infrastructure:
-        - Docker
-        - Redis
-      Testing:
-        - Vitest
-        - Testing Library
-      Observability:
-        - Sentry
-        - LogRocket (planned)
-    architecture: 'Client (React + Vite) makes HTTP requests to the Express API. The API delegates to a service layer, which calls repository methods that query PostgreSQL via Prisma. Data is imported from YAML through a CLI pipeline (parser → validator → normalizer → importer). The admin panel is a separate React app behind JWT-based authentication, consuming the same API through protected `/admin/*` routes.'
-    architectureImage: null
-    challenges:
-      - 'Designing a content import pipeline that validates, normalizes, and safely upserts YAML data into PostgreSQL without breaking existing records'
-      - 'Implementing real-time admin table updates with optimistic UI without a state management library'
-      - 'Ensuring the public frontend gracefully handles API failures with proper loading, error, and empty states'
-    lessonsLearned:
-      - 'Layered architecture (API → Service → Repository → Prisma) keeps business logic decoupled from HTTP concerns and makes testing tractable'
-      - 'CSS Modules with a consistent naming convention eliminates style leakage across components in a multi-app monorepo'
-      - 'A standardized API response envelope (`{ success, message, data, meta }`) simplifies client-side error handling across all endpoints'
-    screenshots:
-      - src: 'https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/portfolio-showcase_zlahxv'
-        alt: 'Portfolio website project detail page'
-        caption: 'The project showcase detail page with architecture section and screenshot gallery'
-      - src: 'https://res.cloudinary.com/ig4t42rr/image/upload/f_auto,q_auto/portfolio-admin_ajkwer'
-        alt: 'Admin dashboard projects table'
-        caption: 'Admin dashboard with full CRUD and reorder support for portfolio projects'
+      - TypeScript
+      - Gemini AI
+      - REST API
 
-  - slug: 'auto-assignment-engine'
-    title: 'Automated Trip Assignment Engine'
-    description: 'Scalable backend system for automated trip assignment in transportation and ride-sharing platforms. Replaced legacy SQL Server Agent jobs with a queue-based microservice architecture.'
-    summary: 'High-throughput trip assignment system for transportation platforms'
-    status: 'live'
+  - slug: "notifyhub"
+    title: "NotifyHub"
+    description: "A production-oriented multi-channel notification platform built with Python, FastAPI, PostgreSQL, Redis, and Celery. Supports asynchronous notification processing, retry and dead-letter handling, pluggable Email/SMS/Push providers, distributed idempotency, rate limiting, audit logging, and OpenTelemetry-based observability."
+    summary: "Production-oriented notification platform with async processing, reliability, and multi-channel provider architecture"
+    status: "live"
     featured: true
     tags:
-      - Node.js
-      - TypeScript
-      - SQL Server
-      - Kafka
-      - gRPC
-      - AWS
-    features:
-      - 'Replaced legacy SQL Server Agent jobs with a scalable queue-based microservice for trip assignment'
-      - 'Fraud, Waste, and Abuse (FWA) safeguards integrated into the auto-assignment engine'
-      - 'Kafka-based message delivery for vendor reservation updates'
-      - 'gRPC for low-latency read requests from the main API'
-    techStack:
-      Backend:
-        - Node.js
-        - TypeScript
-      Databases:
-        - SQL Server
-        - PostgreSQL
-      Messaging:
-        - Apache Kafka
-      RPC:
-        - gRPC
-      Infrastructure:
-        - AWS
-      Observability:
-        - OpenTelemetry
-        - Zipkin
-    architecture: 'A Kafka consumer service polls trip data from a message topic. The assignment engine queries SQL Server to determine eligible trips, applies FWA rules, and assigns trips to drivers. Results are published back via Kafka. A gRPC service provides low-latency read access to assignment status for the main API layer.'
-    challenges:
-      - 'Migrating from SQL Server Agent jobs to a queue-based microservice without downtime during peak hours'
-      - 'Implementing FWA safeguards that reduce policy violations by 70% without impacting assignment throughput'
-      - 'Debugging a critical Kafka producer issue that prevented vendor reservation updates, causing 90% message delivery failures'
-    lessonsLearned:
-      - 'Queue-based processing scales better than scheduled SQL agents for variable workloads'
-      - 'Decoupling assignment logic from the transport layer (SQL Server Agents) enabled seamless replacement with Kafka'
-      - 'OTel instrumentation was invaluable for diagnosing the Kafka producer failure — it surfaced a serialization mismatch that would have been invisible without distributed tracing'
+      - Python
+      - FastAPI
+      - PostgreSQL
+      - Redis
+      - Celery
+      - Docker
+      - OpenTelemetry
+      - REST API
 
+  - slug: "opinion-trading-backend"
+    title: "Opinion Trading Backend"
+    description: "A real-time opinion trading backend built with Node.js, Express.js, MongoDB, and Socket.io. Provides JWT-based authentication, live event data, trade execution and settlement, admin APIs, real-time WebSocket updates, and structured logging and error handling."
+    summary: "Real-time trading backend with JWT authentication, trade processing, and WebSocket-based updates"
+    status: "live"
+    featured: false
+    tags:  
+      - Node.js
+      - Express.js
+      - MongoDB
+      - Socket.io
+      - JWT
+      - REST API
+      - WebSockets
+      - Winston
+
+  - slug: "school-management-system"
+    title: "School Management System"
+    description: "A role-based school management REST API built with Node.js, Express.js, and MongoDB. Provides authentication and authorization for superadmins, school administrators, and students, along with CRUD operations for schools, classrooms, and students, JWT-based access control, Swagger API documentation, and structured error handling."
+    summary: "Role-based school management API with JWT authentication and hierarchical resource access"
+    status: "live"
+    featured: false
+    tags:  
+      - Node.js
+      - Express.js
+      - MongoDB
+      - JWT
+      - REST API
+      - RBAC
+      - Swagger
+
+  - slug: "crypto-pos-system"
+    title: "Crypto POS System"
+    description: "A cryptocurrency payment processing system that enables merchants to accept crypto payments and convert transaction values to fiat currency. Integrates with NOWPayments for payment processing and Coinlayer for cryptocurrency exchange rates, with MongoDB-backed payment tracking and IPN-based payment confirmation."
+    summary: "Cryptocurrency payment processing system with fiat conversion and asynchronous payment confirmation"
+    status: "live"
+    featured: false
+    tags:  
+      - Node.js
+      - MongoDB
+      - REST API
+      - Cryptocurrency
+      - Payment Processing
+      - NOWPayments
+      - Coinlayer
+      - Webhooks
+  
+  - slug: "weather-forecast-api"
+    title: "Weather Forecast API"
+    description: "A RESTful weather forecasting API built with Node.js and MongoDB that retrieves real-time weather data from OpenWeatherMap based on geographical coordinates. Supports location management, weather data retrieval, and persistence of historical weather observations."
+    summary: "RESTful weather API with external weather integration and historical data tracking"
+    status: "live"
+    featured: false
+    tags:  
+      - Node.js
+      - REST API
+      - MongoDB
+      - OpenWeatherMap
+      - API Integration
 # ---------------------------------------------------------------------------
 # Skills
 # ---------------------------------------------------------------------------
 skills:
-  - name: 'JavaScript'
-    category: 'languages'
+  - name: "JavaScript"
+    category: "languages"
     proficiency: 95
-    icon: '🟨'
-  - name: 'TypeScript'
-    category: 'languages'
+    icon: "🟨"
+  - name: "TypeScript"
+    category: "languages"
     proficiency: 90
-    icon: '🔷'
-  - name: 'Python'
-    category: 'languages'
+    icon: "🔷"
+  - name: "Python"
+    category: "languages"
     proficiency: 70
-    icon: '🐍'
-  - name: 'SQL'
-    category: 'languages'
+    icon: "🐍"
+  - name: "SQL"
+    category: "languages"
     proficiency: 85
-    icon: '🗃️'
-  - name: 'Golang'
-    category: 'languages'
+    icon: "🗃️"
+  - name: "Golang"
+    category: "languages"
     proficiency: 50
-    icon: '🐹'
-  - name: 'React'
-    category: 'frontend'
+    icon: "🐹"
+  - name: "React"
+    category: "frontend"
     proficiency: 80
-    icon: '⚛️'
-  - name: 'Node.js'
-    category: 'backend'
-    proficiency: 95
-    icon: '💚'
-  - name: 'Express'
-    category: 'backend'
+    icon: "⚛️"
+  - name: "HTML/CSS"
+    category: "frontend"
     proficiency: 90
-    icon: '🚂'
-  - name: 'NestJS'
-    category: 'backend'
-    proficiency: 70
-    icon: '🏗️'
-  - name: 'REST APIs'
-    category: 'backend'
+    icon: "🌐"
+  - name: "Prisma"
+    category: "tools"
+    proficiency: 80
+    icon: "◉"
+  - name: "Vite"
+    category: "frontend"
+    proficiency: 80
+    icon: "⚡"
+  - name: "Node.js"
+    category: "backend"
     proficiency: 95
-    icon: '🔌'
-  - name: 'GraphQL'
-    category: 'backend'
-    proficiency: 80
-    icon: '◈'
-  - name: 'gRPC'
-    category: 'backend'
-    proficiency: 75
-    icon: '🔗'
-  - name: 'PostgreSQL'
-    category: 'databases'
-    proficiency: 85
-    icon: '🐘'
-  - name: 'MongoDB'
-    category: 'databases'
-    proficiency: 80
-    icon: '🍃'
-  - name: 'SQL Server'
-    category: 'databases'
-    proficiency: 80
-    icon: '🗄️'
-  - name: 'Redis'
-    category: 'databases'
+    icon: "💚"
+  - name: "Express"
+    category: "backend"
+    proficiency: 90
+    icon: "🚂"
+  - name: "NestJS"
+    category: "backend"
     proficiency: 70
-    icon: '🔴'
-  - name: 'AWS'
-    category: 'cloud'
+    icon: "🏗️"
+  - name: "REST APIs"
+    category: "backend"
+    proficiency: 95
+    icon: "🔌"
+  - name: "GraphQL"
+    category: "backend"
     proficiency: 80
-    icon: '☁️'
-  - name: 'Docker'
-    category: 'cloud'
+    icon: "◈"
+  - name: "gRPC"
+    category: "backend"
+    proficiency: 75
+    icon: "🔗"
+  - name: "PostgreSQL"
+    category: "databases"
     proficiency: 85
-    icon: '🐳'
-  - name: 'Kubernetes'
-    category: 'cloud'
+    icon: "🐘"
+  - name: "Cassandra"
+    category: "databases"
+    proficiency: 85
+    icon: "👁️"
+  - name: "MySQL"
+    category: "databases"
+    proficiency: 90
+    icon: "🐬"
+  - name: "MongoDB"
+    category: "databases"
+    proficiency: 80
+    icon: "🍃"
+  - name: "SQL Server"
+    category: "databases"
+    proficiency: 80
+    icon: "🗄️"
+  - name: "Redis"
+    category: "databases"
+    proficiency: 70
+    icon: "🔴"
+  - name: "AWS"
+    category: "cloud"
+    proficiency: 80
+    icon: "☁️"
+  - name: "Docker"
+    category: "cloud"
+    proficiency: 85
+    icon: "🐳"
+  - name: "Kubernetes"
+    category: "cloud"
     proficiency: 60
-    icon: '☸️'
-  - name: 'CI/CD'
-    category: 'cloud'
+    icon: "☸️"
+  - name: "CI/CD"
+    category: "cloud"
     proficiency: 85
-    icon: '🔄'
-  - name: 'Git'
-    category: 'tools'
+    icon: "🔄"
+  - name: "Git"
+    category: "tools"
     proficiency: 95
-    icon: '📦'
-  - name: 'Apache Kafka'
-    category: 'tools'
+    icon: "📦"
+  - name: "Apache Kafka"
+    category: "tools"
     proficiency: 80
-    icon: '📨'
-  - name: 'OpenTelemetry'
-    category: 'tools'
+    icon: "📨"
+  - name: "OpenTelemetry"
+    category: "tools"
     proficiency: 75
-    icon: '📊'
-  - name: 'System Design'
-    category: 'tools'
+    icon: "📊"
+  - name: "System Design"
+    category: "tools"
     proficiency: 85
-    icon: '🏛️'
+    icon: "🏛️"
+
 
 # ---------------------------------------------------------------------------
 # Education
@@ -404,10 +410,10 @@ certificates:
 # Achievements
 # ---------------------------------------------------------------------------
 achievements:
-  - title: 'Engineering Excellence'
-    organization: 'thinkBridge'
-    year: 2025
-    description: 'Recognized for outstanding contributions to platform architecture, production reliability, and team mentorship.'
+  - title: "GitHub Profile Achievements"
+    organization: "GitHub"
+    year: 2026
+    description: "Earned multiple GitHub profile achievements, including Quickdraw, Pull Shark, and Arctic Code Vault Contributor, reflecting consistent participation and contributions on GitHub."
 
 # ---------------------------------------------------------------------------
 # Social Links
@@ -419,6 +425,8 @@ socialLinks:
     url: 'https://www.linkedin.com/in/yash-raj-singh-b-2b229a198/'
   - platform: 'leetcode'
     url: 'https://leetcode.com/u/YRaj001/'
+  - platform: "medium"
+    url: "https://medium.com/@cryaotic93"
 
 # ---------------------------------------------------------------------------
 # Blog — categories

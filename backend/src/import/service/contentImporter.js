@@ -295,12 +295,19 @@ const importBlogPosts = async (items) => {
 };
 
 /**
- * Runs the full portfolio import inside a Prisma transaction.
+ * Runs the portfolio import inside a Prisma transaction.
+ *
+ * By default imports all normalized sections. Pass an `only` array to restrict
+ * synchronization to specific sections (e.g. ['projects', 'skills', 'achievements']).
  *
  * @param {object} normalized - Normalized portfolio data (all sections).
+ * @param {string[]} [only] - Optional list of section keys to import.
  * @returns {Promise<object>} Summary of import results.
  */
-export async function importContent(normalized) {
+export async function importContent(normalized, only) {
+  const shouldImport = (key) =>
+    !only || only.length === 0 || only.includes(key);
+
   const summary = {};
 
   // Warm the connection pool before the interactive transaction.
@@ -311,57 +318,64 @@ export async function importContent(normalized) {
 
   await prisma.$transaction(
     async () => {
-      // Profile (upsert single row)
-      if (normalized.profile) {
+      if (shouldImport('profile') && normalized.profile) {
         const result = await importProfile(normalized.profile);
         summary.profile = result;
       }
 
-      // Experience
-      const expResult = await importExperience(normalized.experience || []);
-      summary.experience = expResult;
+      if (shouldImport('experience')) {
+        const expResult = await importExperience(normalized.experience || []);
+        summary.experience = expResult;
+      }
 
-      // Projects
-      const projResult = await importProjects(normalized.projects || []);
-      summary.projects = projResult;
+      if (shouldImport('projects')) {
+        const projResult = await importProjects(normalized.projects || []);
+        summary.projects = projResult;
+      }
 
-      // Skills
-      const skillResult = await importSkills(normalized.skills || []);
-      summary.skills = skillResult;
+      if (shouldImport('skills')) {
+        const skillResult = await importSkills(normalized.skills || []);
+        summary.skills = skillResult;
+      }
 
-      // Education
-      const eduResult = await importEducation(normalized.education || []);
-      summary.education = eduResult;
+      if (shouldImport('education')) {
+        const eduResult = await importEducation(normalized.education || []);
+        summary.education = eduResult;
+      }
 
-      // Certificates
-      const certResult = await importCertificates(
-        normalized.certificates || [],
-      );
-      summary.certificates = certResult;
+      if (shouldImport('certificates')) {
+        const certResult = await importCertificates(
+          normalized.certificates || [],
+        );
+        summary.certificates = certResult;
+      }
 
-      // Achievements
-      const achResult = await importAchievements(normalized.achievements || []);
-      summary.achievements = achResult;
+      if (shouldImport('achievements')) {
+        const achResult = await importAchievements(
+          normalized.achievements || [],
+        );
+        summary.achievements = achResult;
+      }
 
-      // Social Links
-      const socialResult = await importSocialLinks(
-        normalized.socialLinks || [],
-      );
-      summary.socialLinks = socialResult;
+      if (shouldImport('socialLinks')) {
+        const socialResult = await importSocialLinks(
+          normalized.socialLinks || [],
+        );
+        summary.socialLinks = socialResult;
+      }
 
-      // Blog Categories
-      const catResult = await importBlogCategories(
-        normalized.blog?.categories || [],
-      );
-      summary.blogCategories = catResult;
+      if (shouldImport('blog')) {
+        const catResult = await importBlogCategories(
+          normalized.blog?.categories || [],
+        );
+        summary.blogCategories = catResult;
 
-      // Blog Tags
-      const tagResult = await importBlogTags(normalized.blog?.tags || []);
-      summary.blogTags = tagResult;
+        const tagResult = await importBlogTags(normalized.blog?.tags || []);
+        summary.blogTags = tagResult;
 
-      // Blog Posts
-      const blogResult = await importBlogPosts(normalized.blog?.posts || []);
-      summary.blogPosts = blogResult;
+        const blogResult = await importBlogPosts(normalized.blog?.posts || []);
+        summary.blogPosts = blogResult;
+      }
     },
     {
       maxWait: 15000,
