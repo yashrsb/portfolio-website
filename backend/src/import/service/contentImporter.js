@@ -190,6 +190,111 @@ const importSocialLinks = async (items) => {
 };
 
 /**
+ * Imports blog categories using upsert by slug.
+ * @param {Array} items - Normalized category payloads.
+ * @returns {Promise<{ count: number }>}
+ */
+const importBlogCategories = async (items) => {
+  let count = 0;
+  for (const item of items) {
+    await prisma.blogCategory.upsert({
+      where: { slug: item.slug },
+      update: { name: item.name, description: item.description },
+      create: item,
+    });
+    count++;
+  }
+  return { count };
+};
+
+/**
+ * Imports blog tags using upsert by slug.
+ * @param {Array} items - Normalized tag payloads.
+ * @returns {Promise<{ count: number }>}
+ */
+const importBlogTags = async (items) => {
+  let count = 0;
+  for (const item of items) {
+    await prisma.blogTag.upsert({
+      where: { slug: item.slug },
+      update: { name: item.name },
+      create: item,
+    });
+    count++;
+  }
+  return { count };
+};
+
+/**
+ * Imports blog posts using upsert by slug, resolving categories and tags
+ * by slug into database IDs. Posts not present in the source are deleted.
+ * @param {Array} items - Normalized blog post payloads.
+ * @returns {Promise<{ count: number }>}
+ */
+const importBlogPosts = async (items) => {
+  let count = 0;
+  const tagSlugToId = {};
+  const allTags = await prisma.blogTag.findMany({
+    select: { slug: true, id: true },
+  });
+  allTags.forEach((t) => {
+    tagSlugToId[t.slug] = t.id;
+  });
+
+  for (const item of items) {
+    const { tagIds: tagSlugs, categoryId: categorySlug, ...rest } = item;
+
+    const data = { ...rest };
+
+    if (categorySlug) {
+      const cat = await prisma.blogCategory.findUnique({
+        where: { slug: categorySlug },
+        select: { id: true },
+      });
+      if (cat) {
+        data.categoryId = cat.id;
+      }
+    }
+
+    const tagIdMap = (tagSlugs || [])
+      .map((slug) => tagSlugToId[slug])
+      .filter(Boolean);
+
+    const existing = await prisma.blogPost.findUnique({
+      where: { slug: item.slug },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await prisma.blogPost.update({
+        where: { slug: item.slug },
+        data: {
+          ...data,
+          tags: {
+            deleteMany: {},
+            ...(tagIdMap.length > 0
+              ? { connect: tagIdMap.map((tagId) => ({ id: tagId })) }
+              : {}),
+          },
+        },
+      });
+    } else {
+      await prisma.blogPost.create({
+        data: {
+          ...data,
+          tags: {
+            create: tagIdMap.map((tagId) => ({ tagId })),
+          },
+        },
+      });
+    }
+    count++;
+  }
+
+  return { count };
+};
+
+/**
  * Runs the full portfolio import inside a Prisma transaction.
  *
  * @param {object} normalized - Normalized portfolio data (all sections).
@@ -243,6 +348,20 @@ export async function importContent(normalized) {
         normalized.socialLinks || [],
       );
       summary.socialLinks = socialResult;
+
+      // Blog Categories
+      const catResult = await importBlogCategories(
+        normalized.blog?.categories || [],
+      );
+      summary.blogCategories = catResult;
+
+      // Blog Tags
+      const tagResult = await importBlogTags(normalized.blog?.tags || []);
+      summary.blogTags = tagResult;
+
+      // Blog Posts
+      const blogResult = await importBlogPosts(normalized.blog?.posts || []);
+      summary.blogPosts = blogResult;
     },
     {
       maxWait: 15000,

@@ -57,6 +57,11 @@ Errors:
 | GET    | `/social`          | Social links                          | No   |
 | GET    | `/resume/download` | Download the latest resume            | No   |
 | POST   | `/contact`         | Submit a contact message              | No   |
+| GET    | `/blog/posts`      | List published posts (paginated)      | No   |
+| GET    | `/blog/posts/:slug`| Get a single post by slug           | No   |
+| GET    | `/blog/featured`   | Featured posts                        | No   |
+| GET    | `/blog/categories` | All categories used by published posts| No   |
+| GET    | `/blog/tags`       | All tags with post counts             | No   |
 
 ### Contact
 
@@ -138,6 +143,11 @@ All admin routes require a valid access token with `ADMIN` or `EDITOR` role.
 | GET/POST/PUT/PATCH/DELETE | `/admin/social-links`     | Social link CRUD + reorder       |
 | GET/PUT/DELETE            | `/admin/contact-messages` | Contact message management       |
 | POST/PUT/DELETE           | `/admin/resume`           | Resume upload / replace / delete |
+| GET/POST/PUT/PATCH/DELETE | `/admin/blog/posts`       | Blog post CRUD                   |
+| POST                      | `/admin/blog/posts/:id/publish`   | Publish a draft post           |
+| POST                      | `/admin/blog/posts/:id/unpublish` | Unpublish a post               |
+| GET/POST/PUT/PATCH/DELETE | `/admin/blog/categories`  | Blog category CRUD               |
+| GET/POST/PUT/PATCH/DELETE | `/admin/blog/tags`        | Blog tag CRUD                    |
 
 ### Reorder
 

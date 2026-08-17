@@ -6,4 +6,8 @@ export { default as Projects } from './Projects/Projects';
 export { default as ProjectDetailPage } from './ProjectDetailPage/ProjectDetailPage';
 export { default as Education } from './Education/Education';
 export { default as Contact } from './Contact/Contact';
+export { default as Blog } from './Blog/Blog';
+export { default as BlogPost } from './BlogPost/BlogPost';
+export { default as CategoryPosts } from './CategoryPosts/CategoryPosts';
+export { default as TagPosts } from './TagPosts/TagPosts';
 export { default as NotFound } from './NotFound/NotFound';
