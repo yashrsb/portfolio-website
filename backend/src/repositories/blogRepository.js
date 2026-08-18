@@ -530,18 +530,27 @@ export const findTagBySlug = async (slug) => {
 // ---------------------------------------------------------------------------
 export const findAllPostsAdmin = async () => {
   try {
-    return await prisma.blogPost.findMany({
+    const posts = await prisma.blogPost.findMany({
       select: {
         ...BLOG_POST_CARD_FIELDS,
         _count: { select: { tags: true } },
       },
-      orderBy: [
-        { status: { not: 'PUBLISHED', priority: 0, else: 1 } },
-        { featured: 'desc' },
-        { publishedAt: 'desc' },
-        { createdAt: 'desc' },
-      ],
     });
+    // Prisma does not support conditional/computed ordering on enum fields.
+    // Sort in JS to keep drafts/unpublished first, then by featured, dates.
+    posts.sort((a, b) => {
+      const aUnpublished = a.status !== 'PUBLISHED';
+      const bUnpublished = b.status !== 'PUBLISHED';
+      if (aUnpublished !== bUnpublished) return aUnpublished ? -1 : 1;
+      if (b.featured !== a.featured) return b.featured - a.featured;
+      const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      if (aDate !== bDate) return bDate - aDate;
+      const aCreated = new Date(a.createdAt).getTime();
+      const bCreated = new Date(b.createdAt).getTime();
+      return bCreated - aCreated;
+    });
+    return posts;
   } catch (err) {
     logger.error('findAllPostsAdmin failed', { error: err.message });
     throw err;

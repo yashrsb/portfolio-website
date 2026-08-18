@@ -6,6 +6,7 @@ import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
 import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import EmptyState from '../../components/common/EmptyState/EmptyState';
 import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
@@ -316,12 +317,21 @@ function BlogPostsPage() {
 
       {loading ? (
         <SkeletonTable rows={5} />
+      ) : filteredItems.length === 0 ? (
+        <EmptyState
+          title="No blog posts found"
+          description={
+            searchQuery
+              ? 'Try adjusting your search terms.'
+              : 'Create your first blog post to get started.'
+          }
+        />
       ) : (
-        <DataTable columns={columns} data={filteredItems} />
-      )}
-
-      {filteredItems.length === 0 && !loading && !error && (
-        <p className={styles.empty}>No blog posts found.</p>
+        <DataTable
+          columns={columns}
+          rows={filteredItems}
+          caption="Blog posts"
+        />
       )}
 
       {/* Blog post form modal */}

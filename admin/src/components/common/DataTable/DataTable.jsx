@@ -26,6 +26,9 @@ function DataTable({
   caption = '',
   toolbar,
 }) {
+  const safeColumns = Array.isArray(columns) ? columns : [];
+  const safeRows = Array.isArray(rows) ? rows : [];
+
   return (
     <div className={styles.wrapper}>
       {toolbar && <div className={styles.toolbar}>{toolbar}</div>}
@@ -34,7 +37,7 @@ function DataTable({
           {caption && <caption className={styles.caption}>{caption}</caption>}
           <thead>
             <tr>
-              {columns.map((column) => (
+              {safeColumns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
@@ -46,16 +49,16 @@ function DataTable({
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {safeRows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className={styles.emptyCell}>
+                <td colSpan={safeColumns.length} className={styles.emptyCell}>
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              rows.map((row, rowIndex) => (
+              safeRows.map((row, rowIndex) => (
                 <tr key={row.id || rowIndex}>
-                  {columns.map((column) => (
+                  {safeColumns.map((column) => (
                     <td key={column.key} className={styles[column.type]}>
                       {column.render ? column.render(row) : row[column.key]}
                     </td>

@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/layout/AdminLayout/AdminLayout';
 import ToastStack from './components/ToastStack/ToastStack';
+import ErrorBoundary from './components/common/errors/ErrorBoundary/ErrorBoundary';
 import LoginPage from './pages/LoginPage/LoginPage';
 import DashboardPage from './pages/DashboardPage/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage/ProjectsPage';
@@ -18,9 +19,6 @@ import BlogPostsPage from './pages/BlogPostsPage/BlogPostsPage';
 import BlogCategoriesPage from './pages/BlogCategoriesPage/BlogCategoriesPage';
 import BlogTagsPage from './pages/BlogTagsPage/BlogTagsPage';
 
-/**
- * Shared layout element: ToastStack + protected admin shell.
- */
 const AdminShell = () => (
   <>
     <ToastStack />
@@ -30,16 +28,6 @@ const AdminShell = () => (
   </>
 );
 
-/**
- * Admin application router (data router).
- *
- * A data router (createBrowserRouter) is required because some pages use
- * useDirtyForm → useBlocker, which only works with a data router.
- *
- * Route structure:
- * - /login — public
- * - Everything else is wrapped in ProtectedRoute + AdminLayout
- */
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -53,6 +41,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <AdminShell />,
+    errorElement: <ErrorBoundary />,
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'dashboard', element: <DashboardPage /> },
