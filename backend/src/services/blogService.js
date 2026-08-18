@@ -422,7 +422,8 @@ export const getAllPublishedSlugs = async () => {
  */
 export const listAllPostsAdmin = async () => {
   try {
-    return await findAllPostsAdmin();
+    const posts = await findAllPostsAdmin();
+    return posts.map(mapPostToAdmin);
   } catch (err) {
     logger.error('listAllPostsAdmin failed', { error: err.message });
     throw err;

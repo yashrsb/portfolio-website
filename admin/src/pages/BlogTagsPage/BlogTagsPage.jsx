@@ -5,6 +5,7 @@ import DataTable from '../../components/common/DataTable/DataTable';
 import Modal from '../../components/common/Modal/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog/ConfirmDialog';
 import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
+import EmptyState from '../../components/common/EmptyState/EmptyState';
 import ApiErrorBanner from '../../components/common/errors/ApiErrorBanner/ApiErrorBanner';
 import FormField from '../../components/form/FormField/FormField';
 import TextInput from '../../components/form/TextInput/TextInput';
@@ -151,12 +152,13 @@ function BlogTagsPage() {
 
       {loading ? (
         <SkeletonTable rows={5} />
+      ) : items.length === 0 ? (
+        <EmptyState
+          title="No tags found"
+          description="Create a tag to categorize your blog posts."
+        />
       ) : (
-        <DataTable columns={columns} data={items} />
-      )}
-
-      {items.length === 0 && !loading && !error && (
-        <p className={styles.empty}>No tags found.</p>
+        <DataTable columns={columns} rows={items} caption="Blog tags" />
       )}
 
       <Modal
