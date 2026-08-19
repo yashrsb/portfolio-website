@@ -59,7 +59,7 @@ export function useBlogPosts(query = {}) {
       cancelled = true;
       controller.abort();
     };
-  }, [queryKey]);
+  }, [queryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { posts, pagination, loading, error };
 }

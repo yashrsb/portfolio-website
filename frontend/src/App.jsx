@@ -1,6 +1,7 @@
 import { useLocation, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { MainLayout } from './layouts';
+import { useAnalytics } from './hooks';
 import {
   Home,
   About,
@@ -26,6 +27,8 @@ function App() {
   const [activeLocation, setActiveLocation] = useState(location);
   const [fading, setFading] = useState(false);
   const previousPath = useRef(location.pathname);
+
+  useAnalytics();
 
   useEffect(() => {
     if (location.pathname === previousPath.current) return;

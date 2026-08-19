@@ -17,3 +17,10 @@ export {
   fetchBlogSitemapData,
   calculateReadingTime,
 } from './blogService';
+export {
+  trackEvent,
+  trackPageView,
+  trackProjectView,
+  trackProjectClick,
+  trackBlogPostView,
+} from './analyticsService.js';

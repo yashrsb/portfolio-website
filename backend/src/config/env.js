@@ -21,6 +21,10 @@ const DEFAULT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const DEFAULT_CONTACT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const DEFAULT_CONTACT_RATE_LIMIT_MAX = 5; // max 5 submissions per window per IP
 
+const DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const DEFAULT_ANALYTICS_RATE_LIMIT_MAX = 60; // max 60 events per window per IP
+const DEFAULT_ANALYTICS_RETENTION_DAYS = 90;
+
 const VALID_ENVIRONMENTS = ['development', 'production', 'test'];
 
 /**
@@ -134,6 +138,25 @@ export const env = {
     max: Number.parseInt(
       process.env.CONTACT_RATE_LIMIT_MAX ||
         String(DEFAULT_CONTACT_RATE_LIMIT_MAX),
+      10,
+    ),
+  },
+  analytics: {
+    rateLimit: {
+      windowMs: Number.parseInt(
+        process.env.ANALYTICS_RATE_LIMIT_WINDOW_MS ||
+          String(DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS),
+        10,
+      ),
+      max: Number.parseInt(
+        process.env.ANALYTICS_RATE_LIMIT_MAX ||
+          String(DEFAULT_ANALYTICS_RATE_LIMIT_MAX),
+        10,
+      ),
+    },
+    retentionDays: Number.parseInt(
+      process.env.ANALYTICS_RETENTION_DAYS ||
+        String(DEFAULT_ANALYTICS_RETENTION_DAYS),
       10,
     ),
   },

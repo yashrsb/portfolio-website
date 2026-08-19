@@ -217,9 +217,60 @@ a blank screen.
 - [ ] `npm run import:portfolio` seeds 4 published posts + 1 draft post.
 - [ ] Draft posts do not appear in `/blog/posts`, `/rss.xml`, or `/sitemap.xml`.
 
+## 11. Analytics System (Phase 13)
+
+### Public API
+
+- [ ] `POST /api/v1/analytics/events` — sends a `PAGE_VIEW` event → `202`.
+  ```bash
+  curl -X POST http://localhost:5001/api/v1/analytics/events \
+    -H "Content-Type: application/json" \
+    -d '{"eventType":"PAGE_VIEW","path":"/test"}'
+  ```
+- [ ] `POST /api/v1/analytics/events` with invalid `eventType` → `400`.
+- [ ] `POST /api/v1/analytics/events` with empty `path` → `400`.
+- [ ] Exceeding 60 events/min from one IP → `429` with `RATE_LIMIT_EXCEEDED`.
+- [ ] Bot user-agents (e.g. `Googlebot`) are silently dropped (no error, no row).
+- [ ] `projectSlug` is resolved to a `Project.id` (non-existent slug → no FK set).
+- [ ] `blogPostSlug` is resolved to a published `BlogPost.id` (draft → no FK set).
+
+### Storage & Privacy
+
+- [ ] Analytics events are stored in the `AnalyticsEvent` table.
+- [ ] `visitorHash` is a SHA-256 digest (no raw IPs stored).
+- [ ] Same visitor hash changes daily (daily salt rotation).
+- [ ] No full user-agent string is stored (only parsed device/browser/os).
+- [ ] Events older than `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90) are
+      purged by `npm run analytics:cleanup`.
+
+### Admin Dashboard
+
+- [ ] Login to admin → navigate to `/analytics` → dashboard loads.
+- [ ] Overview page shows current + previous-period visitor/page-view counts.
+- [ ] Timeseries line chart shows daily visitor trend.
+- [ ] Top Pages table lists pages by event count.
+- [ ] Top Countries table lists countries by visitor count.
+- [ ] Devices chart shows desktop/mobile/tablet breakdown.
+- [ ] Browsers chart shows browser distribution.
+- [ ] Projects table shows per-project views, clicks, and click source breakdown.
+- [ ] Referrers table shows top referring URLs.
+- [ ] Date range selector (Today / 7d / 30d / 90d) updates all charts.
+- [ ] Dark mode toggle is respected on all analytics pages.
+- [ ] No raw event rows are ever returned by any admin endpoint.
+
+### Frontend
+
+- [ ] Navigating the public site triggers `PAGE_VIEW` events (check DB).
+- [ ] Visiting `/projects/:slug` triggers a `PROJECT_VIEW` event.
+- [ ] Clicking a project's GitHub/Demo link triggers a `PROJECT_CLICK` event.
+- [ ] Visiting `/blog/:slug` triggers a `BLOG_POST_VIEW` event.
+- [ ] Setting `localStorage.analytics_opt_out = "true"` stops all tracking.
+  Removing it re-enables tracking.
+- [ ] `navigator.sendBeacon` is used for event delivery (verify via dev tools).
+
 ## 9. Build & Static Checks (already verified)
 
-- [ ] Backend/eslint, frontend/eslint, admin/eslint all clean (`--max-warnings 0`).
-- [ ] Prettier check clean across all files.
-- [ ] `npm run build` passes for frontend and admin.
-- [ ] `prisma validate` passes.
+- [x] Backend/eslint, frontend/eslint, admin/eslint all clean (`--max-warnings 0`).
+- [x] `npm run test` passes for all three apps (backend 132, frontend 39, admin 53).
+- [x] `npm run build` passes for frontend and admin.
+- [x] `prisma validate` passes.

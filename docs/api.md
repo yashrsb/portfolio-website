@@ -62,6 +62,7 @@ Errors:
 | GET    | `/blog/featured`   | Featured posts                        | No   |
 | GET    | `/blog/categories` | All categories used by published posts| No   |
 | GET    | `/blog/tags`       | All tags with post counts             | No   |
+| POST   | `/analytics/events`| Ingest analytics event (rate-limited)| No   |
 
 ### Contact
 
@@ -148,6 +149,15 @@ All admin routes require a valid access token with `ADMIN` or `EDITOR` role.
 | POST                      | `/admin/blog/posts/:id/unpublish` | Unpublish a post               |
 | GET/POST/PUT/PATCH/DELETE | `/admin/blog/categories`  | Blog category CRUD               |
 | GET/POST/PUT/PATCH/DELETE | `/admin/blog/tags`        | Blog tag CRUD                    |
+| GET                       | `/admin/analytics/overview`   | Analytics overview (current + previous period) |
+| GET                       | `/admin/analytics/timeseries` | Daily visitor/page-view trend |
+| GET                       | `/admin/analytics/pages`      | Top pages by views |
+| GET                       | `/admin/analytics/countries`  | Top countries by visitors |
+| GET                       | `/admin/analytics/devices`    | Device-type breakdown |
+| GET                       | `/admin/analytics/browsers`   | Browser breakdown |
+| GET                       | `/admin/analytics/projects`   | Per-project view/click stats |
+| GET                       | `/admin/analytics/projects`   | Per-project view/click stats with GitHub vs Demo breakdown |
+| GET                       | `/admin/analytics/referrers`  | Top referrers |
 
 ### Reorder
 

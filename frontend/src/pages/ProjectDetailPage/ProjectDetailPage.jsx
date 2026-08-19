@@ -11,6 +11,7 @@ import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useProject } from '../../hooks';
 import { usePrefersReducedMotion } from '../../hooks';
+import { trackProjectView, trackProjectClick } from '../../services/analyticsService';
 import styles from './ProjectDetailPage.module.css';
 
 const STATUS_LABEL = {
@@ -232,6 +233,9 @@ function ProjectDetailPage() {
 
   useEffect(() => {
     if (project) {
+      // Track project view (non-blocking, fire-and-forget)
+      trackProjectView(project.slug, window.location.pathname);
+
       const pageTitle = `${project.title} — Portfolio`;
       document.title = pageTitle;
 
@@ -351,6 +355,13 @@ function ProjectDetailPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.githubLink}
+                      onClick={() =>
+                        trackProjectClick(
+                          project.slug,
+                          'github',
+                          window.location.pathname,
+                        )
+                      }
                     >
                       <Button variant="primary" size="md">
                         View GitHub Repository
@@ -362,6 +373,13 @@ function ProjectDetailPage() {
                       href={project.demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() =>
+                        trackProjectClick(
+                          project.slug,
+                          'demo',
+                          window.location.pathname,
+                        )
+                      }
                     >
                       <Button variant="outline" size="md">
                         Live Demo
