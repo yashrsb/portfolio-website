@@ -11,6 +11,21 @@ import { ADMIN_ENDPOINTS } from '../constants/api';
 const DEFAULT_DAYS = 30;
 
 /**
+ * Fetches all dashboard data in a single API call.
+ * Returns overview (current + previous), time-series, pages, projects,
+ * countries, devices, browsers, and referrers.
+ *
+ * @param {number} [days=30]
+ * @returns {Promise<object>} Complete dashboard data.
+ */
+export const getDashboard = async (days = DEFAULT_DAYS) => {
+  const { data } = await apiClient.get(ADMIN_ENDPOINTS.analytics.dashboard, {
+    params: { days },
+  });
+  return data.data;
+};
+
+/**
  * Fetches the analytics overview (visitors, page views, project views/clicks, blog views)
  * for the current and previous period.
  *
@@ -118,6 +133,7 @@ export const getReferrers = async (days = DEFAULT_DAYS) => {
 };
 
 export default {
+  getDashboard,
   getOverview,
   getTimeSeries,
   getTopPages,

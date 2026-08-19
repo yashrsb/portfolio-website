@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockGetDashboard = vi.fn();
+
 const mockCreateEvent = vi.fn();
 const mockGetOverview = vi.fn();
 const mockGetTimeSeries = vi.fn();
@@ -21,8 +23,10 @@ vi.mock('../src/repositories/analyticsRepository.js', () => ({
     getDevices: (...args) => mockGetDevices(...args),
     getBrowsers: (...args) => mockGetBrowsers(...args),
     getProjectStats: (...args) => mockGetProjectStats(...args),
-    getProjectClickBreakdown: (...args) => mockGetProjectClickBreakdown(...args),
+    getProjectClickBreakdown: (...args) =>
+      mockGetProjectClickBreakdown(...args),
     getReferrers: (...args) => mockGetReferrers(...args),
+    getDashboard: (...args) => mockGetDashboard(...args),
   },
 }));
 
@@ -65,6 +69,7 @@ const {
   resolveProjectId,
   resolveBlogPostId,
   getOverview,
+  getDashboard,
   getTimeSeries,
   getProjectStats,
   getReferrers,
@@ -112,7 +117,10 @@ describe('analyticsService.resolveCountry', () => {
 
 describe('analyticsService.getClientIp', () => {
   it('extracts the first IP from x-forwarded-for', () => {
-    const req = { headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }, ip: '127.0.0.1' };
+    const req = {
+      headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' },
+      ip: '127.0.0.1',
+    };
     expect(getClientIp(req)).toBe('1.2.3.4');
   });
 
@@ -217,13 +225,19 @@ describe('analyticsService.resolveBlogPostId', () => {
   });
 
   it('returns the post ID for a published post', async () => {
-    prisma.blogPost.findUnique.mockResolvedValue({ id: 'post-1', status: 'PUBLISHED' });
+    prisma.blogPost.findUnique.mockResolvedValue({
+      id: 'post-1',
+      status: 'PUBLISHED',
+    });
     const id = await resolveBlogPostId('my-post');
     expect(id).toBe('post-1');
   });
 
   it('returns null for a draft post', async () => {
-    prisma.blogPost.findUnique.mockResolvedValue({ id: 'post-2', status: 'DRAFT' });
+    prisma.blogPost.findUnique.mockResolvedValue({
+      id: 'post-2',
+      status: 'DRAFT',
+    });
     const id = await resolveBlogPostId('draft-post');
     expect(id).toBeNull();
   });
@@ -306,10 +320,22 @@ describe('analyticsService.getProjectStats', () => {
 
   it('merges click breakdown into project stats', async () => {
     mockGetProjectStats.mockResolvedValue([
-      { slug: 'proj-a', title: 'Project A', views: 100, clicks: 80, uniqueVisitors: 50 },
+      {
+        slug: 'proj-a',
+        title: 'Project A',
+        views: 100,
+        clicks: 80,
+        uniqueVisitors: 50,
+      },
     ]);
     mockGetProjectClickBreakdown.mockResolvedValue([
-      { slug: 'proj-a', title: 'Project A', githubClicks: 60, demoClicks: 20, totalClicks: 80 },
+      {
+        slug: 'proj-a',
+        title: 'Project A',
+        githubClicks: 60,
+        demoClicks: 20,
+        totalClicks: 80,
+      },
     ]);
 
     const result = await getProjectStats({ days: '30' });
@@ -333,5 +359,115 @@ describe('analyticsService.getReferrers', () => {
     const arg = mockGetReferrers.mock.calls[0][0];
     expect(arg).toHaveProperty('startDate');
     expect(arg).toHaveProperty('endDate');
+  });
+});
+
+describe('analyticsService.getDashboard', () => {
+  beforeEach(() => {
+    mockGetDashboard.mockReset();
+    mockGetOverview.mockReset();
+  });
+
+  const mockDashboard = {
+    overview: {
+      totalVisitors: 100,
+      totalPageViews: 500,
+      totalProjectViews: 50,
+      totalProjectClicks: 10,
+      totalBlogViews: 30,
+    },
+    timeseries: [{ date: '2025-08-01', visitors: 12, pageViews: 34 }],
+    pages: [{ path: '/', views: 100, uniqueVisitors: 80 }],
+    projects: [
+      {
+        slug: 'a',
+        title: 'A',
+        views: 10,
+        clicks: 5,
+        uniqueVisitors: 5,
+        githubClicks: 3,
+        demoClicks: 2,
+      },
+    ],
+    countries: [{ country: 'US', visitors: 50, percentage: 50 }],
+    devices: [{ deviceType: 'DESKTOP', visitors: 80, percentage: 80 }],
+    browsers: [{ browser: 'CHROME', visitors: 70, percentage: 70 }],
+    referrers: [{ source: 'Google', visitors: 40, percentage: 40 }],
+  };
+
+  const mockPreviousOverview = {
+    totalVisitors: 80,
+    totalPageViews: 400,
+    totalProjectViews: 40,
+    totalProjectClicks: 8,
+    totalBlogViews: 20,
+  };
+
+  it('returns complete dashboard payload with current + previous overview', async () => {
+    mockGetDashboard.mockResolvedValue(mockDashboard);
+    mockGetOverview.mockResolvedValue(mockPreviousOverview);
+
+    const result = await getDashboard({ days: '30' });
+
+    expect(result.overview.current).toEqual(mockDashboard.overview);
+    expect(result.overview.previous).toEqual(mockPreviousOverview);
+    expect(result.timeseries).toEqual(mockDashboard.timeseries);
+    expect(result.pages).toEqual(mockDashboard.pages);
+    expect(result.projects).toEqual(mockDashboard.projects);
+    expect(result.countries).toEqual(mockDashboard.countries);
+    expect(result.devices).toEqual(mockDashboard.devices);
+    expect(result.browsers).toEqual(mockDashboard.browsers);
+    expect(result.referrers).toEqual(mockDashboard.referrers);
+
+    expect(mockGetDashboard).toHaveBeenCalledTimes(1);
+    expect(mockGetOverview).toHaveBeenCalledTimes(1);
+  });
+
+  it('defaults to 30 days when days is not provided', async () => {
+    mockGetDashboard.mockResolvedValue(mockDashboard);
+    mockGetOverview.mockResolvedValue(mockPreviousOverview);
+
+    await getDashboard({});
+
+    const dashArg = mockGetDashboard.mock.calls[0][0];
+    expect(dashArg).toHaveProperty('startDate');
+    expect(dashArg).toHaveProperty('endDate');
+    const start = new Date(dashArg.startDate);
+    const end = new Date(dashArg.endDate);
+    const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+    expect(diffDays).toBeCloseTo(30, 1);
+  });
+
+  it('respects custom days parameter', async () => {
+    mockGetDashboard.mockResolvedValue(mockDashboard);
+    mockGetOverview.mockResolvedValue(mockPreviousOverview);
+
+    await getDashboard({ days: '7' });
+
+    const dashArg = mockGetDashboard.mock.calls[0][0];
+    expect(dashArg).toHaveProperty('startDate');
+    expect(dashArg).toHaveProperty('endDate');
+    const start = new Date(dashArg.startDate);
+    const end = new Date(dashArg.endDate);
+    const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+    expect(diffDays).toBeCloseTo(7, 1);
+  });
+
+  it('passes limit to repository', async () => {
+    mockGetDashboard.mockResolvedValue(mockDashboard);
+    mockGetOverview.mockResolvedValue(mockPreviousOverview);
+
+    await getDashboard({ days: '90', limit: '5' });
+
+    expect(mockGetDashboard.mock.calls[0][0].limit).toBe(5);
+  });
+
+  it('clamps limit to MAX_LIMIT (100)', async () => {
+    mockGetDashboard.mockResolvedValue(mockDashboard);
+    mockGetOverview.mockResolvedValue(mockPreviousOverview);
+
+    await getDashboard({ days: '30', limit: '500' });
+
+    expect(mockGetDashboard.mock.calls[0][0].limit).toBe(100);
   });
 });

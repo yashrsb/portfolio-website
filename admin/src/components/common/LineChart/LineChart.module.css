@@ -10,6 +10,12 @@
   overflow: visible;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .svg {
+    transition: none;
+  }
+}
+
 .line {
   stroke: var(--color-primary);
   stroke-width: 0.1;

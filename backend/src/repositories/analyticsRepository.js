@@ -6,7 +6,34 @@ import logger from '../utils/logger.js';
  * All aggregation happens in PostgreSQL; only aggregated results are returned.
  */
 
-const EVENT_TYPES = ['PAGE_VIEW', 'PROJECT_VIEW', 'PROJECT_CLICK', 'BLOG_POST_VIEW'];
+const EVENT_TYPES = [
+  'PAGE_VIEW',
+  'PROJECT_VIEW',
+  'PROJECT_CLICK',
+  'BLOG_POST_VIEW',
+];
+
+/**
+ * Generates an array of ISO date strings (YYYY-MM-DD) for every day
+ * in the inclusive range [startDate, endDate].
+ *
+ * @param {string} startDate - ISO date string.
+ * @param {string} endDate - ISO date string.
+ * @returns {string[]} Array of "YYYY-MM-DD" strings.
+ */
+function generateDateRange(startDate, endDate) {
+  const dates = [];
+  const start = new Date(startDate);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setUTCHours(23, 59, 59, 999);
+
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  return dates;
+}
 
 /**
  * Creates a new analytics event record.
@@ -126,10 +153,26 @@ export const getTimeSeries = async ({ startDate, endDate }) => {
       ORDER BY "date" ASC
     `;
 
-    return result.map((row) => ({
-      date: new Date(row.date).toISOString().slice(0, 10),
-      visitors: Number(row.visitors),
-      pageViews: Number(row.pageViews),
+    const rawMap = new Map(
+      result
+        .map((row) => {
+          if (!row.date) return null;
+          return [
+            new Date(row.date).toISOString().slice(0, 10),
+            {
+              visitors: Number(row.visitors),
+              pageViews: Number(row.pageViews),
+            },
+          ];
+        })
+        .filter(Boolean),
+    );
+
+    const dates = generateDateRange(startDate, endDate);
+    return dates.map((date) => ({
+      date,
+      visitors: rawMap.get(date)?.visitors ?? 0,
+      pageViews: rawMap.get(date)?.pageViews ?? 0,
     }));
   } catch (err) {
     logger.error('getTimeSeries failed', { error: err.message });
@@ -202,7 +245,10 @@ export const getCountries = async ({ startDate, endDate, limit = 20 }) => {
     return result.map((row) => ({
       country: row.country,
       visitors: Number(row.visitors),
-      percentage: total > 0 ? Number(((Number(row.visitors) / total) * 100).toFixed(1)) : 0,
+      percentage:
+        total > 0
+          ? Number(((Number(row.visitors) / total) * 100).toFixed(1))
+          : 0,
     }));
   } catch (err) {
     logger.error('getCountries failed', { error: err.message });
@@ -237,7 +283,10 @@ export const getDevices = async ({ startDate, endDate }) => {
     return result.map((row) => ({
       deviceType: row.deviceType,
       visitors: Number(row.visitors),
-      percentage: total > 0 ? Number(((Number(row.visitors) / total) * 100).toFixed(1)) : 0,
+      percentage:
+        total > 0
+          ? Number(((Number(row.visitors) / total) * 100).toFixed(1))
+          : 0,
     }));
   } catch (err) {
     logger.error('getDevices failed', { error: err.message });
@@ -272,7 +321,10 @@ export const getBrowsers = async ({ startDate, endDate }) => {
     return result.map((row) => ({
       browser: row.browser,
       visitors: Number(row.visitors),
-      percentage: total > 0 ? Number(((Number(row.visitors) / total) * 100).toFixed(1)) : 0,
+      percentage:
+        total > 0
+          ? Number(((Number(row.visitors) / total) * 100).toFixed(1))
+          : 0,
     }));
   } catch (err) {
     logger.error('getBrowsers failed', { error: err.message });
@@ -405,7 +457,10 @@ export const getReferrers = async ({ startDate, endDate, limit = 20 }) => {
     return result.map((row) => ({
       source: row.source,
       visitors: Number(row.visitors),
-      percentage: total > 0 ? Number(((Number(row.visitors) / total) * 100).toFixed(1)) : 0,
+      percentage:
+        total > 0
+          ? Number(((Number(row.visitors) / total) * 100).toFixed(1))
+          : 0,
     }));
   } catch (err) {
     logger.error('getReferrers failed', { error: err.message });
@@ -434,7 +489,65 @@ export const cleanupOldEvents = async (retentionDays) => {
   }
 };
 
+/**
+ * Fetches all dashboard aggregations concurrently in a single call.
+ * Reuses existing repository methods to avoid duplicating business logic.
+ *
+ * @param {object} params
+ * @param {string} params.startDate - ISO date string.
+ * @param {string} params.endDate - ISO date string.
+ * @param {number} [params.limit] - Row limit for paginated lists.
+ * @returns {Promise<{ overview: object, timeseries: array, pages: array, projects: array, countries: array, devices: array, browsers: array, referrers: array }>}
+ */
+export const getDashboard = async ({ startDate, endDate, limit = 20 }) => {
+  try {
+    const [
+      overview,
+      timeseries,
+      pages,
+      countries,
+      devices,
+      browsers,
+      projectStats,
+      projectClicks,
+      referrers,
+    ] = await Promise.all([
+      getOverview({ startDate, endDate }),
+      getTimeSeries({ startDate, endDate }),
+      getTopPages({ startDate, endDate, limit }),
+      getCountries({ startDate, endDate, limit }),
+      getDevices({ startDate, endDate }),
+      getBrowsers({ startDate, endDate }),
+      getProjectStats({ startDate, endDate, limit }),
+      getProjectClickBreakdown({ startDate, endDate }),
+      getReferrers({ startDate, endDate, limit }),
+    ]);
+
+    const clickMap = new Map(projectClicks.map((b) => [b.slug, b]));
+    const projects = projectStats.map((p) => ({
+      ...p,
+      githubClicks: clickMap.get(p.slug)?.githubClicks || 0,
+      demoClicks: clickMap.get(p.slug)?.demoClicks || 0,
+    }));
+
+    return {
+      overview,
+      timeseries,
+      pages,
+      projects,
+      countries,
+      devices,
+      browsers,
+      referrers,
+    };
+  } catch (err) {
+    logger.error('getDashboard failed', { error: err.message });
+    throw err;
+  }
+};
+
 export { EVENT_TYPES };
+export { generateDateRange };
 export default {
   createEvent,
   getOverview,
@@ -446,5 +559,6 @@ export default {
   getProjectStats,
   getProjectClickBreakdown,
   getReferrers,
+  getDashboard,
   cleanupOldEvents,
 };

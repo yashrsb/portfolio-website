@@ -19,6 +19,7 @@ function LineChart({
   dateKey = 'date',
   stroke = 'var(--color-primary)',
   fill = 'var(--color-primary-light)',
+  maxLabels = 6,
 }) {
   const safeData = Array.isArray(data) ? data : [];
 
@@ -33,6 +34,7 @@ function LineChart({
   const values = safeData.map((d) => Number(d[valueKey]) || 0);
   const maxValue = Math.max(...values, 1);
   const minValue = Math.min(...values, 0);
+  const span = Math.max(maxValue - minValue, 1);
 
   const width = 100;
   const height = 4;
@@ -44,9 +46,7 @@ function LineChart({
   const getX = (i) =>
     padding + (i / Math.max(safeData.length - 1, 1)) * chartWidth;
   const getY = (val) =>
-    padding +
-    chartHeight -
-    ((val - minValue) / Math.max(maxValue - minValue, 1)) * chartHeight;
+    padding + chartHeight - ((val - minValue) / span) * chartHeight;
 
   const points = safeData
     .map((d, i) => `${getX(i)},${getY(Number(d[valueKey]) || 0)}`)
@@ -55,6 +55,15 @@ function LineChart({
   const areaPoints = `${padding},${
     padding + chartHeight
   } ${points} ${width - padding},${padding + chartHeight}`;
+
+  const labelIndices = [];
+  if (safeData.length <= maxLabels) {
+    for (let i = 0; i < safeData.length; i++) labelIndices.push(i);
+  } else {
+    const step = Math.ceil((safeData.length - 1) / (maxLabels - 1));
+    for (let i = 0; i < safeData.length - 1; i += step) labelIndices.push(i);
+    labelIndices.push(safeData.length - 1);
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -100,21 +109,11 @@ function LineChart({
       </svg>
 
       <div className={styles.labels}>
-        {safeData.length > 0 && (
-          <>
-            <span className={styles.label}>{safeData[0][dateKey]}</span>
-            {safeData.length > 1 && (
-              <span className={styles.label}>
-                {safeData[Math.floor(safeData.length / 2)][dateKey]}
-              </span>
-            )}
-            {safeData.length > 1 && (
-              <span className={styles.label}>
-                {safeData[safeData.length - 1][dateKey]}
-              </span>
-            )}
-          </>
-        )}
+        {labelIndices.map((i) => (
+          <span key={i} className={styles.label}>
+            {safeData[i][dateKey]}
+          </span>
+        ))}
       </div>
     </div>
   );

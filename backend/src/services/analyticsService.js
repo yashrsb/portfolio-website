@@ -208,6 +208,47 @@ export const getOverview = async (query) => {
 };
 
 /**
+ * Fetches all dashboard aggregations in a single call.
+ * Reuses existing service methods; only the date range is computed once.
+ *
+ * @param {object} query - Query params (days, limit).
+ * @returns {Promise<object>} Complete dashboard payload.
+ */
+export const getDashboard = async (query) => {
+  const days = parseInt(query?.days, 10) || DEFAULT_DAYS;
+  const limit = Math.min(parseInt(query?.limit, 10) || 20, MAX_LIMIT);
+  const { startDate, endDate } = computeDateRange(days);
+
+  const prevDays = days;
+  const prevEnd = new Date(startDate);
+  prevEnd.setDate(prevEnd.getDate() - 1);
+  const prevStart = new Date(prevEnd);
+  prevStart.setDate(prevStart.getDate() - prevDays);
+
+  const [dashboard, previousOverview] = await Promise.all([
+    analyticsRepository.getDashboard({ startDate, endDate, limit }),
+    analyticsRepository.getOverview({
+      startDate: prevStart.toISOString(),
+      endDate: prevEnd.toISOString(),
+    }),
+  ]);
+
+  return {
+    overview: {
+      current: dashboard.overview,
+      previous: previousOverview,
+    },
+    timeseries: dashboard.timeseries,
+    pages: dashboard.pages,
+    projects: dashboard.projects,
+    countries: dashboard.countries,
+    devices: dashboard.devices,
+    browsers: dashboard.browsers,
+    referrers: dashboard.referrers,
+  };
+};
+
+/**
  * Fetches time-series data for the date range.
  *
  * @param {object} query
@@ -321,6 +362,7 @@ export default {
   resolveProjectId,
   resolveBlogPostId,
   getOverview,
+  getDashboard,
   getTimeSeries,
   getTopPages,
   getCountries,

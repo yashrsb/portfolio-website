@@ -149,6 +149,7 @@ All admin routes require a valid access token with `ADMIN` or `EDITOR` role.
 | POST                      | `/admin/blog/posts/:id/unpublish` | Unpublish a post               |
 | GET/POST/PUT/PATCH/DELETE | `/admin/blog/categories`  | Blog category CRUD               |
 | GET/POST/PUT/PATCH/DELETE | `/admin/blog/tags`        | Blog tag CRUD                    |
+| GET                       | `/admin/analytics/dashboard`    | Aggregated dashboard data (single response) |
 | GET                       | `/admin/analytics/overview`   | Analytics overview (current + previous period) |
 | GET                       | `/admin/analytics/timeseries` | Daily visitor/page-view trend |
 | GET                       | `/admin/analytics/pages`      | Top pages by views |

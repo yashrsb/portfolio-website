@@ -159,6 +159,12 @@ router.get('/', (req, res) => {
       description: 'Track an analytics event (rate-limited, bot-filtered)',
     },
     {
+      method: 'GET',
+      path: '/admin/analytics/dashboard',
+      description:
+        'Aggregated analytics dashboard data (single-response, ADMIN only)',
+    },
+    {
       method: 'GET|POST',
       path: '/admin/analytics',
       description: 'Admin analytics dashboard data (authenticated, ADMIN only)',

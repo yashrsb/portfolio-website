@@ -24,7 +24,13 @@ const buildMeta = (req) => ({
  * cannot distinguish whether an event was recorded — preventing manipulation.
  */
 export const recordEventHandler = asyncHandler(async (req, res) => {
-  const { eventType, path: reqPath, projectSlug, blogPostSlug, metadata } = req.body;
+  const {
+    eventType,
+    path: reqPath,
+    projectSlug,
+    blogPostSlug,
+    metadata,
+  } = req.body;
 
   // Resolve slugs to database IDs (best-effort, non-blocking)
   let projectId = null;
@@ -165,9 +171,27 @@ export const getReferrersHandler = asyncHandler(async (req, res) => {
   ).send(res);
 });
 
+/**
+ * GET /api/v1/admin/analytics/dashboard
+ * Requires ADMIN auth.
+ *
+ * Returns all dashboard data in a single response to avoid
+ * multiple round-trips from the admin dashboards.
+ */
+export const getDashboardHandler = asyncHandler(async (req, res) => {
+  const data = await analyticsService.getDashboard(req.query);
+  new ApiResponse(
+    HTTP_STATUS.OK,
+    MESSAGES.RESOURCE_FETCHED,
+    data,
+    buildMeta(req),
+  ).send(res);
+});
+
 export default {
   recordEventHandler,
   getOverviewHandler,
+  getDashboardHandler,
   getTimeSeriesHandler,
   getTopPagesHandler,
   getCountriesHandler,

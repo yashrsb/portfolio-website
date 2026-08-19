@@ -207,6 +207,14 @@ Admin Dashboard
   older than `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90).
 - **Rate limited** — the public ingestion endpoint is rate-limited per IP
   (default 60 events / 60 s).
+- **Dashboard endpoint** — the admin dashboard uses a single aggregated
+  `GET /api/v1/admin/analytics/dashboard?days=N` request that fetches all
+  metrics concurrently server-side, instead of 8 separate HTTP round-trips.
+  Individual endpoints (`/overview`, `/timeseries`, `/pages`, etc.) remain
+  available for other consumers.
+- **Zero-filled time-series** — the `timeseries` response always includes one
+  entry per day in the requested range (UTC dates), with `0` for days that have
+  no events, ensuring the trend chart renders a complete timeline.
 - See `docs/analytics.md` for the full specification.
 
 ## Folder Structure

@@ -130,6 +130,48 @@ This runs `cleanupAnalytics.js`, which calls
 All endpoints below require `ADMIN` (or `EDITOR`) role. They return
 **aggregated** data only.
 
+### `GET /api/v1/admin/analytics/dashboard?days=30`
+
+Aggregated endpoint optimized for the Admin Analytics dashboard. Returns all
+dashboard data in a single HTTP request, avoiding multiple round-trips. The
+frontend calls this endpoint once per date-range selection; individual endpoints
+remain available for other consumers.
+
+```json
+{
+  "success": true,
+  "data": {
+    "overview": {
+      "current": { "totalVisitors": 100, "totalPageViews": 500, ... },
+      "previous": { "totalVisitors": 80,  "totalPageViews": 400, ... }
+    },
+    "timeseries": [
+      { "date": "2025-08-01", "visitors": 0,  "pageViews": 0 },
+      { "date": "2025-08-02", "visitors": 0,  "pageViews": 0 },
+      ...
+    ],
+    "pages": [ { "path": "/", "views": 100, "uniqueVisitors": 80 } ],
+    "projects": [ { "slug": "a", "views": 10, "clicks": 5, ... } ],
+    "countries": [ { "country": "US", "visitors": 50, "percentage": 50 } ],
+    "devices":   [ { "deviceType": "DESKTOP", "visitors": 70, "percentage": 70 } ],
+    "browsers":  [ { "browser": "CHROME", "visitors": 60, "percentage": 60 } ],
+    "referrers": [ { "source": "Google", "visitors": 40, "percentage": 40 } ]
+  }
+}
+```
+
+**Query parameters:**
+
+| Parameter | Type   | Default | Notes                                      |
+|-----------|--------|---------|--------------------------------------------|
+| `days`    | number | 30      | Number of days for the current period.     |
+| `limit`   | number | 20      | Max rows for pages, countries, referrers.  |
+
+**Date handling:** `timeseries` always returns one entry per day in the
+inclusive range `[startDate, endDate]`, with zero values for days that have no
+events. Dates are formatted as `YYYY-MM-DD` (UTC) to avoid timezone
+off-by-one issues.
+
 ### `GET /api/v1/admin/analytics/overview?days=30`
 
 Returns current + previous-period summary metrics.
@@ -158,14 +200,18 @@ Returns current + previous-period summary metrics.
 
 ### `GET /api/v1/admin/analytics/timeseries?days=30`
 
-Daily visitor + page-view counts over the date range.
+Daily visitor + page-view counts over the date range. Always returns one entry
+per day in the inclusive range (UTC dates), with `0` for days with no events.
 
 ```json
 {
   "success": true,
   "data": [
-    { "date": "2025-08-01", "visitors": 12, "pageViews": 34 },
-    { "date": "2025-08-02", "visitors": 8,  "pageViews": 22 }
+    { "date": "2025-08-01", "visitors": 0,  "pageViews": 0 },
+    { "date": "2025-08-02", "visitors": 0,  "pageViews": 0 },
+    { "date": "2025-08-03", "visitors": 12, "pageViews": 34 },
+    { "date": "2025-08-04", "visitors": 0,  "pageViews": 0 },
+    { "date": "2025-08-05", "visitors": 8,  "pageViews": 22 }
   ]
 }
 ```
