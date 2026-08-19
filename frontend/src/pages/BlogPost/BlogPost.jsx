@@ -14,6 +14,7 @@ import {
   setArticleJsonLd,
   stripMarkdown,
 } from '../../utils/blogSeo';
+import { trackBlogPostView } from '../../services/analyticsService';
 import styles from './BlogPost.module.css';
 
 /**
@@ -115,6 +116,9 @@ function BlogPost() {
 
   useEffect(() => {
     if (!post) return;
+
+    // Track blog post view (non-blocking, fire-and-forget)
+    trackBlogPostView(post.slug, window.location.pathname);
 
     const seoTitle = post.seoTitle || post.title;
     const seoDescription =

@@ -87,6 +87,7 @@ model Project {
 
   @@index([featured, displayOrder])
   @@index([status])
+  analyticsEvents AnalyticsEvent[]
 }
 
 model Experience {
@@ -263,6 +264,7 @@ model BlogPost {
   @@index([status, publishedAt])
   @@index([featured, publishedAt])
   @@index([categoryId])
+  analyticsEvents AnalyticsEvent[]
 }
 
 model BlogCategory {
@@ -298,5 +300,72 @@ model BlogPostTag {
   @@unique([postId, tagId])
   @@index([postId])
   @@index([tagId])
+}
+
+// ---------------------------------------------------------------------------
+// Analytics (Phase 13)
+// ---------------------------------------------------------------------------
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PROJECT_VIEW
+  PROJECT_CLICK
+  BLOG_POST_VIEW
+}
+
+enum DeviceType {
+  DESKTOP
+  MOBILE
+  TABLET
+  UNKNOWN
+}
+
+enum BrowserType {
+  CHROME
+  FIREFOX
+  SAFARI
+  EDGE
+  OPERA
+  OTHER
+  UNKNOWN
+}
+
+enum OperatingSystem {
+  WINDOWS
+  MACOS
+  LINUX
+  ANDROID
+  IOS
+  OTHER
+  UNKNOWN
+}
+
+model AnalyticsEvent {
+  id           String              @id @default(uuid())
+  eventType    AnalyticsEventType
+  path         String
+  projectId    String?
+  blogPostId   String?
+  visitorHash  String
+  country      String?
+  deviceType   DeviceType          @default(UNKNOWN)
+  browser      BrowserType         @default(UNKNOWN)
+  os           OperatingSystem     @default(UNKNOWN)
+  referrer     String?
+  metadata     Json?
+  createdAt    DateTime            @default(now())
+
+  project      Project?   @relation(fields: [projectId], references: [id])
+  blogPost     BlogPost?  @relation(fields: [blogPostId], references: [id])
+
+  @@index([createdAt])
+  @@index([eventType])
+  @@index([projectId])
+  @@index([blogPostId])
+  @@index([visitorHash])
+  @@index([country])
+  @@index([deviceType])
+  @@index([browser])
+  @@index([eventType, path])
 }
 

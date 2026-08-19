@@ -13,6 +13,7 @@ export { default as socialService } from './socialService';
 export { default as resumeService } from './resumeService';
 export { default as dashboardService } from './dashboardService';
 export { default as contactMessagesService } from './contactMessagesService';
+export { default as analyticsService } from './analyticsService';
 export {
   blogPostService,
   blogCategoryService,

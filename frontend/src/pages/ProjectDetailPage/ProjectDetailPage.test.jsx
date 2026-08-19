@@ -63,6 +63,26 @@ vi.mock('../../services/apiClient', () => ({
   },
 }));
 
+vi.mock('../../services/analyticsService', () => ({
+  trackProjectView: vi.fn(),
+  trackProjectClick: vi.fn(),
+  trackPageView: vi.fn(),
+  trackBlogPostView: vi.fn(),
+  trackEvent: vi.fn(),
+  default: {
+    trackProjectView: vi.fn(),
+    trackProjectClick: vi.fn(),
+    trackPageView: vi.fn(),
+    trackBlogPostView: vi.fn(),
+    trackEvent: vi.fn(),
+  },
+}));
+
+vi.mock('../../utils/analyticsOptOut', () => ({
+  isAnalyticsOptedOut: () => true,
+  setAnalyticsOptOut: vi.fn(),
+}));
+
 vi.mock('react-router-dom', () => ({
   useParams: () => ({ slug: 'notifyhub' }),
   Link: ({ children, to, ...props }) => (

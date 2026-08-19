@@ -28,6 +28,10 @@ secrets.
 | `STORAGE_LOCAL_PUBLIC_BASE_URL`                 | Public base URL for uploaded files      | `http://localhost:5001/api/v1`                |
 | `STORAGE_MAX_SIZE_BYTES`                        | Max upload size in bytes                | `5242880` (5 MB)                              |
 | `STORAGE_ALLOWED_MIME_TYPES`                    | Comma-separated allowed MIME types      | `application/pdf`                             |
+| `DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS`        | Analytics event rate-limit window (ms)| `60000`                                    |
+| `DEFAULT_ANALYTICS_RATE_LIMIT_MAX`              | Max analytics events per window/IP    | `60`                                        |
+| `DEFAULT_ANALYTICS_RETENTION_DAYS`              | Days to retain analytics events       | `90`                                        |
+| `VISITOR_HASH_SECRET`                           | Secret salt for visitor hashing       | (random)                                    |
 
 Frontend and admin each read `VITE_API_BASE_URL`:
 
@@ -94,6 +98,9 @@ Netlify, S3 + CloudFront) and route `/api/*` to the backend.
 - [ ] Enable request logging and centralize logs (e.g. stdout → log aggregator).
 - [ ] Verify CORS only permits your own origins.
 - [ ] Confirm the rate limiter is active (default 100 req / 15 min).
+- [ ] Schedule the analytics cleanup script (`npm run analytics:cleanup`) via
+      cron or a task scheduler — purges events older than
+      `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90 days).
 - [ ] Run `npm run lint` and `npm run build` in CI before deploy.
 
 ## Example: Reverse Proxy (Nginx)

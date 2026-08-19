@@ -175,6 +175,40 @@ StorageService
   `Skeleton*`, error/loading states.
 - CSS Modules scoped per component.
 
+## Analytics System (Phase 13)
+
+A first-party, privacy-conscious analytics system collects page views, project
+views/clicks, and blog views without any third-party scripts.
+
+```
+Frontend (useAnalytics hook)
+  │
+  │ POST /api/v1/analytics/events (sendBeacon / fetch keepalive)
+  │
+  └─► AnalyticsController (public ingest, 202 Accepted)
+        └─► AnalyticsService
+              ├── isBotUserAgent() → drops crawlers
+              ├── generateVisitorHash() → daily-salt SHA-256(IP+UA)
+              ├── parseUserAgent() → device / browser / OS
+              └── resolveCountry() → from proxy headers
+                    └─► AnalyticsRepository.createEvent()
+                          └─► PostgreSQL (Prisma AnalyticsEvent model)
+
+Admin Dashboard
+  └─► AnalyticsController (admin endpoints, aggregates only)
+        └─► AnalyticsService
+              └──► AnalyticsRepository (GROUP BY / date_trunc / COUNT DISTINCT)
+                    └─► PostgreSQL
+```
+
+- **No raw data in admin** — all admin endpoints return aggregated metrics only.
+- **Bot filtering** — a regex-based detector drops ~30 known crawler patterns.
+- **Retention** — a cleanup script (`npm run analytics:cleanup`) purges events
+  older than `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90).
+- **Rate limited** — the public ingestion endpoint is rate-limited per IP
+  (default 60 events / 60 s).
+- See `docs/analytics.md` for the full specification.
+
 ## Folder Structure
 
 ```

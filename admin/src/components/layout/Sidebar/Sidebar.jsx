@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { to: '/education', label: 'Education', icon: '🎓' },
   { to: '/social-links', label: 'Social Links', icon: '🔗' },
   { to: '/contact-messages', label: 'Contact Messages', icon: '✉️' },
+  { to: '/analytics', label: 'Analytics', icon: '📊' },
   { to: '/resume', label: 'Resume', icon: '📄' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
 ];

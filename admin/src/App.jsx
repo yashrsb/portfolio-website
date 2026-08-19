@@ -18,6 +18,7 @@ import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import BlogPostsPage from './pages/BlogPostsPage/BlogPostsPage';
 import BlogCategoriesPage from './pages/BlogCategoriesPage/BlogCategoriesPage';
 import BlogTagsPage from './pages/BlogTagsPage/BlogTagsPage';
+import AnalyticsPage from './pages/AnalyticsPage/AnalyticsPage';
 
 const AdminShell = () => (
   <>
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
       { path: 'blog', element: <BlogPostsPage /> },
       { path: 'blog/categories', element: <BlogCategoriesPage /> },
       { path: 'blog/tags', element: <BlogTagsPage /> },
+      { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'resume', element: <ResumePage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],

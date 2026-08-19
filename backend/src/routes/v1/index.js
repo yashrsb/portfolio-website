@@ -28,6 +28,7 @@ import { HTTP_STATUS } from '../../constants/httpStatus.js';
 import { env } from '../../config/env.js';
 import adminRoutes from './adminRoutes.js';
 import authRoutes from './authRoutes.js';
+import analyticsRoutes from './analyticsRoutes.js';
 import { slugValidator } from '../../validators/idValidator.js';
 import {
   blogSlugValidator,
@@ -152,6 +153,16 @@ router.get('/', (req, res) => {
       path: '/blog/sitemap',
       description: 'JSON sitemap data for blog posts',
     },
+    {
+      method: 'POST',
+      path: '/analytics/events',
+      description: 'Track an analytics event (rate-limited, bot-filtered)',
+    },
+    {
+      method: 'GET|POST',
+      path: '/admin/analytics',
+      description: 'Admin analytics dashboard data (authenticated, ADMIN only)',
+    },
   ];
   const data = {
     version: env.apiVersion,
@@ -216,6 +227,9 @@ router.get(
   getTagPostsHandler,
 );
 router.get('/blog/sitemap', getSitemapHandler);
+
+// Public analytics ingestion endpoint
+router.use('/analytics', analyticsRoutes);
 
 // Auth routes
 router.use('/auth', authRoutes);

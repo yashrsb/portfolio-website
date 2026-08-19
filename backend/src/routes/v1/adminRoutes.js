@@ -34,6 +34,8 @@ import {
   blogCategoryValidators,
   blogTagValidators,
 } from '../../validators/blogValidator.js';
+import { analyticsQueryValidators } from '../../validators/analyticsValidator.js';
+import analyticsController from '../../controllers/analyticsController.js';
 
 const router = Router();
 
@@ -378,8 +380,7 @@ router.post(
   blogTagValidators.create,
   validateRequest,
   blogController.createTag,
-);
-router.put(
+);router.put(
   '/blog/tags/:id',
   [...idValidator, ...blogTagValidators.update],
   validateRequest,
@@ -390,6 +391,56 @@ router.delete(
   idValidator,
   validateRequest,
   blogController.deleteTag,
+);
+
+// Analytics (read-only aggregates, ADMIN only)
+router.get(
+  '/analytics/overview',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getOverviewHandler,
+);
+router.get(
+  '/analytics/timeseries',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getTimeSeriesHandler,
+);
+router.get(
+  '/analytics/pages',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getTopPagesHandler,
+);
+router.get(
+  '/analytics/countries',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getCountriesHandler,
+);
+router.get(
+  '/analytics/devices',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getDevicesHandler,
+);
+router.get(
+  '/analytics/browsers',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getBrowsersHandler,
+);
+router.get(
+  '/analytics/projects',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getProjectStatsHandler,
+);
+router.get(
+  '/analytics/referrers',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getReferrersHandler,
 );
 
 export default router;
