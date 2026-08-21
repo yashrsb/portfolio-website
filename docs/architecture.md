@@ -385,3 +385,129 @@ runtime verification.
   hosted on Cloudinary, URL-based transformations could provide additional gains.
 - In-memory frontend cache is per-session. HTTP cache headers on the backend provide
   cross-session caching at the browser/CDN level.
+
+## CI/CD Pipeline (Phase 16)
+
+The project uses GitHub Actions for continuous integration and deployment.
+
+```
+Developer
+   ↓
+Feature Branch
+   ↓
+Pull Request ──→ CI: Lint → Test → Prisma Validate → Build
+                        │
+                        ┓ success
+                        v
+                    Merge to main
+                        ↓
+                   Deploy Workflow
+                        ↓
+              Database Migration (prisma migrate deploy)
+                        ↓
+                   Backend Deploy
+                        ↓
+                  Health Check
+                        ↓
+                   Frontend Deploy
+                        ↓
+              Deployment Verified
+```
+
+### CI Workflow (`.github/workflows/ci.yml`)
+
+Runs on every pull request and every push to `main`.
+
+Stages (each must pass for the next to run):
+
+1. **Install dependencies** — `npm ci` for root + all three apps (frontend, backend, admin)
+2. **Lint** — ESLint with `--max-warnings 0` on all three apps
+3. **Test** — Vitest on all three apps
+4. **Prisma validate** — schema validation
+5. **Build** — Vite production builds for frontend + admin
+
+Uses Node.js 20 (from `.nvmrc`) and npm dependency caching.
+
+### Deploy Workflow (`.github/workflows/deploy.yml`)
+
+Triggers only after CI succeeds on `main` (via `workflow_run`).
+
+Deployment order:
+
+1. **Build** all artifacts (frontend, admin, backend)
+2. **Database migration** — `npx prisma migrate deploy` (never `migrate dev`)
+3. **Deploy backend** — rsync to server, restart via PM2
+4. **Health check** — `GET /api/v1/health` must return 200
+5. **Deploy frontend** — rsync `frontend/dist` to web root
+6. **Deploy admin** — rsync `admin/dist` to admin path
+7. **Verify frontend** — HTTP 200 from the public URL
+
+Uses `concurrency` to prevent overlapping deployments (newer pushes cancel older ones).
+
+### Required GitHub Secrets
+
+| Secret               | Description                             |
+| -------------------- | --------------------------------------- |
+| `DEPLOY_HOST`        | SSH host (server IP or hostname)        |
+| `DEPLOY_USER`        | SSH username                            |
+| `DEPLOY_SSH_KEY`     | SSH private key (no passphrase)         |
+| `DEPLOY_BACKEND_DIR` | Remote directory for backend code       |
+| `DEPLOY_PUBLIC_DIR`  | Remote directory for frontend dist      |
+| `DEPLOY_ADMIN_DIR`   | Remote directory for admin dist         |
+| `DATABASE_URL`       | Production PostgreSQL connection string |
+
+### Required Environment Variables (on server)
+
+The backend reads all configuration from a `.env.production` file on the server.
+Required variables:
+
+- `NODE_ENV=production`
+- `DATABASE_URL` (PostgreSQL connection string)
+- `JWT_ACCESS_SECRET` (strong random string)
+- `JWT_REFRESH_SECRET` (strong random string)
+- `FRONTEND_URL` (production frontend URL(s))
+- `VITE_SITE_URL` (production site URL for SEO canonicals)
+- `VISITOR_HASH_SECRET` (random string for analytics hashing)
+
+### Migration Strategy
+
+- **Production**: `prisma migrate deploy` only
+- **Development**: `prisma migrate dev` (never used in CI/deploy)
+- Migrations run **before** backend restart
+- If migration fails, deployment fails — backend is not restarted
+- Forward-fix strategy only — no automatic database rollback
+
+### Rollback Strategy
+
+1. Identify failed deployment via GitHub Actions workflow UI
+2. Revert the production commit: `git revert <commit-sha>`
+3. Push the revert — this triggers a new deploy workflow run with the previous code
+4. If the failed deployment was due to a migration, the revert will include the correct schema
+5. Database migrations are forward-only; a problematic migration should be fixed forward
+   (never rolled back automatically)
+
+### Branch Protection Recommendations
+
+Configure in GitHub: Settings → Branches → Add rule for `main`:
+
+- [x] Require pull request before merging
+- [x] Require status checks to pass (CI workflow)
+- [x] Require branches to be up to date before merging
+- [x] Include administrators
+- [ ] Require one approval (recommended)
+
+### Concurrency Strategy
+
+- **CI**: `ci-${{ github.ref }}` — no cancellation (CI is fast, let it complete)
+- **Deploy**: `deploy-production` — `cancel-in-progress: true` — newer pushes cancel older deployments
+
+### Admin Deployment
+
+The admin dashboard is deployed as a separate static site alongside the frontend.
+It is completely isolated from the public frontend bundle — no admin code ships
+to the public frontend.
+
+### Node Version
+
+`.nvmrc` specifies Node.js 20 (LTS). GitHub Actions uses
+`actions/setup-node` with `node-version-file: .nvmrc`.

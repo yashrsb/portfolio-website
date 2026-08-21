@@ -42,12 +42,14 @@ Login payload: `{ "email": "...", "password": "..." }`
 
 - [ ] `POST /auth/login` — seeded admin credentials → `200`, access token in
       body + HttpOnly refresh cookie.
+
 ```bash
   curl -X POST http://localhost:5001/api/v1/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email":"admin@example.com","password":"YOUR_PASSWORD"}' \
     -c cookies.txt
-  ```
+```
+
 - [ ] Login with wrong password → `401`, no token/cookie.
   ```bash
   curl -X POST http://localhost:5001/api/v1/auth/login \
@@ -265,7 +267,7 @@ a blank screen.
 - [ ] Clicking a project's GitHub/Demo link triggers a `PROJECT_CLICK` event.
 - [ ] Visiting `/blog/:slug` triggers a `BLOG_POST_VIEW` event.
 - [ ] Setting `localStorage.analytics_opt_out = "true"` stops all tracking.
-  Removing it re-enables tracking.
+      Removing it re-enables tracking.
 - [ ] `navigator.sendBeacon` is used for event delivery (verify via dev tools).
 
 ## 10. Performance (Phase 15)
@@ -300,3 +302,29 @@ a blank screen.
 - [x] `npm run test` passes for all three apps (backend 145, frontend 87, admin 68).
 - [x] `npm run build` passes for frontend and admin.
 - [x] `prisma validate` passes.
+
+## 12. CI/CD (Phase 16)
+
+### GitHub Actions CI
+
+- [ ] CI workflow (`.github/workflows/ci.yml`) runs on every PR.
+- [ ] CI workflow runs on every push to `main`.
+- [ ] CI fails if any lint, test, or build step fails.
+- [ ] Node.js version matches `.nvmrc` (20).
+- [ ] Dependencies are cached between runs.
+
+### GitHub Actions Deploy
+
+- [ ] Deploy workflow (`.github/workflows/deploy.yml`) triggers only after CI succeeds on `main`.
+- [ ] Deploy does NOT trigger on PRs or feature branches.
+- [ ] Database migrations use `prisma migrate deploy` (not `migrate dev`).
+- [ ] Backend is health-checked (`GET /api/v1/health`) before frontend deploy.
+- [ ] Frontend is verified (HTTP 200) after deployment.
+- [ ] Concurrency prevents overlapping production deployments.
+
+### Secrets & Security
+
+- [ ] No secrets are committed to the repository.
+- [ ] GitHub Secrets are used for deployment configuration.
+- [ ] Branch protection requires CI before merging to `main`.
+- [ ] Deployment uses least-privilege permissions (`contents: read`).

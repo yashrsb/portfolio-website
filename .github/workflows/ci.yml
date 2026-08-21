@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Lint, Test, Build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+        working-directory: frontend
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+        working-directory: backend
+
+      - name: Install admin dependencies
+        run: npm ci --prefix admin
+        working-directory: admin
+
+      - name: Lint frontend
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Lint backend
+        run: npm run lint
+        working-directory: backend
+
+      - name: Lint admin
+        run: npm run lint
+        working-directory: admin
+
+      - name: Test frontend
+        run: npm test
+        working-directory: frontend
+
+      - name: Test backend
+        run: npm test
+        working-directory: backend
+
+      - name: Test admin
+        run: npm test
+        working-directory: admin
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+        working-directory: backend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Build admin
+        run: npm run build
+        working-directory: admin
