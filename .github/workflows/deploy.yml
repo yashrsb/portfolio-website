@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 20
+  NODE_VERSION: 22
 
 jobs:
   deploy:
@@ -27,14 +27,17 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: frontend
-
     steps:
-      - name: Checkout repository
+      # ─────────────────────────────────────────────────────
+      # Checkout the EXACT commit that passed CI.
+      # workflow_run provides head_sha — we checkout that ref
+      # to guarantee deployment of the CI-validated commit.
+      # ─────────────────────────────────────────────────────
+      - name: Checkout repository (CI-validated commit)
         uses: actions/checkout@v4
         with:
+          # This pins the checkout to the exact commit that passed CI.
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -47,9 +50,9 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      # ──────────────────────────────────────────────
-      # Build phase
-      # ──────────────────────────────────────────────
+      # ─────────────────────────────────────────────────────
+      # Build phase — produces artifacts for deployment
+      # ─────────────────────────────────────────────────────
       - name: Build frontend
         working-directory: frontend
         run: |
@@ -68,44 +71,75 @@ jobs:
           npm ci
           npx prisma generate
 
-      # Upload build artifacts for the deploy job
+      # Upload build artifacts — these represent the exact CI-validated code
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist
+          retention-days: 1
 
       - name: Upload admin artifact
         uses: actions/upload-artifact@v4
         with:
           name: admin-dist
           path: admin/dist
+          retention-days: 1
 
       - name: Upload backend artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-dist
           path: backend
+          # uploads/ is gitignored so not present; node_modules excluded via
+          # .gitignore. The rsync step also excludes uploads/ and node_modules
+          # via --exclude for extra safety.
+          retention-days: 1
 
-      # ──────────────────────────────────────────────
+      # ─────────────────────────────────────────────────────
       # Deploy phase
-      # All secrets listed below must be configured in the GitHub
-      # repository at: Settings → Secrets and variables → Actions
       #
-      # Required secrets:
-      #   DEPLOY_HOST         — SSH host (IP or hostname of deployment server)
-      #   DEPLOY_USER         — SSH username (e.g. 'deploy' or 'ubuntu')
+      # Required GitHub Secrets:
+      #   DEPLOY_HOST         — SSH host (IP or hostname)
+      #   DEPLOY_USER         — SSH username (e.g. 'deploy')
       #   DEPLOY_SSH_KEY      — SSH private key (no passphrase)
-      #   DEPLOY_BACKEND_DIR  — Remote directory where backend repo lives
-      #   DEPLOY_PUBLIC_DIR   — Remote directory for frontend/admin dist files
+      #   DEPLOY_BACKEND_DIR  — Remote directory for backend repo
+      #   DEPLOY_PUBLIC_DIR   — Remote directory for frontend dist
+      #   DEPLOY_ADMIN_DIR    — Remote directory for admin dist
+      #   DEPLOY_BACKEND_URL  — Backend URL for health/smoke checks
+      #   DEPLOY_FRONTEND_URL — Frontend URL for verification
+      #   DEPLOY_KNOWN_HOSTS  — SSH known_hosts content for host verification
+      #   DATABASE_URL        — Production PostgreSQL connection
       #
-      # Backend environment variables (set in /remote/dir/.env.production):
-      #   DATABASE_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
-      #   FRONTEND_URL, VITE_SITE_URL, VISITOR_HASH_SECRET, etc.
-      # ──────────────────────────────────────────────
+      # Server-side .env.production (never committed):
+      #   NODE_ENV=production
+      #   DATABASE_URL=...
+      #   JWT_ACCESS_SECRET=...
+      #   JWT_REFRESH_SECRET=...
+      #   FRONTEND_URL=...
+      #   VITE_SITE_URL=...
+      #   VISITOR_HASH_SECRET=...
+      #   STORAGE_LOCAL_UPLOAD_DIR=/var/lib/portfolio/uploads  ← ABSOLUTE PATH
+      # ─────────────────────────────────────────────────────
+
+      # ─────────────────────────────────────────────────────
+      # Database migration — must succeed before backend restart.
+      # If this fails, the workflow stops immediately and the
+      # backend is NOT restarted.
+      # ─────────────────────────────────────────────────────
       - name: Apply production database migrations
         working-directory: backend
-        run: npx prisma migrate deploy
+        run: |
+          echo "=== Starting production database migration ==="
+          npx prisma migrate deploy
+          MIGRATION_EXIT_CODE=$?
+          if [ $MIGRATION_EXIT_CODE -ne 0 ]; then
+            echo "=== ERROR: Database migration FAILED ==="
+            echo "Migration did not complete successfully."
+            echo "Backend will NOT be restarted. Manual intervention required."
+            exit 1
+          fi
+          echo "=== Database migration completed successfully ==="
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -114,15 +148,23 @@ jobs:
         with:
           path: artifacts
 
+      # ─────────────────────────────────────────────────────
+      # Deploy backend (rsync to server, preserving uploads dir)
+      # ─────────────────────────────────────────────────────
       - name: Deploy backend
         uses: appleboy/rsync-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           source: "artifacts/backend-dist/"
           target: ${{ secrets.DEPLOY_BACKEND_DIR }}
-          args: -avz --delete --exclude node_modules --exclude .git
+          # --delete is safe here because we exclude uploads/ and node_modules
+          # uploads/ contains persistent user-generated content (resumes)
+          # It is configured via STORAGE_LOCAL_UPLOAD_DIR as an absolute path
+          # outside the backend code directory.
+          args: -avz --delete --exclude node_modules --exclude uploads --exclude .git --exclude .env.production
 
       - name: Restart backend
         uses: appleboy/ssh-action@v1.2.0
@@ -130,8 +172,10 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           envs: DEPLOY_BACKEND_DIR
           script: |
+            set -e
             cd "$DEPLOY_BACKEND_DIR"
             npm ci --omit=dev
             npx prisma generate
@@ -147,16 +191,17 @@ jobs:
               exit 1
             fi
 
-      # ──────────────────────────────────────────────
+      # ─────────────────────────────────────────────────────
       # Health check — fail the workflow if backend is unreachable
-      # ──────────────────────────────────────────────
+      # ─────────────────────────────────────────────────────
       - name: Verify backend health
         run: |
           BACKEND_URL="${{ secrets.DEPLOY_BACKEND_URL }}api/v1/health"
+          echo "Checking backend health at $BACKEND_URL..."
           for i in $(seq 1 15); do
             HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$BACKEND_URL" 2>/dev/null || echo "000")
             if [ "$HTTP_CODE" = "200" ]; then
-              echo "Backend health check passed"
+              echo "Backend health check passed (HTTP 200)"
               exit 0
             fi
             echo "Waiting for backend... ($i/15) — last status: $HTTP_CODE"
@@ -165,15 +210,16 @@ jobs:
           echo "ERROR: Backend health check failed after 30 seconds"
           exit 1
 
-      # ──────────────────────────────────────────────
+      # ─────────────────────────────────────────────────────
       # Deploy frontend static files
-      # ──────────────────────────────────────────────
+      # ─────────────────────────────────────────────────────
       - name: Deploy frontend
         uses: appleboy/rsync-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           source: "artifacts/frontend-dist/"
           target: ${{ secrets.DEPLOY_PUBLIC_DIR }}
           args: -avz --delete
@@ -184,24 +230,67 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           source: "artifacts/admin-dist/"
           target: ${{ secrets.DEPLOY_ADMIN_DIR }}
           args: -avz --delete
 
-      # ──────────────────────────────────────────────
-      # Verify frontend is reachable
-      # ──────────────────────────────────────────────
-      - name: Verify frontend deployment
+      # ─────────────────────────────────────────────────────
+      # Post-deployment smoke tests
+      # ─────────────────────────────────────────────────────
+      - name: Smoke test — frontend
         run: |
           FRONTEND_URL="${{ secrets.DEPLOY_FRONTEND_URL }}"
+          echo "Smoke testing frontend at $FRONTEND_URL..."
           for i in $(seq 1 10); do
             HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$FRONTEND_URL" 2>/dev/null || echo "000")
             if [ "$HTTP_CODE" = "200" ]; then
-              echo "Frontend verification passed"
-              exit 0
+              echo "Frontend root: HTTP $HTTP_CODE OK"
+              break
             fi
             echo "Waiting for frontend... ($i/10) — last status: $HTTP_CODE"
             sleep 2
           done
-          echo "ERROR: Frontend verification failed after 20 seconds"
+          [ "$HTTP_CODE" = "200" ] || { echo "ERROR: Frontend smoke test failed"; exit 1; }
+
+      - name: Smoke test — public pages
+        run: |
+          FRONTEND_URL="${{ secrets.DEPLOY_FRONTEND_URL }}"
+          BACKEND_URL="${{ secrets.DEPLOY_BACKEND_URL }}"
+          echo "Running smoke tests..."
+
+          # /projects page
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${FRONTEND_URL}projects" 2>/dev/null || echo "000")
+          echo "/projects: HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || { echo "ERROR: /projects failed"; exit 1; }
+
+          # API: list projects
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${BACKEND_URL}api/v1/projects" 2>/dev/null || echo "000")
+          echo "/api/v1/projects: HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || { echo "ERROR: /api/v1/projects failed"; exit 1; }
+
+          # /sitemap.xml
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${FRONTEND_URL}sitemap.xml" 2>/dev/null || echo "000")
+          echo "/sitemap.xml: HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || { echo "ERROR: /sitemap.xml failed"; exit 1; }
+
+          # /robots.txt
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${FRONTEND_URL}robots.txt" 2>/dev/null || echo "000")
+          echo "/robots.txt: HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || { echo "ERROR: /robots.txt failed"; exit 1; }
+
+          echo "All smoke tests passed"
+
+      # ─────────────────────────────────────────────────────
+      # Verify frontend after all smoke tests pass
+      # ─────────────────────────────────────────────────────
+      - name: Verify frontend deployment
+        run: |
+          FRONTEND_URL="${{ secrets.DEPLOY_FRONTEND_URL }}"
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$FRONTEND_URL" 2>/dev/null || echo "000")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Frontend verification passed (HTTP $HTTP_CODE)"
+            exit 0
+          fi
+          echo "ERROR: Frontend verification failed (HTTP $HTTP_CODE)"
           exit 1

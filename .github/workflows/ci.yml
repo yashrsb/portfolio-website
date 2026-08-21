@@ -31,15 +31,15 @@ jobs:
         run: npm ci
 
       - name: Install frontend dependencies
-        run: npm ci --prefix frontend
+        run: npm ci
         working-directory: frontend
 
       - name: Install backend dependencies
-        run: npm ci --prefix backend
+        run: npm ci
         working-directory: backend
 
       - name: Install admin dependencies
-        run: npm ci --prefix admin
+        run: npm ci
         working-directory: admin
 
       - name: Lint frontend

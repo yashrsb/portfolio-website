@@ -386,7 +386,7 @@ runtime verification.
 - In-memory frontend cache is per-session. HTTP cache headers on the backend provide
   cross-session caching at the browser/CDN level.
 
-## CI/CD Pipeline (Phase 16)
+## CI/CD Pipeline (Phase 16) — Hardened (Phase 16.1)
 
 The project uses GitHub Actions for continuous integration and deployment.
 
@@ -395,24 +395,63 @@ Developer
    ↓
 Feature Branch
    ↓
-Pull Request ──→ CI: Lint → Test → Prisma Validate → Build
-                        │
-                        ┓ success
-                        v
-                    Merge to main
-                        ↓
-                   Deploy Workflow
-                        ↓
-              Database Migration (prisma migrate deploy)
-                        ↓
-                   Backend Deploy
-                        ↓
-                  Health Check
-                        ↓
-                   Frontend Deploy
-                        ↓
-              Deployment Verified
+Pull Request → CI: Lint → Test → Prisma Validate → Build
+                      │
+                      ┓ success
+                      v
+                  Merge to main
+                      ↓
+               Deploy Workflow (workflow_run on CI success)
+                      ↓
+            Checkout EXACT CI commit (head_sha)
+                      ↓
+              Build all artifacts
+                      ↓
+        Database Migration (prisma migrate deploy)
+           ↙                    ↘
+        fail → STOP           success → continue
+   backend NOT restarted    backend still running old version
+                      ↓
+                 Backend Deploy (rsync, --exclude uploads)
+                      ↓
+               Restart backend (PM2/systemd)
+                      ↓
+         Health check + smoke tests
+                      ↓
+               Frontend + Admin Deploy
+                      ↓
+        Verify public endpoints (200)
 ```
+
+### Deployment Notifications
+
+Deployment notifications are currently not configured. The repository does not
+include Slack, Discord, or email notification integrations. Deployment status
+can be monitored via the GitHub Actions workflow runs page.
+
+### Workflow Permissions
+
+Both workflows use `permissions: contents: read`:
+
+```yaml
+permissions:
+  contents: read
+```
+
+- **CI (`ci.yml`)**: runs on PRs and pushes to `main`. Has no access to any
+  deployment secrets. Only reads repository contents.
+- **Deploy (`deploy.yml`)**: runs only on `workflow_run` completion (CI success
+  on `main`). Uses `workflow_run` to receive the CI commit SHA — this event is
+  only available on `main`-branch CI completions, meaning PRs cannot trigger
+  deployments or access production secrets.
+
+### Untrusted PR Safety
+
+PRs cannot access deployment secrets because:
+
+1. The deploy workflow only triggers via `workflow_run` on `main`-branch CI
+2. `workflow_run` events are not triggered by PR CI runs
+3. The `DEPLOY_*` secrets are only referenced in `deploy.yml`, not `ci.yml`
 
 ### CI Workflow (`.github/workflows/ci.yml`)
 
@@ -426,7 +465,7 @@ Stages (each must pass for the next to run):
 4. **Prisma validate** — schema validation
 5. **Build** — Vite production builds for frontend + admin
 
-Uses Node.js 20 (from `.nvmrc`) and npm dependency caching.
+Uses Node.js 22 LTS (from `.nvmrc`) and npm dependency caching.
 
 ### Deploy Workflow (`.github/workflows/deploy.yml`)
 
@@ -434,27 +473,87 @@ Triggers only after CI succeeds on `main` (via `workflow_run`).
 
 Deployment order:
 
-1. **Build** all artifacts (frontend, admin, backend)
-2. **Database migration** — `npx prisma migrate deploy` (never `migrate dev`)
-3. **Deploy backend** — rsync to server, restart via PM2
-4. **Health check** — `GET /api/v1/health` must return 200
-5. **Deploy frontend** — rsync `frontend/dist` to web root
-6. **Deploy admin** — rsync `admin/dist` to admin path
-7. **Verify frontend** — HTTP 200 from the public URL
+1. **Checkout** the exact CI-validated commit (`head_sha` from `workflow_run`)
+2. **Build** all artifacts (frontend, admin, backend)
+3. **Database migration** — `npx prisma migrate deploy` (never `migrate dev`); fails fast on error
+4. **Deploy backend** — rsync to server (excluding uploads/, node_modules, .env.production), restart via PM2
+5. **Health check + smoke tests** — `GET /api/v1/health`, `/api/v1/projects`, etc.
+6. **Deploy frontend** — rsync `frontend/dist` to web root
+7. **Deploy admin** — rsync `admin/dist` to admin path
+8. **Verify** — frontend + public endpoints (`/projects`, `/sitemap.xml`, `/robots.txt`)
 
 Uses `concurrency` to prevent overlapping deployments (newer pushes cancel older ones).
 
+### CI/CD Flow (Hardened)
+
+```
+Push to main → CI (lint + test + prisma validate + build)
+  ↓ CI passes
+Workflow_run triggers → Deploy workflow
+  ↓
+Checkout EXACT CI-validated commit (workflow_run.head_sha)
+  ↓
+Reproduce build (frontend, admin, backend artifacts)
+  ↓
+Database migration (prisma migrate deploy) → fail fast if broken
+  ↓
+Deploy backend (rsync, excluding uploads/ and .env.production)
+  ↓
+Restart backend (PM2/systemd)
+  ↓
+Backend health check + smoke tests
+  ↓
+Deploy frontend + admin (rsync --delete)
+  ↓
+Public endpoint smoke tests (/projects, /sitemap.xml, /robots.txt)
+```
+
+### Commit/Artifact Consistency
+
+The deploy workflow uses `workflow_run` triggered on `CI` completion on `main`.
+It checks out the repository at `github.event.workflow_run.head_sha` — the exact
+commit that passed CI — ensuring no commit drift between CI and deployment.
+
+Artifacts (frontend/dist, admin/dist, backend code) are built in the deploy
+workflow from this pinned commit. Prisma migration files are included in the
+backend artifact via the rsync-excluded repository.
+
+### Migration Safety
+
+- `prisma migrate deploy` is used (never `migrate dev`)
+- On migration failure: workflow stops immediately, backend NOT restarted,
+  frontend/admin NOT deployed
+- Migrations are forward-only; schema rollback uses corrective forward migrations
+- Expand → Deploy → Contract strategy documented for future destructive changes
+
+### Persistent Resume Storage
+
+Uploaded resume files are stored via `LocalStorageProvider`. In production,
+`STORAGE_LOCAL_UPLOAD_DIR` must be set to an absolute path outside the backend
+code directory (e.g. `/var/lib/portfolio/uploads`).
+
+The deployment rsync excludes `uploads/` and uses `--delete` only on code
+directories, protecting persistent files.
+
+### SSH Host Verification
+
+All SSH deployment steps use `known_hosts` verification via `DEPLOY_KNOWN_HOSTS`
+secret. `StrictHostKeyChecking` is never disabled.
+
 ### Required GitHub Secrets
 
-| Secret               | Description                             |
-| -------------------- | --------------------------------------- |
-| `DEPLOY_HOST`        | SSH host (server IP or hostname)        |
-| `DEPLOY_USER`        | SSH username                            |
-| `DEPLOY_SSH_KEY`     | SSH private key (no passphrase)         |
-| `DEPLOY_BACKEND_DIR` | Remote directory for backend code       |
-| `DEPLOY_PUBLIC_DIR`  | Remote directory for frontend dist      |
-| `DEPLOY_ADMIN_DIR`   | Remote directory for admin dist         |
-| `DATABASE_URL`       | Production PostgreSQL connection string |
+| Secret                | Description                                               |
+| --------------------- | --------------------------------------------------------- |
+| `DEPLOY_HOST`         | SSH host (server IP or hostname)                          |
+| `DEPLOY_USER`         | SSH username                                              |
+| `DEPLOY_SSH_KEY`      | SSH private key (no passphrase, dedicated deployment key) |
+| `DEPLOY_KNOWN_HOSTS`  | SSH known_hosts entry for host verification               |
+| `DEPLOY_BACKEND_DIR`  | Remote directory for backend code                         |
+| `DEPLOY_PUBLIC_DIR`   | Remote directory for frontend dist                        |
+| `DEPLOY_ADMIN_DIR`    | Remote directory for admin dist                           |
+| `DEPLOY_BACKEND_URL`  | Backend URL for health/smoke checks                       |
+| `DEPLOY_FRONTEND_URL` | Frontend URL for smoke tests                              |
+| `DATABASE_URL`        | Production PostgreSQL connection string                   |
 
 ### Required Environment Variables (on server)
 
@@ -509,5 +608,5 @@ to the public frontend.
 
 ### Node Version
 
-`.nvmrc` specifies Node.js 20 (LTS). GitHub Actions uses
+`.nvmrc` specifies Node.js 22 (LTS). GitHub Actions uses
 `actions/setup-node` with `node-version-file: .nvmrc`.
