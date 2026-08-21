@@ -1,0 +1,207 @@
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Cancel an in-progress deployment when a newer CI succeeds on main.
+  # This prevents older commits from deploying after newer ones.
+  group: deploy-production
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    # Only deploy if CI passed on main.
+    # If CI failed or was cancelled, the workflow_run.event.conclusion
+    # will be 'failure' — skip deployment entirely.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      # ──────────────────────────────────────────────
+      # Build phase
+      # ──────────────────────────────────────────────
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build admin
+        working-directory: admin
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup backend
+        working-directory: backend
+        run: |
+          npm ci
+          npx prisma generate
+
+      # Upload build artifacts for the deploy job
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Upload admin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-dist
+          path: admin/dist
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
+      # ──────────────────────────────────────────────
+      # Deploy phase
+      # All secrets listed below must be configured in the GitHub
+      # repository at: Settings → Secrets and variables → Actions
+      #
+      # Required secrets:
+      #   DEPLOY_HOST         — SSH host (IP or hostname of deployment server)
+      #   DEPLOY_USER         — SSH username (e.g. 'deploy' or 'ubuntu')
+      #   DEPLOY_SSH_KEY      — SSH private key (no passphrase)
+      #   DEPLOY_BACKEND_DIR  — Remote directory where backend repo lives
+      #   DEPLOY_PUBLIC_DIR   — Remote directory for frontend/admin dist files
+      #
+      # Backend environment variables (set in /remote/dir/.env.production):
+      #   DATABASE_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
+      #   FRONTEND_URL, VITE_SITE_URL, VISITOR_HASH_SECRET, etc.
+      # ──────────────────────────────────────────────
+      - name: Apply production database migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Deploy backend
+        uses: appleboy/rsync-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "artifacts/backend-dist/"
+          target: ${{ secrets.DEPLOY_BACKEND_DIR }}
+          args: -avz --delete --exclude node_modules --exclude .git
+
+      - name: Restart backend
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: DEPLOY_BACKEND_DIR
+          script: |
+            cd "$DEPLOY_BACKEND_DIR"
+            npm ci --omit=dev
+            npx prisma generate
+            # Restart via PM2 if available, otherwise fall back to systemd
+            if command -v pm2 &> /dev/null; then
+              pm2 delete portfolio-backend 2>/dev/null || true
+              pm2 start src/server.js --name portfolio-backend
+              pm2 save
+            elif systemctl --user list-unit-files | grep -q portfolio; then
+              systemctl --user restart portfolio-backend
+            else
+              echo "ERROR: No process manager found. Install PM2 or configure systemd."
+              exit 1
+            fi
+
+      # ──────────────────────────────────────────────
+      # Health check — fail the workflow if backend is unreachable
+      # ──────────────────────────────────────────────
+      - name: Verify backend health
+        run: |
+          BACKEND_URL="${{ secrets.DEPLOY_BACKEND_URL }}api/v1/health"
+          for i in $(seq 1 15); do
+            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$BACKEND_URL" 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Backend health check passed"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/15) — last status: $HTTP_CODE"
+            sleep 2
+          done
+          echo "ERROR: Backend health check failed after 30 seconds"
+          exit 1
+
+      # ──────────────────────────────────────────────
+      # Deploy frontend static files
+      # ──────────────────────────────────────────────
+      - name: Deploy frontend
+        uses: appleboy/rsync-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "artifacts/frontend-dist/"
+          target: ${{ secrets.DEPLOY_PUBLIC_DIR }}
+          args: -avz --delete
+
+      - name: Deploy admin
+        uses: appleboy/rsync-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "artifacts/admin-dist/"
+          target: ${{ secrets.DEPLOY_ADMIN_DIR }}
+          args: -avz --delete
+
+      # ──────────────────────────────────────────────
+      # Verify frontend is reachable
+      # ──────────────────────────────────────────────
+      - name: Verify frontend deployment
+        run: |
+          FRONTEND_URL="${{ secrets.DEPLOY_FRONTEND_URL }}"
+          for i in $(seq 1 10); do
+            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$FRONTEND_URL" 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Frontend verification passed"
+              exit 0
+            fi
+            echo "Waiting for frontend... ($i/10) — last status: $HTTP_CODE"
+            sleep 2
+          done
+          echo "ERROR: Frontend verification failed after 20 seconds"
+          exit 1

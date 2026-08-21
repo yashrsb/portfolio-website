@@ -10,7 +10,7 @@ secrets.
 
 | Variable                                        | Description                             | Default                                       |
 | ----------------------------------------------- | --------------------------------------- | --------------------------------------------- |
-| `VITE_SITE_URL` (frontend)                     | Public site URL for canonical/OG links  | `http://localhost:5173`                       |
+| `VITE_SITE_URL` (frontend)                      | Public site URL for canonical/OG links  | `http://localhost:5173`                       |
 | `PORT`                                          | Backend server port                     | `5000`                                        |
 | `NODE_ENV`                                      | `development` \| `production` \| `test` | `development`                                 |
 | `API_PREFIX`                                    | Versioned API base path                 | `/api/v1`                                     |
@@ -29,10 +29,10 @@ secrets.
 | `STORAGE_LOCAL_PUBLIC_BASE_URL`                 | Public base URL for uploaded files      | `http://localhost:5001/api/v1`                |
 | `STORAGE_MAX_SIZE_BYTES`                        | Max upload size in bytes                | `5242880` (5 MB)                              |
 | `STORAGE_ALLOWED_MIME_TYPES`                    | Comma-separated allowed MIME types      | `application/pdf`                             |
-| `DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS`        | Analytics event rate-limit window (ms)| `60000`                                    |
-| `DEFAULT_ANALYTICS_RATE_LIMIT_MAX`              | Max analytics events per window/IP    | `60`                                        |
-| `DEFAULT_ANALYTICS_RETENTION_DAYS`              | Days to retain analytics events       | `90`                                        |
-| `VISITOR_HASH_SECRET`                           | Secret salt for visitor hashing       | (random)                                    |
+| `DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS`        | Analytics event rate-limit window (ms)  | `60000`                                       |
+| `DEFAULT_ANALYTICS_RATE_LIMIT_MAX`              | Max analytics events per window/IP      | `60`                                          |
+| `DEFAULT_ANALYTICS_RETENTION_DAYS`              | Days to retain analytics events         | `90`                                          |
+| `VISITOR_HASH_SECRET`                           | Secret salt for visitor hashing         | (random)                                      |
 
 Frontend and admin each read `VITE_API_BASE_URL`:
 
@@ -103,6 +103,92 @@ Netlify, S3 + CloudFront) and route `/api/*` to the backend.
       cron or a task scheduler — purges events older than
       `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90 days).
 - [ ] Run `npm run lint` and `npm run build` in CI before deploy.
+
+## CI/CD with GitHub Actions
+
+The CI/CD pipeline is defined in `.github/workflows/`:
+
+- **`ci.yml`** — runs on every PR and push to `main`:
+  1. Install dependencies (`npm ci`)
+  2. Lint all apps (frontend, backend, admin)
+  3. Run all tests (frontend, backend, admin)
+  4. Validate Prisma schema
+  5. Build frontend, admin
+
+- **`deploy.yml`** — runs only after CI succeeds on `main`:
+  1. Build all artifacts
+  2. Apply production database migrations (`prisma migrate deploy`)
+  3. Deploy backend (rsync + restart via PM2)
+  4. Health check (`GET /api/v1/health`)
+  5. Deploy frontend + admin static files
+  6. Verify frontend is reachable
+
+### GitHub Secrets
+
+All sensitive values are stored as GitHub repository secrets at:
+**Settings → Secrets and variables → Actions**
+
+| Secret                | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `DEPLOY_HOST`         | SSH host (server IP or hostname)                                     |
+| `DEPLOY_USER`         | SSH username (e.g. `deploy`)                                         |
+| `DEPLOY_SSH_KEY`      | SSH private key (no passphrase)                                      |
+| `DEPLOY_BACKEND_DIR`  | Remote directory for backend code                                    |
+| `DEPLOY_PUBLIC_DIR`   | Remote directory for frontend `dist/`                                |
+| `DEPLOY_ADMIN_DIR`    | Remote directory for admin `dist/`                                   |
+| `DEPLOY_BACKEND_URL`  | Full backend URL for health checks (e.g. `https://api.example.com/`) |
+| `DEPLOY_FRONTEND_URL` | Full frontend URL for verification (e.g. `https://example.com`)      |
+| `DATABASE_URL`        | Production PostgreSQL connection string for migrations               |
+
+### Server-side Environment
+
+The backend reads configuration from a `.env.production` file on the server.
+**Never commit real secrets to the repository.**
+
+```bash
+# On the server: /opt/portfolio/backend/.env.production
+NODE_ENV=production
+DATABASE_URL=postgresql://user:pass@host:5432/portfolio
+JWT_ACCESS_SECRET=<strong-random-string>
+JWT_REFRESH_SECRET=<strong-random-string>
+FRONTEND_URL=https://your-frontend.com,https://your-admin.com
+FRONTEND_URL=http://localhost:5173
+VITE_SITE_URL=https://your-frontend.com
+VISITOR_HASH_SECRET=<strong-random-string>
+```
+
+### Deployment Order
+
+```
+CI passes
+  ↓
+Database migration (prisma migrate deploy)
+  ↓
+Backend deploy (rsync + PM2 restart)
+  ↓
+Backend health check (GET /api/v1/health → 200)
+  ↓
+Frontend deploy (rsync dist/)
+  ↓
+Frontend verification (GET / → 200)
+```
+
+### Rollback Procedure
+
+1. Identify the failed deployment in the GitHub Actions runs page.
+2. Revert the commit: `git revert <commit-sha>`
+3. Push: `git push origin main`
+4. This triggers a new deploy with the reverted (known-good) code.
+5. Database migrations are forward-only — fix forward, do not roll back automatically.
+
+### Branch Protection
+
+Recommended GitHub settings for `main`:
+
+- Require pull request before merging
+- Require status checks to pass (CI workflow)
+- Require branches to be up to date before merging
+- Include administrators
 
 ## Example: Reverse Proxy (Nginx)
 

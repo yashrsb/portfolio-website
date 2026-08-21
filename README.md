@@ -194,6 +194,19 @@ curl http://localhost:5001/api/v1/resume/download
 - [docs/architecture.md](docs/architecture.md) — system and code architecture
 - [docs/api.md](docs/api.md) — API reference
 - [docs/deployment.md](docs/deployment.md) — environment, build, and deployment
+- [docs/runtime-verification.md](docs/runtime-verification.md) — manual verification checklist
+
+## CI/CD
+
+The project includes GitHub Actions workflows for continuous integration and
+deployment:
+
+- **CI** — runs lint, tests, Prisma validation, and builds on every PR and push to `main`
+- **Deploy** — deploys to production after CI passes on `main`
+
+See [docs/architecture.md#ci-cd-pipeline-phase-16](docs/architecture.md#ci-cd-pipeline-phase-16)
+for full documentation of the CI/CD architecture, required GitHub secrets, migration
+strategy, and rollback procedure.
 
 ## License
 
