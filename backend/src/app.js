@@ -30,8 +30,14 @@ const createApp = () => {
   // CORS
   app.use(cors(corsOptions));
 
-  // Response compression
-  app.use(compression());
+  // Response compression (gzip + brotli when client supports it)
+  app.use(
+    compression({
+      threshold: 1024,
+      brotli: { enabled: true, zlib: { level: 1 } },
+      zlib: { level: 6 },
+    }),
+  );
 
   // Request ID
   app.use(requestId);

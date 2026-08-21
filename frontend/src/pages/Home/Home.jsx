@@ -235,7 +235,12 @@ function Home() {
                   src={profile.profileImageUrl}
                   alt={`${profile.name} portrait`}
                   className={styles.profileImage}
-                  loading="lazy"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  width="320"
+                  height="320"
+                  style={{ aspectRatio: '1/1' }}
                   onError={() => setProfileImageFailed(true)}
                 />
               ) : (

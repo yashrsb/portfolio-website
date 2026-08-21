@@ -1,12 +1,43 @@
 /**
  * Reusable API client with timeout, AbortController support,
- * automatic JSON parsing, error normalization, and GET retry.
+ * automatic JSON parsing, error normalization, GET retry, and
+ * in-memory caching for public GET requests.
+ *
+ * Caching:
+ * - GET requests are cached by URL for CACHE_TTL (30 seconds).
+ * - Cache is bypassed when an AbortSignal is passed.
+ * - POST/PUT/PATCH/DELETE automatically invalidate the cache.
  */
 
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
 const DEFAULT_TIMEOUT = 10_000; // 10 seconds
 const MAX_RETRIES = 2;
+const CACHE_TTL = 30_000; // 30 seconds — portfolio content doesn't change frequently
+
+// In-memory cache for GET requests
+const cache = new Map();
+const pendingRequests = new Map();
+
+/**
+ * Clear the cache (used after mutations or when stale data is suspected).
+ * @param {string|RegExp} [keyPattern] - Optional pattern to clear specific entries
+ */
+export const invalidateCache = (keyPattern) => {
+  if (keyPattern) {
+    const regex =
+      keyPattern instanceof RegExp ? keyPattern : new RegExp(keyPattern);
+    for (const key of cache.keys()) {
+      if (regex.test(key)) cache.delete(key);
+    }
+    for (const key of pendingRequests.keys()) {
+      if (regex.test(key)) pendingRequests.delete(key);
+    }
+  } else {
+    cache.clear();
+    pendingRequests.clear();
+  }
+};
 
 /**
  * Normalized API error with a user-friendly message.
@@ -43,6 +74,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * @param {string} [options.method] - HTTP method (default: "GET")
  * @param {object} [options.body] - Request body (for POST/PUT/PATCH)
  * @param {object} [options.headers] - Additional headers
+ * @param {boolean} [options.skipCache] - Bypass cache for this request
  * @returns {Promise<*>} Parsed JSON response data
  */
 async function request(endpoint, options = {}) {
@@ -53,6 +85,7 @@ async function request(endpoint, options = {}) {
     method = 'GET',
     body,
     headers: extraHeaders,
+    skipCache = false,
   } = options;
 
   // Build URL with query params
@@ -65,7 +98,24 @@ async function request(endpoint, options = {}) {
     });
   }
 
-  // AbortController for timeout
+  const urlString = url.toString();
+  const isGet = method === 'GET';
+  const useCache = isGet && !skipCache && !externalSignal;
+
+  // Return cached data if available and fresh
+  if (useCache && cache.has(urlString)) {
+    const cached = cache.get(urlString);
+    if (Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data;
+    }
+    cache.delete(urlString);
+  }
+
+  // Deduplicate in-flight GET requests with the same URL
+  if (useCache && pendingRequests.has(urlString)) {
+    return pendingRequests.get(urlString);
+  }
+
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), timeout);
 
@@ -89,8 +139,40 @@ async function request(endpoint, options = {}) {
     fetchOptions.body = JSON.stringify(body);
   }
 
+  // Track in-flight request for deduplication
+  const dataPromise = doFetch(urlString, fetchOptions, timeoutId);
+
+  if (useCache) {
+    pendingRequests.set(urlString, dataPromise);
+  }
+
   try {
-    const response = await fetch(url.toString(), fetchOptions);
+    const data = await dataPromise;
+
+    if (useCache) {
+      cache.set(urlString, { data, timestamp: Date.now() });
+      pendingRequests.delete(urlString);
+    }
+
+    return data;
+  } catch (error) {
+    if (useCache) {
+      pendingRequests.delete(urlString);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Internal: performs the actual fetch and parses the response.
+ * @param {string} urlString
+ * @param {RequestInit} fetchOptions
+ * @param {NodeJS.Timeout} timeoutId
+ * @returns {Promise<*>}
+ */
+async function doFetch(urlString, fetchOptions, timeoutId) {
+  try {
+    const response = await fetch(urlString, fetchOptions);
     clearTimeout(timeoutId);
 
     // Handle 204 No Content
@@ -202,12 +284,20 @@ function combineSignals(s1, s2) {
  */
 export const apiClient = {
   get: (endpoint, options) => getWithRetry(endpoint, options),
-  post: (endpoint, body, options) =>
-    request(endpoint, { ...options, method: 'POST', body }),
-  put: (endpoint, body, options) =>
-    request(endpoint, { ...options, method: 'PUT', body }),
-  patch: (endpoint, body, options) =>
-    request(endpoint, { ...options, method: 'PATCH', body }),
-  delete: (endpoint, options) =>
-    request(endpoint, { ...options, method: 'DELETE' }),
+  post: (endpoint, body, options) => {
+    invalidateCache();
+    return request(endpoint, { ...options, method: 'POST', body });
+  },
+  put: (endpoint, body, options) => {
+    invalidateCache();
+    return request(endpoint, { ...options, method: 'PUT', body });
+  },
+  patch: (endpoint, body, options) => {
+    invalidateCache();
+    return request(endpoint, { ...options, method: 'PATCH', body });
+  },
+  delete: (endpoint, options) => {
+    invalidateCache();
+    return request(endpoint, { ...options, method: 'DELETE' });
+  },
 };

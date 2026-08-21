@@ -149,6 +149,10 @@ function ScreenshotGallery({ screenshots }) {
                 alt=""
                 className={styles.galleryImage}
                 loading="lazy"
+                decoding="async"
+                width="300"
+                height="200"
+                style={{ aspectRatio: '3/2' }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -198,6 +202,8 @@ function ScreenshotGallery({ screenshots }) {
             src={safeScreenshots[activeIndex].src}
             alt={safeScreenshots[activeIndex].alt || ''}
             className={styles.lightboxImage}
+            loading="lazy"
+            decoding="async"
             onClick={(e) => e.stopPropagation()}
           />
           {safeScreenshots[activeIndex].caption && (
@@ -438,8 +444,10 @@ function ProjectDetailPage() {
                     alt={project.title}
                     className={styles.heroImageImg}
                     loading="lazy"
+                    decoding="async"
                     width="600"
                     height="400"
+                    style={{ aspectRatio: '3/2' }}
                   />
                 </div>
               )}
@@ -491,6 +499,7 @@ function ProjectDetailPage() {
                     src={project.architectureImage}
                     alt={`Architecture diagram for ${project.title}`}
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
               )}

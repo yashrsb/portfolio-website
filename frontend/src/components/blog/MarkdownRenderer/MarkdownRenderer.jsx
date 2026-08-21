@@ -107,7 +107,12 @@ function MarkdownRenderer({ content, prose = true, className = '' }) {
             const safeProps = { ...props };
             delete safeProps.onClick;
             return (
-              <img {...safeProps} loading="lazy" alt={safeProps.alt || ''} />
+              <img
+                {...safeProps}
+                loading="lazy"
+                decoding="async"
+                alt={safeProps.alt || ''}
+              />
             );
           },
         }}

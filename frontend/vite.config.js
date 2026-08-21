@@ -13,4 +13,18 @@ export default defineConfig({
     include: ['src/**/*.test.{js,jsx}'],
     globals: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          markdown: [
+            'react-markdown',
+            'remark-gfm',
+            'rehype-sanitize',
+            'rehype-highlight',
+          ],
+        },
+      },
+    },
+  },
 });

@@ -294,6 +294,10 @@ function BlogPost() {
               alt={post.title}
               className={styles.coverImage}
               loading="eager"
+              decoding="async"
+              width="1200"
+              height="630"
+              style={{ aspectRatio: '1200/630' }}
             />
           )}
 
