@@ -465,7 +465,7 @@ Stages (each must pass for the next to run):
 4. **Prisma validate** — schema validation
 5. **Build** — Vite production builds for frontend + admin
 
-Uses Node.js 20 (from `.nvmrc`) and npm dependency caching.
+Uses Node.js 22 LTS (from `.nvmrc`) and npm dependency caching.
 
 ### Deploy Workflow (`.github/workflows/deploy.yml`)
 
@@ -608,5 +608,5 @@ to the public frontend.
 
 ### Node Version
 
-`.nvmrc` specifies Node.js 20 (LTS). GitHub Actions uses
+`.nvmrc` specifies Node.js 22 (LTS). GitHub Actions uses
 `actions/setup-node` with `node-version-file: .nvmrc`.
