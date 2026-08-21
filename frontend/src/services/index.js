@@ -1,4 +1,4 @@
-export { apiClient, ApiError } from './apiClient';
+export { apiClient, ApiError, invalidateCache } from './apiClient';
 export { fetchProfile } from './profileService';
 export { fetchProjects, fetchProjectBySlug } from './projectService';
 export { fetchExperience } from './experienceService';

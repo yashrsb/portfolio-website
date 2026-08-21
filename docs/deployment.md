@@ -10,6 +10,7 @@ secrets.
 
 | Variable                                        | Description                             | Default                                       |
 | ----------------------------------------------- | --------------------------------------- | --------------------------------------------- |
+| `VITE_SITE_URL` (frontend)                     | Public site URL for canonical/OG links  | `http://localhost:5173`                       |
 | `PORT`                                          | Backend server port                     | `5000`                                        |
 | `NODE_ENV`                                      | `development` \| `production` \| `test` | `development`                                 |
 | `API_PREFIX`                                    | Versioned API base path                 | `/api/v1`                                     |

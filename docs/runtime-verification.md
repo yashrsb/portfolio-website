@@ -268,9 +268,35 @@ a blank screen.
   Removing it re-enables tracking.
 - [ ] `navigator.sendBeacon` is used for event delivery (verify via dev tools).
 
-## 9. Build & Static Checks (already verified)
+## 10. Performance (Phase 15)
+
+### Bundle & Code Splitting
+
+- [ ] Production build produces multiple JS chunks (not a single 500 kB+ file).
+- [ ] `markdown-*.js` chunk (react-markdown + rehype-highlight) loads only on blog pages.
+- [ ] `CategoryPosts` and `TagPosts` are lazy-loaded (visible in Network tab as separate chunks).
+- [ ] Main JS bundle < 250 kB (gzipped ~70 kB).
+
+### Images
+
+- [ ] Above-the-fold images (Home profile, BlogPost cover) load eagerly with `fetchpriority=high`.
+- [ ] Below-the-fold images use `loading="lazy"`.
+- [ ] All images have `decoding="async"`.
+- [ ] All images have explicit `width`/`height` + `aspect-ratio` (no layout shift in dev tools).
+
+### Caching
+
+- [ ] Public GET API responses include `Cache-Control: public, max-age=N` headers.
+- [ ] Admin/authenticated routes do NOT include cache headers.
+- [ ] Navigating between pages does NOT trigger duplicate API requests (in-memory cache hit).
+
+### Compression
+
+- [ ] Backend responses are served with `Content-Encoding: br` (Brotli) when client supports it.
+
+## 11. Build & Static Checks (already verified)
 
 - [x] Backend/eslint, frontend/eslint, admin/eslint all clean (`--max-warnings 0`).
-- [x] `npm run test` passes for all three apps (backend 132, frontend 39, admin 53).
+- [x] `npm run test` passes for all three apps (backend 145, frontend 87, admin 68).
 - [x] `npm run build` passes for frontend and admin.
 - [x] `prisma validate` passes.

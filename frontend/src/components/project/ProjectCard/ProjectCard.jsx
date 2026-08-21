@@ -48,6 +48,10 @@ function ProjectCard({
             alt={imageAlt}
             className={styles.image}
             loading="lazy"
+            decoding="async"
+            width="400"
+            height="240"
+            style={{ aspectRatio: '5/3' }}
           />
         ) : (
           <div className={styles.placeholder} aria-hidden="true">

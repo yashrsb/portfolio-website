@@ -21,6 +21,7 @@ import {
 import { contactValidationRules } from '../../validators/contactValidator.js';
 import { downloadResumeHandler } from '../../controllers/resumeController.js';
 import validateRequest from '../../middlewares/validateRequest.js';
+import cacheHeaders from '../../middlewares/cacheHeaders.js';
 import { spamProtection } from '../../middlewares/index.js';
 import { contactRateLimiter } from '../../config/index.js';
 import ApiResponse from '../../utils/ApiResponse.js';
@@ -184,21 +185,26 @@ router.get('/', (req, res) => {
 });
 
 router.get('/health', getHealthHandler);
-router.get('/projects', getProjectsHandler);
+router.get('/projects', cacheHeaders({ maxAge: 600 }), getProjectsHandler);
 router.get(
   '/projects/:slug',
+  cacheHeaders({ maxAge: 600 }),
   slugValidator,
   validateRequest,
   getProjectBySlugHandler,
 );
-router.get('/experience', getExperienceHandler);
-router.get('/skills', getSkillsHandler);
-router.get('/education', getEducationHandler);
-router.get('/profile', getProfileHandler);
-router.get('/social', getSocialHandler);
+router.get('/experience', cacheHeaders({ maxAge: 600 }), getExperienceHandler);
+router.get('/skills', cacheHeaders({ maxAge: 600 }), getSkillsHandler);
+router.get('/education', cacheHeaders({ maxAge: 600 }), getEducationHandler);
+router.get('/profile', cacheHeaders({ maxAge: 600 }), getProfileHandler);
+router.get('/social', cacheHeaders({ maxAge: 600 }), getSocialHandler);
 
 // Public resume download
-router.get('/resume/download', downloadResumeHandler);
+router.get(
+  '/resume/download',
+  cacheHeaders({ maxAge: 3600 }),
+  downloadResumeHandler,
+);
 
 router.post(
   '/contact',
@@ -210,29 +216,40 @@ router.post(
 );
 
 // Public blog routes
-router.get('/blog/posts', listPostsHandler);
+router.get('/blog/posts', cacheHeaders({ maxAge: 300 }), listPostsHandler);
 router.get(
   '/blog/posts/:slug',
+  cacheHeaders({ maxAge: 300 }),
   blogSlugValidator,
   validateRequest,
   getPostHandler,
 );
-router.get('/blog/featured', getFeaturedPostsHandler);
-router.get('/blog/categories', getCategoriesHandler);
+router.get(
+  '/blog/featured',
+  cacheHeaders({ maxAge: 300 }),
+  getFeaturedPostsHandler,
+);
+router.get(
+  '/blog/categories',
+  cacheHeaders({ maxAge: 600 }),
+  getCategoriesHandler,
+);
 router.get(
   '/blog/categories/:slug/posts',
+  cacheHeaders({ maxAge: 300 }),
   blogCategorySlugValidator,
   validateRequest,
   getCategoryPostsHandler,
 );
-router.get('/blog/tags', getTagsHandler);
+router.get('/blog/tags', cacheHeaders({ maxAge: 600 }), getTagsHandler);
 router.get(
   '/blog/tags/:slug/posts',
+  cacheHeaders({ maxAge: 300 }),
   blogTagSlugValidator,
   validateRequest,
   getTagPostsHandler,
 );
-router.get('/blog/sitemap', getSitemapHandler);
+router.get('/blog/sitemap', cacheHeaders({ maxAge: 600 }), getSitemapHandler);
 
 // Public analytics ingestion endpoint
 router.use('/analytics', analyticsRoutes);

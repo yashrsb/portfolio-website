@@ -43,7 +43,7 @@ function App() {
       setActiveLocation(location);
       setFading(false);
       previousPath.current = location.pathname;
-    }, 150);
+    }, 75);
 
     return () => clearTimeout(timer);
   }, [location]);

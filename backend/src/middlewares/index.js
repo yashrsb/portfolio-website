@@ -7,3 +7,4 @@ export { default as authenticate } from './authenticate.js';
 export { default as authorize } from './authorize.js';
 export { default as upload } from './upload.js';
 export { default as spamProtection } from './spamProtection.js';
+export { default as cacheHeaders } from './cacheHeaders.js';
