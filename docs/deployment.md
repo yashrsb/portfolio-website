@@ -116,29 +116,31 @@ The CI/CD pipeline is defined in `.github/workflows/`:
   5. Build frontend, admin
 
 - **`deploy.yml`** — runs only after CI succeeds on `main`:
-  1. Build all artifacts
-  2. Apply production database migrations (`prisma migrate deploy`)
-  3. Deploy backend (rsync + restart via PM2)
-  4. Health check (`GET /api/v1/health`)
-  5. Deploy frontend + admin static files
-  6. Verify frontend is reachable
+  1. Checks out the **exact commit** that passed CI (via `workflow_run.head_sha`)
+  2. Build all artifacts (frontend, admin, backend)
+  3. Apply production database migrations (`prisma migrate deploy`)
+  4. Deploy backend (rsync + restart via PM2)
+  5. Health check + smoke tests (`GET /api/v1/health`, `/api/v1/projects`, etc.)
+  6. Deploy frontend + admin static files
+  7. Verify all endpoints respond with HTTP 200
 
 ### GitHub Secrets
 
 All sensitive values are stored as GitHub repository secrets at:
 **Settings → Secrets and variables → Actions**
 
-| Secret                | Description                                                          |
-| --------------------- | -------------------------------------------------------------------- |
-| `DEPLOY_HOST`         | SSH host (server IP or hostname)                                     |
-| `DEPLOY_USER`         | SSH username (e.g. `deploy`)                                         |
-| `DEPLOY_SSH_KEY`      | SSH private key (no passphrase)                                      |
-| `DEPLOY_BACKEND_DIR`  | Remote directory for backend code                                    |
-| `DEPLOY_PUBLIC_DIR`   | Remote directory for frontend `dist/`                                |
-| `DEPLOY_ADMIN_DIR`    | Remote directory for admin `dist/`                                   |
-| `DEPLOY_BACKEND_URL`  | Full backend URL for health checks (e.g. `https://api.example.com/`) |
-| `DEPLOY_FRONTEND_URL` | Full frontend URL for verification (e.g. `https://example.com`)      |
-| `DATABASE_URL`        | Production PostgreSQL connection string for migrations               |
+| Secret                | Description                                                                |
+| --------------------- | -------------------------------------------------------------------------- |
+| `DEPLOY_HOST`         | SSH host (server IP or hostname)                                           |
+| `DEPLOY_USER`         | SSH username (e.g. `deploy`)                                               |
+| `DEPLOY_SSH_KEY`      | SSH private key (no passphrase, dedicated deployment key)                  |
+| `DEPLOY_KNOWN_HOSTS`  | SSH known_hosts entry for the deploy host (for host verification)          |
+| `DEPLOY_BACKEND_DIR`  | Remote directory for backend code                                          |
+| `DEPLOY_PUBLIC_DIR`   | Remote directory for frontend `dist/`                                      |
+| `DEPLOY_ADMIN_DIR`    | Remote directory for admin `dist/`                                         |
+| `DEPLOY_BACKEND_URL`  | Full backend URL for health/smoke checks (e.g. `https://api.example.com/`) |
+| `DEPLOY_FRONTEND_URL` | Full frontend URL for verification (e.g. `https://example.com`)            |
+| `DATABASE_URL`        | Production PostgreSQL connection string for migrations                     |
 
 ### Server-side Environment
 
@@ -152,34 +154,84 @@ DATABASE_URL=postgresql://user:pass@host:5432/portfolio
 JWT_ACCESS_SECRET=<strong-random-string>
 JWT_REFRESH_SECRET=<strong-random-string>
 FRONTEND_URL=https://your-frontend.com,https://your-admin.com
-FRONTEND_URL=http://localhost:5173
 VITE_SITE_URL=https://your-frontend.com
 VISITOR_HASH_SECRET=<strong-random-string>
+
+# IMPORTANT: Use an absolute path OUTSIDE the backend code directory.
+# The deployment workflow uses rsync --delete on DEPLOY_BACKEND_DIR.
+# If uploads/ is inside the backend directory, --delete would erase
+# uploaded resumes. This path is excluded from rsync and persists.
+STORAGE_LOCAL_UPLOAD_DIR=/var/lib/portfolio/uploads
 ```
+
+#### Why uploads must be outside the backend directory
+
+The deployment syncs code into `DEPLOY_BACKEND_DIR` using `rsync --delete`.
+The `uploads/` directory is excluded from rsync via `--exclude uploads`, but
+to be fully safe, `STORAGE_LOCAL_UPLOAD_DIR` should point to a separate
+persistent directory (e.g. `/var/lib/portfolio/uploads`).
+
+#### Adding known_hosts for SSH verification
+
+Generate the known_hosts entry on your deployment server:
+
+```bash
+ssh-keyscan -H your-deploy-host.com >> ~/.ssh/known_hosts
+```
+
+Then copy the relevant line into GitHub Secrets as `DEPLOY_KNOWN_HOSTS`.
+This prevents man-in-the-middle attacks during deployment.
 
 ### Deployment Order
 
 ```
-CI passes
+CI passes on main (lint + test + prisma validate + build)
   ↓
-Database migration (prisma migrate deploy)
+Deploy workflow checks out the exact CI-validated commit (head_sha)
   ↓
-Backend deploy (rsync + PM2 restart)
+Production migration (prisma migrate deploy)
   ↓
-Backend health check (GET /api/v1/health → 200)
+  ┌── Migration fails? → STOP. Backend NOT restarted. Manual fix needed.
+  └──
+      ↓
+Deploy backend (rsync, excluding uploads/ and .env.production)
   ↓
-Frontend deploy (rsync dist/)
+Restart backend (PM2 / systemd)
   ↓
-Frontend verification (GET / → 200)
+Backend health check + smoke tests (/api/v1/health, /api/v1/projects, ...)
+  ↓
+Deploy frontend + admin static files
+  ↓
+Verify frontend + public endpoints (/projects, /sitemap.xml, /robots.txt)
 ```
 
-### Rollback Procedure
+### Migration Safety
 
-1. Identify the failed deployment in the GitHub Actions runs page.
-2. Revert the commit: `git revert <commit-sha>`
-3. Push: `git push origin main`
-4. This triggers a new deploy with the reverted (known-good) code.
-5. Database migrations are forward-only — fix forward, do not roll back automatically.
+Database migrations use `prisma migrate deploy` (never `migrate dev`).
+
+**If a migration fails:**
+
+- The deploy workflow stops immediately (step exits non-zero)
+- The backend is NOT restarted — the old version continues running
+- Frontend and admin are NOT deployed
+- Manual intervention is required
+
+**Migration strategy: Expand → Deploy → Contract**
+
+For future destructive schema changes:
+
+1. **Expand**: Add new nullable columns/tables (backward-compatible)
+2. **Deploy**: Update application to use the new schema
+3. **Contract**: Remove old columns/tables (after confirming no rollback to old version)
+
+**Rollback strategy:**
+
+- **Application rollback**: `git revert <sha>` → push to `main` → new deploy with known-good code
+- **Database rollback**: NOT automatic. Use a corrective forward migration.
+  For example, if a migration added a required column, the rollback would be
+  a new migration to drop it (after the application no longer depends on it).
+- Migrations should be backward-compatible with the previous application version
+  whenever possible, so reverting application code alone is sufficient.
 
 ### Branch Protection
 
