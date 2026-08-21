@@ -1,26 +1,31 @@
 import { useLocation, Routes, Route } from 'react-router-dom';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { MainLayout } from './layouts';
 import { useAnalytics } from './hooks';
+import LoadingState from './components/common/LoadingState/LoadingState';
 import {
   Home,
   About,
   Experience,
   Skills,
   Projects,
-  ProjectDetailPage,
   Education,
   Contact,
   Blog,
-  BlogPost,
   CategoryPosts,
   TagPosts,
   NotFound,
 } from './pages';
 
+const ProjectDetailPage = lazy(
+  () => import('./pages/ProjectDetailPage/ProjectDetailPage'),
+);
+const BlogPost = lazy(() => import('./pages/BlogPost/BlogPost'));
+
 /**
  * App — root component defining all routes wrapped in the main layout.
  * Implements a lightweight fade transition between routes (< 250ms).
+ * ProjectDetailPage and BlogPost are code-split for faster initial load.
  */
 function App() {
   const location = useLocation();
@@ -48,21 +53,23 @@ function App() {
       <div
         className={fading ? 'page-transition-exit' : 'page-transition-enter'}
       >
-        <Routes location={activeLocation}>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/experience" element={<Experience />} />
-          <Route path="/skills" element={<Skills />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/:slug" element={<ProjectDetailPage />} />
-          <Route path="/education" element={<Education />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/category/:slug" element={<CategoryPosts />} />
-          <Route path="/blog/tag/:slug" element={<TagPosts />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<LoadingState label="Loading..." />}>
+          <Routes location={activeLocation}>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/experience" element={<Experience />} />
+            <Route path="/skills" element={<Skills />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/category/:slug" element={<CategoryPosts />} />
+            <Route path="/blog/tag/:slug" element={<TagPosts />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </div>
     </MainLayout>
   );

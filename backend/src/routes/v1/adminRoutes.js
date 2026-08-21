@@ -380,7 +380,8 @@ router.post(
   blogTagValidators.create,
   validateRequest,
   blogController.createTag,
-);router.put(
+);
+router.put(
   '/blog/tags/:id',
   [...idValidator, ...blogTagValidators.update],
   validateRequest,
@@ -441,6 +442,12 @@ router.get(
   analyticsQueryValidators,
   validateRequest,
   analyticsController.getReferrersHandler,
+);
+router.get(
+  '/analytics/dashboard',
+  analyticsQueryValidators,
+  validateRequest,
+  analyticsController.getDashboardHandler,
 );
 
 export default router;

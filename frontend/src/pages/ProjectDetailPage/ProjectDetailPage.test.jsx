@@ -320,4 +320,78 @@ describe('ProjectDetailPage', () => {
 
     expect(document.title).toBe('NotifyHub — Portfolio');
   });
+
+  it('sets canonical URL to project slug path', () => {
+    mockUseProject.loading = false;
+    mockUseProject.project = mockProject;
+    render(<ProjectDetailPage />);
+
+    const canonical = document.querySelector('link[rel="canonical"]');
+    expect(canonical).toBeTruthy();
+    expect(canonical.getAttribute('href')).toMatch(/\/projects\/notifyhub$/);
+  });
+
+  it('sets og:title to project title', () => {
+    mockUseProject.loading = false;
+    mockUseProject.project = mockProject;
+    render(<ProjectDetailPage />);
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    expect(ogTitle).toBeTruthy();
+    expect(ogTitle.content).toBe('NotifyHub');
+  });
+
+  it('sets og:image when project has imageUrl', () => {
+    mockUseProject.loading = false;
+    mockUseProject.project = mockProject;
+    render(<ProjectDetailPage />);
+
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    expect(ogImage).toBeTruthy();
+    expect(ogImage.content).toBe(mockProject.imageUrl);
+  });
+
+  it('sets twitter:card to summary_large_image when image exists', () => {
+    mockUseProject.loading = false;
+    mockUseProject.project = mockProject;
+    render(<ProjectDetailPage />);
+
+    const card = document.querySelector('meta[name="twitter:card"]');
+    expect(card).toBeTruthy();
+    expect(card.content).toBe('summary_large_image');
+  });
+
+  it('sets robots to noindex when project not found', () => {
+    mockUseProject.loading = false;
+    mockUseProject.notFound = true;
+    render(<ProjectDetailPage />);
+
+    const robots = document.querySelector('meta[name="robots"]');
+    expect(robots).toBeTruthy();
+    expect(robots.content).toBe('noindex, nofollow');
+  });
+
+  it('injects SoftwareApplication JSON-LD for project', () => {
+    mockUseProject.loading = false;
+    mockUseProject.project = mockProject;
+    render(<ProjectDetailPage />);
+
+    const ld = document.getElementById('project-ld');
+    expect(ld).toBeTruthy();
+    const data = JSON.parse(ld.textContent);
+    expect(data['@type']).toBe('SoftwareApplication');
+    expect(data.name).toBe('NotifyHub');
+  });
+
+  it('injects BreadcrumbList JSON-LD for project', () => {
+    mockUseProject.loading = false;
+    mockUseProject.project = mockProject;
+    render(<ProjectDetailPage />);
+
+    const ld = document.getElementById('breadcrumb-ld');
+    expect(ld).toBeTruthy();
+    const data = JSON.parse(ld.textContent);
+    expect(data['@type']).toBe('BreadcrumbList');
+    expect(data.itemListElement).toHaveLength(2);
+  });
 });

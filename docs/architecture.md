@@ -207,6 +207,14 @@ Admin Dashboard
   older than `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90).
 - **Rate limited** — the public ingestion endpoint is rate-limited per IP
   (default 60 events / 60 s).
+- **Dashboard endpoint** — the admin dashboard uses a single aggregated
+  `GET /api/v1/admin/analytics/dashboard?days=N` request that fetches all
+  metrics concurrently server-side, instead of 8 separate HTTP round-trips.
+  Individual endpoints (`/overview`, `/timeseries`, `/pages`, etc.) remain
+  available for other consumers.
+- **Zero-filled time-series** — the `timeseries` response always includes one
+  entry per day in the requested range (UTC dates), with `0` for days that have
+  no events, ensuring the trend chart renders a complete timeline.
 - See `docs/analytics.md` for the full specification.
 
 ## Folder Structure
@@ -232,3 +240,62 @@ portfolio/
 - **No commented-out code**; dead code is removed.
 - Each app owns its `package.json` and dependencies; the root scripts delegate
   using `--prefix`.
+
+## SEO Architecture (Phase 14)
+
+The portfolio uses a **centralized SEO system** with no external SEO framework.
+
+### Configuration
+
+`frontend/src/config/seo.js` exports `SEO_CONFIG` with:
+- `siteUrl` — derived from `VITE_SITE_URL` env var (with `window.location.origin` fallback)
+- `siteName`, `siteDescription`, `authorName`, `defaultOgImage`
+- `titleTemplate` — `'%s — Portfolio'` (blog posts override to `'%s — Portfolio Blog'`)
+
+### SEO Utility
+
+`frontend/src/utils/seo.js` provides:
+- `setSEOMeta(params)` — central function that creates/updates **and removes** meta tags. Key difference from the old pattern: empty values **remove** stale tags instead of skipping them, preventing meta tag leakage between page navigations.
+- `setJsonLd(id, data)` — safely injects JSON-LD with `<` and `>` escaped as `\u003c`/`\u003e` to prevent script injection.
+- `removeJsonLd(id)` — removes a JSON-LD script tag.
+- `setPageSEO(params)` — convenience wrapper with sensible defaults.
+
+### Page-level SEO
+
+Each page component calls `setSEOMeta` or `setPageSEO` inside a `useEffect`:
+- **Home**: Person + WebSite JSON-LD, profile-driven title/description
+- **About/Experience/Skills/Education/Contact/Projects**: Static titles + descriptions
+- **Blog listing**: WebSite JSON-LD with SearchAction
+- **BlogPost**: BlogPosting + BreadcrumbList JSON-LD (via `blogSeo.js` wrapper), `noindex` for drafts
+- **CategoryPosts/TagPosts**: Dynamic titles from category/tag name
+- **ProjectDetailPage**: SoftwareApplication + BreadcrumbList JSON-LD
+- **NotFound**: `noindex, nofollow` robots meta, fallback title
+
+### Sitemap (`/sitemap.xml`)
+
+Generated server-side in `backend/src/routes/index.js`. Includes:
+- All static pages (`/`, `/about`, `/experience`, `/skills`, `/projects`, `/education`, `/contact`, `/blog`)
+- Project detail pages (`/projects/:slug`) — only from non-deleted projects
+- Published blog posts (`/blog/:slug`) — only from PUBLISHED posts
+- Blog category/tag pages — only for categories/tags that have published posts
+
+Blog posts have zero entries when no posts are published. No draft or unpublished content appears.
+
+### robots.txt (`/robots.txt`)
+
+Disallows `/admin/`, `/login`, and API auth/admin routes. References the sitemap at the configured site URL.
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `VITE_SITE_URL` | Public site URL for canonicals, OG URLs, JSON-LD | `http://localhost:5173` |
+| `FRONTEND_URL` (backend) | Origin(s) for CORS + sitemap/robots URLs | `http://localhost:5173` |
+
+The production `VITE_SITE_URL` must be set to the real HTTPS domain before building.
+
+### Performance
+
+- `ProjectDetailPage` and `BlogPost` are **code-split** via React `lazy()` + `Suspense`
+- Blog post images use `loading="eager"` (above-the-fold); project screenshots use `loading="lazy"`
+- All images have explicit `width`/`height` or aspect-ratio to prevent layout shift

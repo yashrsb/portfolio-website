@@ -208,9 +208,7 @@ describe('Contact page', () => {
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
     expect(await screen.findByText('Message Sent')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Thank you for reaching out/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Thank you for reaching out/)).toBeInTheDocument();
 
     expect(mockPost).toHaveBeenCalledWith('/contact', {
       ...VALID_FORM,
@@ -278,9 +276,7 @@ describe('Contact page', () => {
     await user.type(screen.getByLabelText(/message/i), VALID_FORM.message);
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
-    expect(
-      await screen.findByText(/Something went wrong/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Something went wrong/)).toBeInTheDocument();
   });
 
   it('shows spam rejected state when API returns SPAM_REJECTED', async () => {
@@ -302,9 +298,7 @@ describe('Contact page', () => {
     await user.type(screen.getByLabelText(/message/i), VALID_FORM.message);
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
-    expect(
-      await screen.findByText(/flagged as spam/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/flagged as spam/)).toBeInTheDocument();
   });
 
   it('shows field-level errors from server validation response', async () => {

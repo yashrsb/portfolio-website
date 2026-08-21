@@ -6,6 +6,7 @@ import Section from '../../components/common/Section/Section';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import BlogList from '../../components/blog/BlogList/BlogList';
 import { fetchBlogCategories } from '../../services/index.js';
+import { setPageSEO } from '../../utils/seo';
 import styles from './CategoryPosts.module.css';
 
 function CategoryPosts() {
@@ -50,6 +51,18 @@ function CategoryPosts() {
       controller.abort();
     };
   }, [slug]);
+
+  useEffect(() => {
+    if (category) {
+      setPageSEO({
+        title: `${category.name} Articles`,
+        description:
+          category.description || `Articles in the ${category.name} category.`,
+        path: `/blog/category/${category.slug}`,
+        noindex: false,
+      });
+    }
+  }, [category]);
 
   if (loading) {
     return <LoadingState label="Loading category..." />;

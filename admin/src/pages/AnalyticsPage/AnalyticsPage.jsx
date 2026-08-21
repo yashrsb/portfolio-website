@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Breadcrumb from '../../components/layout/Breadcrumb/Breadcrumb';
 import SkeletonCard from '../../components/common/SkeletonCard/SkeletonCard';
 import SkeletonTable from '../../components/common/SkeletonTable/SkeletonTable';
@@ -69,60 +69,52 @@ function StatCard({ label, value, icon, previous }) {
  */
 function AnalyticsPage() {
   const [days, setDays] = useState(DEFAULT_DAYS);
-  const [overview, setOverview] = useState(null);
-  const [timeSeries, setTimeSeries] = useState(null);
-  const [topPages, setTopPages] = useState(null);
-  const [countries, setCountries] = useState(null);
-  const [devices, setDevices] = useState(null);
-  const [browsers, setBrowsers] = useState(null);
-  const [projects, setProjects] = useState(null);
-  const [referrers, setReferrers] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadAllData = useCallback(async () => {
+  const fetchPromiseRef = useRef(null);
+
+  const loadDashboard = useCallback(async () => {
+    if (fetchPromiseRef.current) {
+      return fetchPromiseRef.current;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const [
-        overviewData,
-        timeSeriesData,
-        pagesData,
-        countriesData,
-        devicesData,
-        browsersData,
-        projectsData,
-        referrersData,
-      ] = await Promise.all([
-        analyticsService.getOverview(days),
-        analyticsService.getTimeSeries(days),
-        analyticsService.getTopPages(days),
-        analyticsService.getCountries(days),
-        analyticsService.getDevices(days),
-        analyticsService.getBrowsers(days),
-        analyticsService.getProjectStats(days),
-        analyticsService.getReferrers(days),
-      ]);
 
-      setOverview(overviewData);
-      setTimeSeries(timeSeriesData);
-      setTopPages(pagesData);
-      setCountries(countriesData);
-      setDevices(devicesData);
-      setBrowsers(browsersData);
-      setProjects(projectsData);
-      setReferrers(referrersData);
-    } catch (err) {
-      setError(normalizeApiError(err));
-    } finally {
-      setLoading(false);
-    }
+    const promise = (async () => {
+      try {
+        const data = await analyticsService.getDashboard(days);
+        setDashboardData(data);
+        setError(null);
+        return data;
+      } catch (err) {
+        setError(normalizeApiError(err));
+        throw err;
+      } finally {
+        setLoading(false);
+        fetchPromiseRef.current = null;
+      }
+    })();
+
+    fetchPromiseRef.current = promise;
+    return promise;
   }, [days]);
 
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+    loadDashboard().catch(() => {});
+  }, [loadDashboard]);
+
+  const overview = dashboardData?.overview ?? null;
+  const timeSeries = dashboardData?.timeseries ?? null;
+  const topPages = dashboardData?.pages ?? null;
+  const countries = dashboardData?.countries ?? null;
+  const devices = dashboardData?.devices ?? null;
+  const browsers = dashboardData?.browsers ?? null;
+  const projects = dashboardData?.projects ?? null;
+  const referrers = dashboardData?.referrers ?? null;
 
   return (
     <div className={styles.page}>
@@ -131,11 +123,15 @@ function AnalyticsPage() {
       <div className={styles.header}>
         <h2 className={styles.heading}>Analytics</h2>
         <div className={styles.toolbar}>
-          <DateRangeSelector value={days} onChange={setDays} disabled={loading} />
+          <DateRangeSelector
+            value={days}
+            onChange={setDays}
+            disabled={loading}
+          />
           <button
             type="button"
             className={styles.refreshBtn}
-            onClick={() => loadAllData()}
+            onClick={() => loadDashboard()}
             disabled={loading}
             aria-label="Refresh analytics data"
           >
@@ -144,11 +140,8 @@ function AnalyticsPage() {
         </div>
       </div>
 
-       {error && !loading && (
-        <ApiErrorBanner
-          error={error}
-          onRetry={loadAllData}
-        />
+      {error && !loading && (
+        <ApiErrorBanner error={error} onRetry={loadDashboard} />
       )}
 
       {!loading && !error && overview === null && (
@@ -156,10 +149,13 @@ function AnalyticsPage() {
       )}
 
       {/* Summary Cards */}
-      {(!loading && !error && overview) && (
+      {!loading && !error && overview && (
         <section className={styles.section} aria-labelledby="summary-heading">
           <h3 className={styles.sectionTitle} id="summary-heading">
-            Summary ({DATE_RANGE_PRESETS.find((p) => p.value === days)?.label || 'Custom'})
+            Summary (
+            {DATE_RANGE_PRESETS.find((p) => p.value === days)?.label ||
+              'Custom'}
+            )
           </h3>
           <div className={styles.statsGrid}>
             {loading ? (
@@ -169,327 +165,318 @@ function AnalyticsPage() {
             ) : (
               <>
                 <StatCard
-                label="Visitors"
-                value={overview.current.totalVisitors}
-                icon="👥"
-                previous={{ value: overview.previous.totalVisitors }}
-              />
-              <StatCard
-                label="Page Views"
-                value={overview.current.totalPageViews}
-                icon="👁️"
-                previous={{ value: overview.previous.totalPageViews }}
-              />
-              <StatCard
-                label="Project Views"
-                value={overview.current.totalProjectViews}
-                icon="📁"
-                previous={{ value: overview.previous.totalProjectViews }}
-              />
-              <StatCard
-                label="Project Clicks"
-                value={overview.current.totalProjectClicks}
-                icon="🖱️"
-                previous={{ value: overview.previous.totalProjectClicks }}
-              />
-              <StatCard
-                label="Blog Views"
-                value={overview.current.totalBlogViews}
-                icon="✍️"
-                previous={{ value: overview.previous.totalBlogViews }}
-              />
-            </>
-          )}
-        </div>
-      </section>
+                  label="Visitors"
+                  value={overview.current.totalVisitors}
+                  icon="👥"
+                  previous={{ value: overview.previous.totalVisitors }}
+                />
+                <StatCard
+                  label="Page Views"
+                  value={overview.current.totalPageViews}
+                  icon="👁️"
+                  previous={{ value: overview.previous.totalPageViews }}
+                />
+                <StatCard
+                  label="Project Views"
+                  value={overview.current.totalProjectViews}
+                  icon="📁"
+                  previous={{ value: overview.previous.totalProjectViews }}
+                />
+                <StatCard
+                  label="Project Clicks"
+                  value={overview.current.totalProjectClicks}
+                  icon="🖱️"
+                  previous={{ value: overview.previous.totalProjectClicks }}
+                />
+                <StatCard
+                  label="Blog Views"
+                  value={overview.current.totalBlogViews}
+                  icon="✍️"
+                  previous={{ value: overview.previous.totalBlogViews }}
+                />
+              </>
+            )}
+          </div>
+        </section>
       )}
 
       {/* Visitor Trend */}
       {!error && (
-      <section
-        className={styles.section}
-        aria-labelledby="trend-heading"
-      >
-        <h3 className={styles.sectionTitle} id="trend-heading">
-          Visitor Trend
-        </h3>
-        <div className={styles.chartCard}>
-          {loading ? (
-            <SkeletonCard lines={3} />
-          ) : timeSeries && timeSeries.length > 0 ? (
-            <LineChart
-              data={timeSeries}
-              dateKey="date"
-              valueKey="visitors"
-              stroke="var(--color-primary)"
-              fill="var(--color-primary-light)"
-            />
-          ) : (
-            <EmptyState
-              title="No visitor data yet"
-              description="Analytics events will appear here once traffic is received."
-              icon="📊"
-            />
-          )}
-        </div>
-      </section>
+        <section className={styles.section} aria-labelledby="trend-heading">
+          <h3 className={styles.sectionTitle} id="trend-heading">
+            Visitor Trend
+          </h3>
+          <div className={styles.chartCard}>
+            {loading ? (
+              <SkeletonCard lines={3} />
+            ) : timeSeries && timeSeries.length > 0 ? (
+              <LineChart
+                data={timeSeries}
+                dateKey="date"
+                valueKey="visitors"
+                stroke="var(--color-primary)"
+                fill="var(--color-primary-light)"
+              />
+            ) : (
+              <EmptyState
+                title="No visitor data yet"
+                description="Analytics events will appear here once traffic is received."
+                icon="📊"
+              />
+            )}
+          </div>
+        </section>
       )}
 
       {!error && (
-      <div className={styles.contentGrid}>
-        {/* Top Pages */}
-        <section
-          className={styles.section}
-          aria-labelledby="pages-heading"
-        >
-          <h3 className={styles.sectionTitle} id="pages-heading">
-            Top Pages
-          </h3>
-          <div className={styles.tableCard}>
-            {loading ? (
-              <SkeletonTable rows={5} columns={3} />
-            ) : topPages && topPages.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Page</th>
-                    <th>Views</th>
-                    <th>Visitors</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topPages.map((page) => (
-                    <tr key={page.path}>
-                      <td>{page.path}</td>
-                      <td>{page.views}</td>
-                      <td>{page.uniqueVisitors}</td>
+        <div className={styles.contentGrid}>
+          {/* Top Pages */}
+          <section className={styles.section} aria-labelledby="pages-heading">
+            <h3 className={styles.sectionTitle} id="pages-heading">
+              Top Pages
+            </h3>
+            <div className={styles.tableCard}>
+              {loading ? (
+                <SkeletonTable rows={5} columns={3} />
+              ) : topPages && topPages.length > 0 ? (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Page</th>
+                      <th>Views</th>
+                      <th>Visitors</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                title="No page views yet"
-                description="Page view data appears once visitors browse your site."
-                icon="👁️"
-              />
-)}
-          </div>
-        </section>
+                  </thead>
+                  <tbody>
+                    {topPages.map((page) => (
+                      <tr key={page.path}>
+                        <td>{page.path}</td>
+                        <td>{page.views}</td>
+                        <td>{page.uniqueVisitors}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <EmptyState
+                  title="No page views yet"
+                  description="Page view data appears once visitors browse your site."
+                  icon="👁️"
+                />
+              )}
+            </div>
+          </section>
 
-        {/* Countries */}
-        <section
-          className={styles.section}
-          aria-labelledby="countries-heading"
-        >
-          <h3 className={styles.sectionTitle} id="countries-heading">
-            Countries
-          </h3>
-          <div className={styles.tableCard}>
-            {loading ? (
-              <SkeletonTable rows={5} columns={3} />
-            ) : countries && countries.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Country</th>
-                    <th>Visitors</th>
-                    <th>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {countries.map((c) => (
-                    <tr key={c.country}>
-                      <td>{c.country}</td>
-                      <td>{c.visitors}</td>
-                      <td>{c.percentage}%</td>
+          {/* Countries */}
+          <section
+            className={styles.section}
+            aria-labelledby="countries-heading"
+          >
+            <h3 className={styles.sectionTitle} id="countries-heading">
+              Countries
+            </h3>
+            <div className={styles.tableCard}>
+              {loading ? (
+                <SkeletonTable rows={5} columns={3} />
+              ) : countries && countries.length > 0 ? (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Country</th>
+                      <th>Visitors</th>
+                      <th>%</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                title="No country data"
-                description="Country data appears once visitors from different regions browse your site."
-                icon="🌍"
-              />
-            )}
-          </div>
-        </section>
+                  </thead>
+                  <tbody>
+                    {countries.map((c) => (
+                      <tr key={c.country}>
+                        <td>{c.country}</td>
+                        <td>{c.visitors}</td>
+                        <td>{c.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <EmptyState
+                  title="No country data"
+                  description="Country data appears once visitors from different regions browse your site."
+                  icon="🌍"
+                />
+              )}
+            </div>
+          </section>
 
-        {/* Devices */}
-        <section
-          className={styles.section}
-          aria-labelledby="devices-heading"
-        >
-          <h3 className={styles.sectionTitle} id="devices-heading">
-            Devices
-          </h3>
-          <div className={styles.tableCard}>
-            {loading ? (
-              <SkeletonTable rows={4} columns={3} />
-            ) : devices && devices.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Device</th>
-                    <th>Visitors</th>
-                    <th>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {devices.map((d) => (
-                    <tr key={d.deviceType}>
-                      <td>{d.deviceType}</td>
-                      <td>{d.visitors}</td>
-                      <td>{d.percentage}%</td>
+          {/* Devices */}
+          <section className={styles.section} aria-labelledby="devices-heading">
+            <h3 className={styles.sectionTitle} id="devices-heading">
+              Devices
+            </h3>
+            <div className={styles.tableCard}>
+              {loading ? (
+                <SkeletonTable rows={4} columns={3} />
+              ) : devices && devices.length > 0 ? (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Device</th>
+                      <th>Visitors</th>
+                      <th>%</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                title="No device data"
-                description="Device breakdown appears once visitors browse your site."
-                icon="📱"
-              />
-            )}
-          </div>
-        </section>
+                  </thead>
+                  <tbody>
+                    {devices.map((d) => (
+                      <tr key={d.deviceType}>
+                        <td>{d.deviceType}</td>
+                        <td>{d.visitors}</td>
+                        <td>{d.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <EmptyState
+                  title="No device data"
+                  description="Device breakdown appears once visitors browse your site."
+                  icon="📱"
+                />
+              )}
+            </div>
+          </section>
 
-        {/* Browsers */}
-        <section
-          className={styles.section}
-          aria-labelledby="browsers-heading"
-        >
-          <h3 className={styles.sectionTitle} id="browsers-heading">
-            Browsers
-          </h3>
-          <div className={styles.tableCard}>
-            {loading ? (
-              <SkeletonTable rows={5} columns={3} />
-            ) : browsers && browsers.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Browser</th>
-                    <th>Visitors</th>
-                    <th>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {browsers.map((b) => (
-                    <tr key={b.browser}>
-                      <td>{b.browser}</td>
-                      <td>{b.visitors}</td>
-                      <td>{b.percentage}%</td>
+          {/* Browsers */}
+          <section
+            className={styles.section}
+            aria-labelledby="browsers-heading"
+          >
+            <h3 className={styles.sectionTitle} id="browsers-heading">
+              Browsers
+            </h3>
+            <div className={styles.tableCard}>
+              {loading ? (
+                <SkeletonTable rows={5} columns={3} />
+              ) : browsers && browsers.length > 0 ? (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Browser</th>
+                      <th>Visitors</th>
+                      <th>%</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                title="No browser data"
-                description="Browser breakdown appears once visitors browse your site."
-                icon="🌐"
-              />
-            )}
-          </div>
-        </section>
+                  </thead>
+                  <tbody>
+                    {browsers.map((b) => (
+                      <tr key={b.browser}>
+                        <td>{b.browser}</td>
+                        <td>{b.visitors}</td>
+                        <td>{b.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <EmptyState
+                  title="No browser data"
+                  description="Browser breakdown appears once visitors browse your site."
+                  icon="🌐"
+                />
+              )}
+            </div>
+          </section>
 
-        {/* Most Viewed Projects */}
-        <section
-          className={styles.section}
-          aria-labelledby="projects-heading"
-        >
-          <h3 className={styles.sectionTitle} id="projects-heading">
-            Most Viewed Projects
-          </h3>
-          <div className={styles.tableCard}>
-            {loading ? (
-              <SkeletonTable rows={5} columns={5} />
-            ) : projects && projects.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Project</th>
-                    <th>Views</th>
-                    <th>Visitors</th>
-                    <th>GitHub</th>
-                    <th>Demo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projects.map((p) => (
-                    <tr key={p.slug}>
-                      <td>
-                        <a
-                          href={`/projects/${p.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.projectLink}
-                        >
-                          {p.title}
-                        </a>
-                      </td>
-                      <td>{p.views}</td>
-                      <td>{p.uniqueVisitors}</td>
-                      <td>{p.githubClicks}</td>
-                      <td>{p.demoClicks}</td>
+          {/* Most Viewed Projects */}
+          <section
+            className={styles.section}
+            aria-labelledby="projects-heading"
+          >
+            <h3 className={styles.sectionTitle} id="projects-heading">
+              Most Viewed Projects
+            </h3>
+            <div className={styles.tableCard}>
+              {loading ? (
+                <SkeletonTable rows={5} columns={5} />
+              ) : projects && projects.length > 0 ? (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Views</th>
+                      <th>Visitors</th>
+                      <th>GitHub</th>
+                      <th>Demo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                title="No project views yet"
-                description="Project view data appears once visitors browse your projects."
-                icon="📁"
-              />
-            )}
-          </div>
-        </section>
+                  </thead>
+                  <tbody>
+                    {projects.map((p) => (
+                      <tr key={p.slug}>
+                        <td>
+                          <a
+                            href={`/projects/${p.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.projectLink}
+                          >
+                            {p.title}
+                          </a>
+                        </td>
+                        <td>{p.views}</td>
+                        <td>{p.uniqueVisitors}</td>
+                        <td>{p.githubClicks}</td>
+                        <td>{p.demoClicks}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <EmptyState
+                  title="No project views yet"
+                  description="Project view data appears once visitors browse your projects."
+                  icon="📁"
+                />
+              )}
+            </div>
+          </section>
 
-        {/* Referrers */}
-        <section
-          className={styles.section}
-          aria-labelledby="referrers-heading"
-        >
-          <h3 className={styles.sectionTitle} id="referrers-heading">
-            Referrers
-          </h3>
-          <div className={styles.tableCard}>
-            {loading ? (
-              <SkeletonTable rows={5} columns={3} />
-            ) : referrers && referrers.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Source</th>
-                    <th>Visitors</th>
-                    <th>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {referrers.map((r) => (
-                    <tr key={r.source}>
-                      <td>{r.source}</td>
-                      <td>{r.visitors}</td>
-                      <td>{r.percentage}%</td>
+          {/* Referrers */}
+          <section
+            className={styles.section}
+            aria-labelledby="referrers-heading"
+          >
+            <h3 className={styles.sectionTitle} id="referrers-heading">
+              Referrers
+            </h3>
+            <div className={styles.tableCard}>
+              {loading ? (
+                <SkeletonTable rows={5} columns={3} />
+              ) : referrers && referrers.length > 0 ? (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Visitors</th>
+                      <th>%</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                title="No referrer data"
-                description="Referrer data appears once visitors come from external sites."
-                icon="🔗"
-              />
-            )}
-          </div>
-        </section>
-      </div>
+                  </thead>
+                  <tbody>
+                    {referrers.map((r) => (
+                      <tr key={r.source}>
+                        <td>{r.source}</td>
+                        <td>{r.visitors}</td>
+                        <td>{r.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <EmptyState
+                  title="No referrer data"
+                  description="Referrer data appears once visitors come from external sites."
+                  icon="🔗"
+                />
+              )}
+            </div>
+          </section>
+        </div>
       )}
     </div>
   );

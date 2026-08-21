@@ -10,6 +10,8 @@ import {
   usePrefersReducedMotion,
 } from '../../hooks';
 import { animateValue } from '../../utils';
+import { setSEOMeta, setJsonLd } from '../../utils/seo';
+import { buildUrl } from '../../config/seo';
 import styles from './Home.module.css';
 
 const TYPE_SPEED = 45; // ms per character
@@ -84,7 +86,47 @@ function Home() {
 
   useEffect(() => {
     if (profile?.name) {
-      document.title = `${profile.name} — Portfolio`;
+      setSEOMeta({
+        title: profile.name,
+        description: profile.tagline || '',
+        canonicalUrl: buildUrl('/'),
+        ogTitle: profile.name,
+        ogDescription: profile.tagline || '',
+        ogType: 'website',
+      });
+
+      // Person + WebSite JSON-LD (only if profile data is available)
+      const socialLinks = {};
+      if (profile.contact) {
+        if (profile.contact.github) socialLinks.github = profile.contact.github;
+        if (profile.contact.linkedin)
+          socialLinks.linkedin = profile.contact.linkedin;
+      }
+
+      const sameAs = Object.values(socialLinks).filter(Boolean);
+
+      setJsonLd('person-ld', {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: profile.name,
+        url: buildUrl('/'),
+        ...(profile.headline && { jobTitle: profile.headline }),
+        ...(profile.tagline && { description: profile.tagline }),
+        ...(sameAs.length > 0 && { sameAs }),
+        ...(profile.profileImageUrl && { image: profile.profileImageUrl }),
+      });
+
+      setJsonLd('website-ld', {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Portfolio',
+        url: buildUrl('/'),
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: buildUrl('/') + '/#q={search_term_string}',
+          'query-input': 'required name=search_term_string',
+        },
+      });
     }
   }, [profile]);
 

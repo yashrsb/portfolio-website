@@ -6,6 +6,7 @@ import Section from '../../components/common/Section/Section';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import BlogList from '../../components/blog/BlogList/BlogList';
 import { fetchBlogTags } from '../../services/index.js';
+import { setPageSEO } from '../../utils/seo';
 import styles from './TagPosts.module.css';
 
 function TagPosts() {
@@ -50,6 +51,17 @@ function TagPosts() {
       controller.abort();
     };
   }, [slug]);
+
+  useEffect(() => {
+    if (tag) {
+      setPageSEO({
+        title: `#${tag.name} Articles`,
+        description: `Articles tagged with ${tag.name}.`,
+        path: `/blog/tag/${tag.slug}`,
+        noindex: false,
+      });
+    }
+  }, [tag]);
 
   if (loading) {
     return <LoadingState label="Loading tag..." />;

@@ -14,6 +14,8 @@ import {
   setArticleJsonLd,
   stripMarkdown,
 } from '../../utils/blogSeo';
+import { setJsonLd, removeJsonLd } from '../../utils/seo';
+import { buildUrl } from '../../config/seo';
 import { trackBlogPostView } from '../../services/analyticsService';
 import styles from './BlogPost.module.css';
 
@@ -81,7 +83,6 @@ const twitterShareUrl = (title) =>
 
 /**
  * Generates the LinkedIn share URL.
- * @param {string} title
  * @returns {string}
  */
 const linkedinShareUrl = () =>
@@ -115,7 +116,17 @@ function BlogPost() {
   );
 
   useEffect(() => {
-    if (!post) return;
+    if (!post) {
+      // Reset SEO for 404 state
+      removeJsonLd('blog-posting-ld');
+      setBlogSeoTags({
+        title: 'Article Not Found',
+        description: 'The article you are looking for does not exist.',
+        canonicalUrl: buildUrl('/blog'),
+        noindex: true,
+      });
+      return;
+    }
 
     // Track blog post view (non-blocking, fire-and-forget)
     trackBlogPostView(post.slug, window.location.pathname);
@@ -123,8 +134,13 @@ function BlogPost() {
     const seoTitle = post.seoTitle || post.title;
     const seoDescription =
       post.seoDescription || post.excerpt || stripMarkdown(post.content, 160);
-    const canonicalUrl = `${window.location.origin}/blog/${post.slug}`;
+    const canonicalUrl = post.canonicalUrl
+      ? buildUrl(post.canonicalUrl)
+      : buildUrl(`/blog/${post.slug}`);
     const ogImage = post.coverImage || '';
+
+    const tags =
+      post.tags && post.tags.length > 0 ? post.tags.map((t) => t.name) : [];
 
     setBlogSeoTags({
       title: seoTitle,
@@ -133,29 +149,68 @@ function BlogPost() {
       ogImage,
       ogType: 'article',
       noindex: post.status !== 'PUBLISHED',
+      author: post.author || undefined,
+      articleMeta:
+        post.status === 'PUBLISHED'
+          ? {
+              publishedTime: post.publishedAt,
+              modifiedTime: post.updatedAt,
+              author: post.author || undefined,
+              section: post.category?.name || undefined,
+              tags,
+            }
+          : undefined,
     });
 
-    setArticleJsonLd({
-      headline: seoTitle,
-      description: seoDescription,
-      image: ogImage,
-      datePublished: post.publishedAt,
-      dateModified: post.updatedAt,
-      author: post.author || undefined,
-      url: canonicalUrl,
+    if (post.status === 'PUBLISHED') {
+      setArticleJsonLd({
+        headline: seoTitle,
+        description: seoDescription,
+        image: ogImage,
+        datePublished: post.publishedAt,
+        dateModified: post.updatedAt,
+        author: post.author || undefined,
+        url: canonicalUrl,
+        keywords: tags,
+        articleSection: post.category?.name || undefined,
+      });
+    }
+
+    // Inject BreadcrumbList JSON-LD
+    setJsonLd('breadcrumb-ld', {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Blog',
+          item: buildUrl('/blog'),
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: post.title,
+          item: canonicalUrl,
+        },
+      ],
     });
 
     return () => {
+      // Cleanup: remove all page-specific tags so they don't leak
+      removeJsonLd('blog-posting-ld');
+      removeJsonLd('breadcrumb-ld');
+
+      // Reset to blog listing page defaults
       setBlogSeoTags({
-        title: 'Portfolio Blog',
+        title: 'Blog',
         description:
           'Technical articles on software engineering, system design, and infrastructure.',
-        canonicalUrl: `${window.location.origin}/blog`,
+        canonicalUrl: buildUrl('/blog'),
+        ogImage: '',
         ogType: 'website',
         noindex: false,
       });
-      const existing = document.getElementById('blog-posting-ld');
-      if (existing) existing.remove();
     };
   }, [post, slug]);
 

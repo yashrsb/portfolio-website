@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockDateRangePresets = [
@@ -31,8 +31,8 @@ const mockTimeSeries = [
 ];
 
 const mockPages = [
-  { path: '/', title: 'Home', eventType: 'PAGE_VIEW', views: 100, uniqueVisitors: 80 },
-  { path: '/projects', title: 'Projects', eventType: 'PAGE_VIEW', views: 50, uniqueVisitors: 40 },
+  { path: '/', views: 100, uniqueVisitors: 80 },
+  { path: '/projects', views: 50, uniqueVisitors: 40 },
 ];
 
 const mockCountries = [
@@ -41,13 +41,13 @@ const mockCountries = [
 ];
 
 const mockDevices = [
-  { deviceType: 'DESKTOP', count: 70, percentage: 70 },
-  { deviceType: 'MOBILE', count: 30, percentage: 30 },
+  { deviceType: 'DESKTOP', visitors: 70, percentage: 70 },
+  { deviceType: 'MOBILE', visitors: 30, percentage: 30 },
 ];
 
 const mockBrowsers = [
-  { browser: 'CHROME', count: 60, percentage: 60 },
-  { browser: 'SAFARI', count: 40, percentage: 40 },
+  { browser: 'CHROME', visitors: 60, percentage: 60 },
+  { browser: 'SAFARI', visitors: 40, percentage: 40 },
 ];
 
 const mockProjects = [
@@ -67,7 +67,53 @@ const mockReferrers = [
   { source: 'Direct', visitors: 30, percentage: 30 },
 ];
 
+const mockDashboardResponse = {
+  overview: mockOverview,
+  timeseries: mockTimeSeries,
+  pages: mockPages,
+  projects: mockProjects,
+  countries: mockCountries,
+  devices: mockDevices,
+  browsers: mockBrowsers,
+  referrers: mockReferrers,
+};
+
+const mockEmptyDashboardResponse = {
+  overview: {
+    current: {
+      totalVisitors: 0,
+      totalPageViews: 0,
+      totalProjectViews: 0,
+      totalProjectClicks: 0,
+      totalBlogViews: 0,
+    },
+    previous: {
+      totalVisitors: 0,
+      totalPageViews: 0,
+      totalProjectViews: 0,
+      totalProjectClicks: 0,
+      totalBlogViews: 0,
+    },
+  },
+  timeseries: [],
+  pages: [],
+  projects: [],
+  countries: [],
+  devices: [],
+  browsers: [],
+  referrers: [],
+};
+
+const mockTimeSeriesWithZeros = [
+  { date: '2025-08-01', visitors: 0, pageViews: 0 },
+  { date: '2025-08-02', visitors: 0, pageViews: 0 },
+  { date: '2025-08-03', visitors: 5, pageViews: 12 },
+  { date: '2025-08-04', visitors: 0, pageViews: 0 },
+  { date: '2025-08-05', visitors: 3, pageViews: 8 },
+];
+
 const mockAnalyticsService = vi.hoisted(() => ({
+  getDashboard: vi.fn(),
   getOverview: vi.fn(),
   getTimeSeries: vi.fn(),
   getTopPages: vi.fn(),
@@ -91,7 +137,9 @@ vi.mock('../../components/layout/Breadcrumb/Breadcrumb', () => ({
 }));
 
 vi.mock('../../components/common/LineChart/LineChart', () => ({
-  default: ({ data }) => <div data-testid="line-chart">Chart: {data.length} points</div>,
+  default: ({ data }) => (
+    <div data-testid="line-chart">Chart: {data.length} points</div>
+  ),
 }));
 
 vi.mock('../../components/common/DateRangeSelector/DateRangeSelector', () => ({
@@ -131,17 +179,28 @@ describe('AnalyticsPage', () => {
   beforeEach(async () => {
     vi.restoreAllMocks();
     vi.resetModules();
-    mockAnalyticsService.getOverview.mockResolvedValue(mockOverview);
-    mockAnalyticsService.getTimeSeries.mockResolvedValue(mockTimeSeries);
-    mockAnalyticsService.getTopPages.mockResolvedValue(mockPages);
-    mockAnalyticsService.getCountries.mockResolvedValue(mockCountries);
-    mockAnalyticsService.getDevices.mockResolvedValue(mockDevices);
-    mockAnalyticsService.getBrowsers.mockResolvedValue(mockBrowsers);
-    mockAnalyticsService.getProjectStats.mockResolvedValue(mockProjects);
-    mockAnalyticsService.getReferrers.mockResolvedValue(mockReferrers);
+    mockAnalyticsService.getDashboard.mockClear();
+    mockAnalyticsService.getDashboard.mockResolvedValue(mockDashboardResponse);
 
     const mod = await import('../../pages/AnalyticsPage/AnalyticsPage.jsx');
     AnalyticsPage = mod.default;
+  });
+
+  it('makes a single dashboard API call on mount', async () => {
+    render(<AnalyticsPage />);
+
+    await waitFor(() => {
+      expect(mockAnalyticsService.getDashboard).toHaveBeenCalledTimes(1);
+      expect(mockAnalyticsService.getDashboard).toHaveBeenCalledWith(30);
+    });
+  });
+
+  it('does not fire duplicate dashboard requests under StrictMode double-invoke', async () => {
+    render(<AnalyticsPage />);
+
+    await waitFor(() => {
+      expect(mockAnalyticsService.getDashboard).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('renders the page title', async () => {
@@ -153,10 +212,8 @@ describe('AnalyticsPage', () => {
     render(<AnalyticsPage />);
 
     await waitFor(() => {
-      expect(mockAnalyticsService.getOverview).toHaveBeenCalledWith(30);
+      expect(screen.getAllByText('100').length).toBeGreaterThan(0);
     });
-
-    expect(screen.getAllByText('100').length).toBeGreaterThan(0);
     expect(screen.getAllByText('500').length).toBeGreaterThan(0);
   });
 
@@ -231,21 +288,73 @@ describe('AnalyticsPage', () => {
     render(<AnalyticsPage />);
 
     await waitFor(() => {
-      expect(mockAnalyticsService.getOverview).toHaveBeenCalledWith(30);
+      expect(mockAnalyticsService.getDashboard).toHaveBeenCalledWith(30);
     });
 
     const select = screen.getByTestId('date-range');
-    select.value = '90';
-    select.dispatchEvent(new Event('change', { bubbles: true, target: { value: '90' } }));
+    fireEvent.change(select, { target: { value: '90' } });
 
     await waitFor(() => {
-      expect(mockAnalyticsService.getOverview).toHaveBeenLastCalledWith(90);
+      expect(mockAnalyticsService.getDashboard).toHaveBeenCalledWith(90);
     });
   });
 
-  it('shows error banner when overview fetch fails', async () => {
-    mockAnalyticsService.getOverview.mockRejectedValueOnce(
-      new Error('Failed to load analytics')
+  it('renders timeseries chart with multiple days', async () => {
+    mockAnalyticsService.getDashboard.mockResolvedValue({
+      ...mockDashboardResponse,
+      timeseries: mockTimeSeriesWithZeros,
+    });
+
+    render(<AnalyticsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+    });
+    expect(screen.getAllByText('Chart: 5 points').length).toBeGreaterThan(0);
+  });
+
+  it('handles zero-visitor days gracefully', async () => {
+    mockAnalyticsService.getDashboard.mockResolvedValue({
+      ...mockDashboardResponse,
+      timeseries: mockTimeSeriesWithZeros,
+    });
+
+    render(<AnalyticsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+    });
+    expect(screen.getAllByText('Chart: 5 points').length).toBeGreaterThan(0);
+  });
+
+  it('handles single active day in timeseries', async () => {
+    mockAnalyticsService.getDashboard.mockResolvedValue({
+      ...mockDashboardResponse,
+      timeseries: [{ date: '2025-08-01', visitors: 3, pageViews: 7 }],
+    });
+
+    render(<AnalyticsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Chart: 1 points')).toBeInTheDocument();
+    });
+  });
+
+  it('shows empty state when dashboard data is empty', async () => {
+    mockAnalyticsService.getDashboard.mockResolvedValue(
+      mockEmptyDashboardResponse,
+    );
+
+    render(<AnalyticsPage />);
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('empty-state').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('shows error banner when dashboard fetch fails', async () => {
+    mockAnalyticsService.getDashboard.mockRejectedValue(
+      new Error('Failed to load analytics'),
     );
     render(<AnalyticsPage />);
 

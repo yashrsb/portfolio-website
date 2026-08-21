@@ -1,6 +1,7 @@
 import {
   findProjects,
   findProjectBySlug,
+  findProjectSlugs,
   findExperience,
   findSkills,
   findEducation,
@@ -31,6 +32,12 @@ export const getProjects = async () => findProjects();
  * @returns {Promise<object|null>} Project or null if not found.
  */
 export const getProjectBySlug = async (slug) => findProjectBySlug(slug);
+
+/**
+ * Returns all project slugs + updatedAt for sitemap generation.
+ * @returns {Promise<Array<{slug: string, updatedAt: Date}>>}
+ */
+export const getProjectSlugs = async () => findProjectSlugs();
 
 /**
  * Returns work experience entries.

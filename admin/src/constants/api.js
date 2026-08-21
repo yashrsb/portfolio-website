@@ -75,6 +75,7 @@ export const ADMIN_ENDPOINTS = Object.freeze({
   profile: '/admin/profile',
   'contact-messages': '/admin/contact-messages',
   analytics: {
+    dashboard: '/admin/analytics/dashboard',
     overview: '/admin/analytics/overview',
     timeseries: '/admin/analytics/timeseries',
     pages: '/admin/analytics/pages',

@@ -6,6 +6,7 @@ import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useProjects } from '../../hooks';
+import { setPageSEO } from '../../utils/seo';
 import styles from './Projects.module.css';
 
 /**
@@ -16,7 +17,12 @@ function Projects() {
   const { projects, loading, error } = useProjects();
 
   useEffect(() => {
-    document.title = 'Projects — Portfolio';
+    setPageSEO({
+      title: 'Projects',
+      description:
+        'A selection of applications and tools I have designed and built.',
+      path: '/projects',
+    });
   }, []);
 
   if (loading) {

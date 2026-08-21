@@ -11,7 +11,12 @@ import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useProject } from '../../hooks';
 import { usePrefersReducedMotion } from '../../hooks';
-import { trackProjectView, trackProjectClick } from '../../services/analyticsService';
+import {
+  trackProjectView,
+  trackProjectClick,
+} from '../../services/analyticsService';
+import { setSEOMeta, removeJsonLd, setJsonLd } from '../../utils/seo';
+import { buildUrl } from '../../config/seo';
 import styles from './ProjectDetailPage.module.css';
 
 const STATUS_LABEL = {
@@ -236,41 +241,71 @@ function ProjectDetailPage() {
       // Track project view (non-blocking, fire-and-forget)
       trackProjectView(project.slug, window.location.pathname);
 
-      const pageTitle = `${project.title} — Portfolio`;
-      document.title = pageTitle;
+      const projectUrl = buildUrl(`/projects/${project.slug}`);
 
-      const metaDescription = document.querySelector(
-        'meta[name="description"]',
-      );
-      if (metaDescription) {
-        metaDescription.setAttribute(
-          'content',
-          project.summary || project.description,
-        );
-      }
+      setSEOMeta({
+        title: project.title,
+        description: project.summary || project.description,
+        canonicalUrl: projectUrl,
+        ogTitle: project.title,
+        ogDescription: project.summary || project.description,
+        ogType: 'website',
+        ogImage: project.imageUrl || '',
+        ogImageAlt: project.title,
+        twitterCard: project.imageUrl ? 'summary_large_image' : 'summary',
+        twitterTitle: project.title,
+        twitterDescription: project.summary || project.description,
+        twitterImage: project.imageUrl || '',
+        author: undefined,
+      });
 
-      document
-        .querySelector('meta[property="og:title"]')
-        ?.setAttribute('content', `${project.title} — Portfolio`);
+      // SoftwareApplication JSON-LD for the project
+      setJsonLd('project-ld', {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: project.title,
+        description: project.summary || project.description,
+        ...(projectUrl && { url: projectUrl }),
+        ...(project.imageUrl && { image: project.imageUrl }),
+        ...(project.tags &&
+          project.tags.length > 0 && {
+            applicationCategory: project.tags.join(', '),
+          }),
+        ...(project.techStack && {
+          operatingSystem: Object.keys(project.techStack).join(', '),
+        }),
+      });
 
-      document
-        .querySelector('meta[property="og:description"]')
-        ?.setAttribute('content', project.summary || project.description);
-
-      if (project.imageUrl) {
-        document
-          .querySelector('meta[property="og:image"]')
-          ?.setAttribute('content', project.imageUrl);
-      }
-
-      document
-        .querySelector('link[rel="canonical"]')
-        ?.setAttribute(
-          'href',
-          `${window.location.origin}/projects/${project.slug}`,
-        );
+      // BreadcrumbList JSON-LD
+      setJsonLd('breadcrumb-ld', {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Projects',
+            item: buildUrl('/projects'),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: project.title,
+            item: projectUrl,
+          },
+        ],
+      });
     } else {
-      document.title = 'Project Not Found — Portfolio';
+      // Reset SEO for 404 state
+      removeJsonLd('project-ld');
+      removeJsonLd('breadcrumb-ld');
+      setSEOMeta({
+        title: 'Project Not Found',
+        description:
+          'The project you are looking for does not exist or has been removed.',
+        canonicalUrl: buildUrl('/projects'),
+        robots: 'noindex, nofollow',
+      });
     }
   }, [project, slug]);
 
