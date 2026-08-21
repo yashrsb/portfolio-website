@@ -15,6 +15,17 @@ export const findProjects = async () =>
   });
 
 /**
+ * Fetches all project slugs for sitemap generation.
+ * Returns only non-deleted projects (status != 'deleted').
+ * @returns {Promise<Array<{slug: string, updatedAt: Date}>>}
+ */
+export const findProjectSlugs = async () =>
+  prisma.project.findMany({
+    select: { slug: true, updatedAt: true },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+/**
  * Fetches a single project by its slug.
  * @param {string} slug - Project slug.
  * @returns {Promise<object|null>} Project or null if not found.

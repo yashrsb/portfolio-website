@@ -6,6 +6,7 @@ import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useProfile } from '../../hooks';
+import { setPageSEO } from '../../utils/seo';
 import styles from './About.module.css';
 
 /**
@@ -16,8 +17,12 @@ function About() {
   const { profile, loading, error } = useProfile();
 
   useEffect(() => {
-    if (profile?.name) {
-      document.title = `${profile.name} — About`;
+    if (profile) {
+      setPageSEO({
+        title: 'About',
+        description: profile.tagline || '',
+        path: '/about',
+      });
     }
   }, [profile]);
 

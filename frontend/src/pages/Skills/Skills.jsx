@@ -7,6 +7,7 @@ import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useSkills } from '../../hooks';
+import { setPageSEO } from '../../utils/seo';
 import styles from './Skills.module.css';
 
 const categories = [
@@ -26,7 +27,12 @@ function Skills() {
   const { skills, loading, error } = useSkills();
 
   useEffect(() => {
-    document.title = 'Skills — Portfolio';
+    setPageSEO({
+      title: 'Skills',
+      description:
+        'Technical skills and tools I work with, categorized by proficiency.',
+      path: '/skills',
+    });
   }, []);
 
   if (loading) {

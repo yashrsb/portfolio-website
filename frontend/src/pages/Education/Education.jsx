@@ -6,6 +6,7 @@ import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useEducation } from '../../hooks';
+import { setPageSEO } from '../../utils/seo';
 import styles from './Education.module.css';
 
 /**
@@ -17,7 +18,11 @@ function Education() {
     useEducation();
 
   useEffect(() => {
-    document.title = 'Education — Portfolio';
+    setPageSEO({
+      title: 'Education',
+      description: 'Academic background, certifications, and achievements.',
+      path: '/education',
+    });
   }, []);
 
   if (loading) {

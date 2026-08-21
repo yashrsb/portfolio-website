@@ -4,6 +4,8 @@ import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Button from '../../components/common/Button/Button';
 import Reveal from '../../components/common/Reveal/Reveal';
+import { setPageSEO } from '../../utils/seo';
+import { buildUrl } from '../../config/seo';
 import styles from './NotFound.module.css';
 
 /**
@@ -12,7 +14,13 @@ import styles from './NotFound.module.css';
  */
 function NotFound() {
   useEffect(() => {
-    document.title = 'Page Not Found — Alex Chen';
+    setPageSEO({
+      title: 'Page Not Found',
+      description:
+        'The page you are looking for does not exist or has been moved.',
+      path: buildUrl(window.location.pathname),
+      noindex: true,
+    });
   }, []);
 
   return (

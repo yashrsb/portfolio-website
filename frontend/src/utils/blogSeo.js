@@ -1,148 +1,14 @@
 /**
- * Manages dynamic SEO meta tags for blog pages.
- * Uses the existing document-meta pattern (no heavy SEO framework).
+ * Blog SEO utilities — thin wrappers over the centralized SEO system
+ * in `utils/seo.js`.
  *
- * @param {object} params
- * @param {string} params.title - Page title
- * @param {string} [params.description] - Meta description
- * @param {string} [params.canonicalUrl] - Canonical URL (full URL or path)
- * @param {string} [params.ogImage] - Open Graph image URL
- * @param {string} [params.ogType] - Open Graph type (default: 'article')
- * @param {boolean} [params.noindex] - Whether to add noindex
+ * These functions are retained for backward compatibility with the
+ * BlogPost page, but internally they delegate to `setSEOMeta` / `setPageSEO`
+ * which properly creates, updates, and removes tags — fixing the stale
+ * tag leak that existed when empty values were skipped.
  */
-export const setBlogSeoTags = ({
-  title,
-  description = '',
-  canonicalUrl = '',
-  ogImage = '',
-  ogType = 'article',
-  noindex = false,
-}) => {
-  if (typeof document === 'undefined') return;
 
-  const fullTitle = title ? `${title} — Portfolio Blog` : 'Blog — Portfolio';
-  document.title = fullTitle;
-
-  const setMeta = (name, content) => {
-    if (!content) return;
-    let tag = document.querySelector(`meta[name="${name}"]`);
-    if (!tag) {
-      tag = document.createElement('meta');
-      tag.name = name;
-      document.querySelector('head').appendChild(tag);
-    }
-    tag.content = content;
-  };
-
-  const setOg = (property, content) => {
-    if (!content) return;
-    let tag = document.querySelector(`meta[property="${property}"]`);
-    if (!tag) {
-      tag = document.createElement('meta');
-      tag.property = property;
-      document.querySelector('head').appendChild(tag);
-    }
-    tag.content = content;
-  };
-
-  setMeta('description', description);
-  setOg('og:title', title || '');
-  setOg('og:description', description);
-  setOg('og:type', ogType);
-
-  if (ogImage) {
-    setOg('og:image', ogImage);
-    setOg('og:image:width', '1200');
-    setOg('og:image:height', '630');
-  }
-
-  setOg('og:site', window.location.origin);
-  setOg('og:url', canonicalUrl || window.location.href);
-
-  // Twitter/X card
-  setMeta('twitter:card', 'summary_large_image');
-  setMeta('twitter:title', title || '');
-  setMeta('twitter:description', description);
-  if (ogImage) {
-    setMeta('twitter:image', ogImage);
-  }
-
-  // Canonical
-  let canonical = document.querySelector('link[rel="canonical"]');
-  if (!canonical) {
-    canonical = document.createElement('link');
-    canonical.rel = 'canonical';
-    document.querySelector('head').appendChild(canonical);
-  }
-  canonical.href = canonicalUrl || window.location.href;
-
-  // noindex
-  let robots = document.querySelector('meta[name="robots"]');
-  if (!robots) {
-    robots = document.createElement('meta');
-    robots.name = 'robots';
-    document.querySelector('head').appendChild(robots);
-  }
-  robots.content = noindex ? 'noindex, nofollow' : 'index, follow';
-};
-
-/**
- * Removes a JSON-LD structured data script tag.
- */
-export const removeJsonLd = (id) => {
-  if (typeof document === 'undefined') return;
-  const existing = document.getElementById(id);
-  if (existing) existing.remove();
-};
-
-/**
- * Injects JSON-LD structured data for a BlogPosting.
- * @param {object} params
- * @param {string} params.headline
- * @param {string} [params.description]
- * @param {string} [params.image]
- * @param {Date|string} params.datePublished
- * @param {Date|string} params.dateModified
- * @param {string} [params.author]
- * @param {string} params.url
- */
-export const setArticleJsonLd = ({
-  headline,
-  description = '',
-  image = '',
-  datePublished,
-  dateModified,
-  author = 'Portfolio Author',
-  url,
-}) => {
-  if (typeof document === 'undefined') return;
-
-  removeJsonLd('blog-posting-ld');
-
-  const data = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline,
-    description,
-    image,
-    datePublished: new Date(datePublished).toISOString(),
-    dateModified: new Date(dateModified).toISOString(),
-    author: {
-      '@type': 'Person',
-      name: author,
-    },
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': url,
-    },
-  };
-
-  const script = document.createElement('script');
-  script.id = 'blog-posting-ld';
-  script.type = 'application/ld+json';
-  script.textContent = JSON.stringify(data);
-  document.querySelector('head').appendChild(script);
-};
+import { setSEOMeta, setJsonLd, removeJsonLd } from './seo';
 
 /**
  * Strips Markdown to plain text for meta descriptions.
@@ -167,3 +33,108 @@ export const stripMarkdown = (markdown, maxLen = 160) => {
 
   return text.length > maxLen ? `${text.slice(0, maxLen - 3).trim()}...` : text;
 };
+
+/**
+ * Sets SEO meta tags for a blog post.
+ * Delegates to the centralized `setSEOMeta` which properly handles
+ * tag creation AND removal (fixing the stale tag leak).
+ *
+ * @param {object} params
+ * @param {string} params.title - Page title
+ * @param {string} [params.description] - Meta description
+ * @param {string} [params.canonicalUrl] - Canonical URL (full URL or path)
+ * @param {string} [params.ogImage] - Open Graph image URL (empty = remove)
+ * @param {string} [params.ogType] - Open Graph type (default: 'article')
+ * @param {boolean} [params.noindex] - Whether to add noindex
+ * @param {string} [params.author] - Author meta
+ * @param {object} [params.articleMeta] - { publishedTime, modifiedTime, author, section, tags }
+ */
+export const setBlogSeoTags = ({
+  title,
+  description = '',
+  canonicalUrl = '',
+  ogImage = '',
+  ogType = 'article',
+  noindex = false,
+  author = '',
+  articleMeta,
+}) => {
+  setSEOMeta({
+    title,
+    description: description || '',
+    canonicalUrl: canonicalUrl || undefined,
+    ogTitle: title || '',
+    ogDescription: description || '',
+    ogType,
+    ogImage: ogImage || '',
+    titleTemplate: '%s — Portfolio Blog',
+    twitterCard: ogImage ? 'summary_large_image' : 'summary',
+    twitterTitle: title || '',
+    twitterDescription: description || '',
+    twitterImage: ogImage || '',
+    robots: noindex ? 'noindex, nofollow' : 'index, follow',
+    author: author || '',
+    articleMeta,
+  });
+};
+
+/**
+ * Injects JSON-LD structured data for a BlogPosting/Article.
+ * @param {object} params
+ * @param {string} params.headline
+ * @param {string} [params.description]
+ * @param {string} [params.image]
+ * @param {Date|string} params.datePublished
+ * @param {Date|string} params.dateModified
+ * @param {string} [params.author]
+ * @param {string} params.url
+ * @param {string[]} [params.keywords]
+ * @param {string} [params.articleSection]
+ */
+export const setArticleJsonLd = ({
+  headline,
+  description = '',
+  image = '',
+  datePublished,
+  dateModified,
+  author,
+  url,
+  keywords,
+  articleSection,
+}) => {
+  if (typeof document === 'undefined') return;
+
+  removeJsonLd('blog-posting-ld');
+
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline,
+    ...(description && { description }),
+    ...(image && { image }),
+    ...(datePublished && {
+      datePublished: new Date(datePublished).toISOString(),
+    }),
+    ...(datePublished && {
+      dateModified: dateModified
+        ? new Date(dateModified).toISOString()
+        : new Date(datePublished).toISOString(),
+    }),
+    ...(author && {
+      author: {
+        '@type': 'Person',
+        name: author,
+      },
+    }),
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url,
+    },
+    ...(keywords && keywords.length > 0 && { keywords: keywords.join(', ') }),
+    ...(articleSection && { articleSection }),
+  };
+
+  setJsonLd('blog-posting-ld', data);
+};
+
+export { removeJsonLd };

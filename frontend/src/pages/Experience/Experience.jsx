@@ -9,6 +9,7 @@ import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import CompanyLink from '../../components/common/CompanyLink/CompanyLink';
 import { useExperience } from '../../hooks';
+import { setPageSEO } from '../../utils/seo';
 import styles from './Experience.module.css';
 
 /**
@@ -19,7 +20,12 @@ function Experience() {
   const { experience, loading, error } = useExperience();
 
   useEffect(() => {
-    document.title = 'Experience — Portfolio';
+    setPageSEO({
+      title: 'Experience',
+      description:
+        'Work experience and engineering roles in software development.',
+      path: '/experience',
+    });
   }, []);
 
   if (loading) {

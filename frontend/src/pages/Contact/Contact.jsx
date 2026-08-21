@@ -7,6 +7,7 @@ import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
 import { useProfile, useSocial } from '../../hooks';
+import { setPageSEO } from '../../utils/seo';
 import { submitContact } from '../../services';
 import { ApiError } from '../../services/apiClient';
 import styles from './Contact.module.css';
@@ -144,7 +145,11 @@ function Contact() {
   const [serverError, setServerError] = useState('');
 
   useEffect(() => {
-    document.title = 'Contact — Portfolio';
+    setPageSEO({
+      title: 'Contact',
+      description: 'Get in touch via email, LinkedIn, or GitHub.',
+      path: '/contact',
+    });
   }, []);
 
   const handleChange = (event) => {
@@ -193,7 +198,9 @@ function Contact() {
           'Unable to reach the server. Please check your connection and try again.',
         );
       } else if (state === FORM_STATES.SPAM_REJECTED) {
-        setServerError('Your submission was flagged as spam. Please try again.');
+        setServerError(
+          'Your submission was flagged as spam. Please try again.',
+        );
       } else {
         setServerError(
           'Something went wrong. Your message could not be sent. Please try again later.',
@@ -288,8 +295,8 @@ function Contact() {
                 </span>
                 <p className={styles.successTitle}>Message Sent</p>
                 <p className={styles.successText}>
-                  Thank you for reaching out. I&apos;ll get back to you as
-                  soon as possible.
+                  Thank you for reaching out. I&apos;ll get back to you as soon
+                  as possible.
                 </p>
                 <Button
                   variant="outline"
@@ -336,7 +343,9 @@ function Contact() {
                     autoComplete="name"
                     disabled={inputDisabled}
                     aria-invalid={Boolean(fieldErrors.name)}
-                    aria-describedby={fieldErrors.name ? 'name-error' : undefined}
+                    aria-describedby={
+                      fieldErrors.name ? 'name-error' : undefined
+                    }
                   />
                   {fieldErrors.name && (
                     <p

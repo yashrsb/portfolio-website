@@ -2,30 +2,133 @@ import { Router } from 'express';
 import v1Routes from './v1/index.js';
 import { env } from '../config/env.js';
 import blogService from '../services/blogService.js';
+import { getProjectSlugs } from '../services/portfolioService.js';
 import { buildFeed, SITE_CONFIG } from '../utils/rss.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
 
+const getSiteUrl = () => {
+  let base = SITE_CONFIG.getSiteUrl();
+  base = base.replace(/\/$/, '');
+  return base;
+};
+
 /**
- * Sitemap XML generator — includes static pages + blog posts.
+ * Sitemap XML generator — includes all static pages, project detail pages,
+ * and published blog post URLs.
+ *
+ * Excludes: admin routes, login, 404, draft/unpublished posts,
+ * deleted/nonexistent projects.
  */
 const generateSitemapXml = async () => {
-  const siteUrl = SITE_CONFIG.getSiteUrl();
-  const blogSlugs = await blogService.getAllPublishedSlugs();
+  const siteUrl = getSiteUrl();
+  const lastmod = new Date().toISOString().slice(0, 10);
 
   const urls = [
-    { loc: `${siteUrl}/`, lastmod: new Date().toISOString(), priority: 1.0 },
-    { loc: `${siteUrl}/about`, priority: 0.8 },
-    { loc: `${siteUrl}/projects`, priority: 0.8 },
-    { loc: `${siteUrl}/blog`, priority: 0.8 },
+    { loc: `${siteUrl}/`, lastmod, priority: 1.0, changefreq: 'weekly' },
+    { loc: `${siteUrl}/about`, lastmod, priority: 0.8, changefreq: 'monthly' },
+    {
+      loc: `${siteUrl}/experience`,
+      lastmod,
+      priority: 0.8,
+      changefreq: 'monthly',
+    },
+    { loc: `${siteUrl}/skills`, lastmod, priority: 0.8, changefreq: 'monthly' },
+    {
+      loc: `${siteUrl}/projects`,
+      lastmod,
+      priority: 0.9,
+      changefreq: 'weekly',
+    },
+    {
+      loc: `${siteUrl}/education`,
+      lastmod,
+      priority: 0.6,
+      changefreq: 'monthly',
+    },
+    {
+      loc: `${siteUrl}/contact`,
+      lastmod,
+      priority: 0.7,
+      changefreq: 'monthly',
+    },
+    { loc: `${siteUrl}/blog`, lastmod, priority: 0.9, changefreq: 'daily' },
   ];
 
+  // Project detail pages — generated from database slugs
+  const projectSlugs = await getProjectSlugs();
+  projectSlugs.forEach((project) => {
+    const projLastmod = (project.updatedAt || new Date())
+      .toISOString()
+      .slice(0, 10);
+    urls.push({
+      loc: `${siteUrl}/projects/${project.slug}`,
+      lastmod: projLastmod,
+      priority: 0.7,
+      changefreq: 'monthly',
+    });
+  });
+
+  // Published blog posts
+  const blogSlugs = await blogService.getAllPublishedSlugs();
   blogSlugs.forEach((post) => {
+    const postLastmod = (post.publishedAt || post.updatedAt || new Date())
+      .toISOString()
+      .slice(0, 10);
     urls.push({
       loc: `${siteUrl}/blog/${post.slug}`,
-      lastmod: (post.publishedAt || post.updatedAt).toISOString(),
+      lastmod: postLastmod,
       priority: 0.6,
+      changefreq: 'monthly',
+    });
+  });
+
+  // Blog categories — only those with published posts
+  const categories = await blogService.getCategories();
+  const catLastmods = {};
+  for (const cat of categories) {
+    try {
+      const result = await blogService.getPostsByCategory(cat.slug, {
+        limit: 1,
+      });
+      if (result.posts && result.posts.length > 0) {
+        catLastmods[cat.slug] = cat.updatedAt;
+      }
+    } catch {
+      // Skip categories without published posts
+    }
+  }
+  Object.entries(catLastmods).forEach(([slug, updatedAt]) => {
+    const catLastmod = (updatedAt || new Date()).toISOString().slice(0, 10);
+    urls.push({
+      loc: `${siteUrl}/blog/category/${slug}`,
+      lastmod: catLastmod,
+      priority: 0.5,
+      changefreq: 'monthly',
+    });
+  });
+
+  // Blog tags — only those with published posts
+  const tags = await blogService.getTags();
+  const tagLastmods = {};
+  for (const tag of tags) {
+    try {
+      const result = await blogService.getPostsByTag(tag.slug, { limit: 1 });
+      if (result.posts && result.posts.length > 0) {
+        tagLastmods[tag.slug] = tag.updatedAt;
+      }
+    } catch {
+      // Skip tags without published posts
+    }
+  }
+  Object.entries(tagLastmods).forEach(([slug, updatedAt]) => {
+    const tagLastmod = (updatedAt || new Date()).toISOString().slice(0, 10);
+    urls.push({
+      loc: `${siteUrl}/blog/tag/${slug}`,
+      lastmod: tagLastmod,
+      priority: 0.5,
+      changefreq: 'monthly',
     });
   });
 
@@ -37,6 +140,8 @@ const generateSitemapXml = async () => {
     xml += `    <loc>${url.loc}</loc>\n`;
     if (url.lastmod) xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
     xml += `    <priority>${url.priority}</priority>\n`;
+    if (url.changefreq)
+      xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
     xml += '  </url>\n';
   });
 
@@ -82,20 +187,25 @@ router.get('/sitemap.xml', async (req, res) => {
 
 /**
  * Root-level robots.txt.
+ * References the production sitemap URL and disallows admin/private routes.
  */
 router.get('/robots.txt', (req, res) => {
   res.set({ 'Content-Type': 'text/plain; charset=utf-8' });
   res
     .status(200)
     .send(
-      'User-agent: *\n' +
-        'Allow: /\n' +
-        'Disallow: /admin\n' +
-        'Disallow: /login\n' +
-        '\n' +
-        'Sitemap: ' +
-        env.frontendUrl +
-        '/sitemap.xml\n',
+      [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        'Disallow: /admin/',
+        'Disallow: /api/v1/admin',
+        'Disallow: /login',
+        'Disallow: /api/v1/auth',
+        '',
+        `Sitemap: ${getSiteUrl()}/sitemap.xml`,
+        '',
+      ].join('\n'),
     );
 });
 
