@@ -6,7 +6,7 @@
 # ------------------------------------------------------------
 # Stage 1: Install dependencies and generate Prisma Client
 # ------------------------------------------------------------
-FROM node:20-alpine AS dependencies
+FROM node:22-alpine AS dependencies
 
 WORKDIR /app
 
@@ -14,29 +14,34 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install production dependencies only (no devDependencies)
-RUN npm ci --omit=dev
+# --ignore-scripts: skip postinstall (prisma generate) — Prisma Client is
+# generated separately in the prisma stage where the schema is available.
+RUN npm ci --omit=dev --ignore-scripts
 
 # ------------------------------------------------------------
 # Stage 2: Build stage for Prisma Client generation
 # ------------------------------------------------------------
-FROM node:20-alpine AS prisma
+FROM node:22-alpine AS prisma
 
 WORKDIR /app
 
 # Copy dependency manifests and install ALL dependencies (including dev for prisma)
+# --ignore-scripts: skip postinstall (prisma generate) — schema is copied next.
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Copy Prisma schema and migrations
 COPY prisma ./prisma
 
 # Generate Prisma Client
-RUN npx prisma generate
+# DATABASE_URL is required by Prisma 7.x even for generate; use a dummy value
+# since no database connection is needed to generate the client code.
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 # ------------------------------------------------------------
 # Stage 3: Production runtime
 # ------------------------------------------------------------
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S appgroup && \
@@ -47,13 +52,14 @@ WORKDIR /app
 # Copy production dependencies from builder stage
 COPY --from=dependencies /app/node_modules ./node_modules
 
-# Copy generated Prisma Client
-COPY --from=prisma /app/node_modules/.prisma ./node_modules/.prisma
+# Copy generated Prisma Client (custom output path: src/generated/prisma)
+COPY --from=prisma /app/src/generated/prisma ./src/generated/prisma
 COPY --from=prisma /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy application source
 COPY src ./src
 COPY prisma ./prisma
+COPY prisma.config.ts ./
 
 # Create uploads directory for local storage
 RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app

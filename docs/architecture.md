@@ -441,7 +441,7 @@ Browser
 #### Frontend Container
 
 - **Base image**: `nginx:1.27-alpine` (runtime)
-- **Build image**: `node:20-alpine`
+- **Build image**: `node:22-alpine`
 - **Port**: 3000
 - **Build steps**: `npm ci` → `npm run build` → copy to Nginx
 - **SPA fallback**: All routes resolve to `index.html`
@@ -450,7 +450,7 @@ Browser
 #### Admin Container
 
 - **Base image**: `nginx:1.27-alpine` (runtime)
-- **Build image**: `node:20-alpine`
+- **Build image**: `node:22-alpine`
 - **Port**: 3001
 - **Build steps**: `npm ci` → `npm run build` → copy to Nginx
 - **SPA fallback**: All routes resolve to `index.html`
@@ -458,7 +458,7 @@ Browser
 
 #### Backend Container
 
-- **Base image**: `node:20-alpine`
+- **Base image**: `node:22-alpine`
 - **Build stages**: dependencies → prisma → runtime
 - **Port**: 5000
 - **Startup**: `prisma migrate deploy` → `node src/server.js`
