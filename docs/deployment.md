@@ -298,7 +298,7 @@ docker compose up --build
 |-----------|--------------------|-------|--------------------------|
 | frontend  | nginx:1.27-alpine  | 3000  | Public React website     |
 | admin     | nginx:1.27-alpine  | 3001  | Admin dashboard          |
-| backend   | node:20-alpine     | 5000  | Express API              |
+| backend   | node:22-alpine     | 5000  | Express API              |
 | postgres  | postgres:16-alpine | 5432  | PostgreSQL database      |
 
 ### Common Docker Commands

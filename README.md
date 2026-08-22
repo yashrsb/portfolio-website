@@ -107,8 +107,8 @@ portfolio/
 
 ## Prerequisites
 
-- Node.js 18+
-- npm 9+
+- Node.js 22 LTS
+- npm 10+
 - PostgreSQL 14+ (local or hosted)
 - Docker & Docker Compose (optional, for containerized deployment)
 
