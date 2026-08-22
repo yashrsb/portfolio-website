@@ -134,7 +134,100 @@ server {
 }
 ```
 
-## Troubleshooting
+## Docker Deployment (Phase 17)
+
+The application supports containerized deployment using Docker Compose for
+local development and staging environments.
+
+### Quick Start
+
+```bash
+# Create environment file
+cp docker/.env.example .env
+
+# Build and start all services
+docker compose up --build
+
+# Access the application:
+# - Public frontend: http://localhost:3000
+# - Admin dashboard:  http://localhost:3001
+# - Backend API:      http://localhost:5000
+```
+
+### Docker Services
+
+| Service   | Image              | Port  | Description              |
+|-----------|--------------------|-------|--------------------------|
+| frontend  | nginx:1.27-alpine  | 3000  | Public React website     |
+| admin     | nginx:1.27-alpine  | 3001  | Admin dashboard          |
+| backend   | node:20-alpine     | 5000  | Express API              |
+| postgres  | postgres:16-alpine | 5432  | PostgreSQL database      |
+
+### Common Docker Commands
+
+```bash
+# Start services
+docker compose up --build
+
+# Start in detached mode
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop services (preserves data)
+docker compose down
+
+# Stop and remove all data
+docker compose down -v
+
+# Rebuild without cache
+docker compose build --no-cache
+
+# List running services
+docker compose ps
+```
+
+### Database Initialization
+
+The backend container automatically runs migrations on startup:
+
+1. PostgreSQL starts and becomes healthy
+2. Backend container starts
+3. Backend runs `npx prisma migrate deploy`
+4. Backend starts the Express server
+
+This is safe to run repeatedly — migrations are idempotent.
+
+### Environment Variables
+
+Docker environment variables are configured in `.env` (see `docker/.env.example`).
+The `VITE_API_BASE_URL` must point to the browser-accessible backend URL
+(`http://localhost:5000/api/v1`), not the internal Docker hostname (`backend`).
+
+### Data Persistence
+
+- PostgreSQL data is stored in a named volume (`postgres_data`)
+- Uploaded files are stored in a named volume (`backend_uploads`)
+- Data survives `docker compose down`
+- Use `docker compose down -v` to erase all data
+
+### Development vs Docker
+
+| Aspect           | Local Development    | Docker                    |
+|------------------|----------------------|---------------------------|
+| Frontend port    | 5173                 | 3000                      |
+| Admin port       | 5174                 | 3001                      |
+| Backend port     | 5000                 | 5000                      |
+| Database         | Local PostgreSQL     | Container PostgreSQL      |
+| Hot reload       | Yes (Vite dev server)| No (production build)     |
+| Node.js required | Yes                  | No (only Docker)          |
+
+### Production Notes
+
+Docker is intended for local development and staging. For production deployments,
+use the existing CI/CD pipeline (GitHub Actions) and deploy to your hosting
+platform of choice.
 
 | Symptom                             | Likely cause / fix                                                          |
 | ----------------------------------- | --------------------------------------------------------------------------- |

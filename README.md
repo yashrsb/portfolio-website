@@ -110,6 +110,7 @@ portfolio/
 - Node.js 18+
 - npm 9+
 - PostgreSQL 14+ (local or hosted)
+- Docker & Docker Compose (optional, for containerized deployment)
 
 ## Setup
 
@@ -188,6 +189,97 @@ curl http://localhost:5001/api/v1/projects
 # Download the latest resume
 curl http://localhost:5001/api/v1/resume/download
 ```
+
+## Docker Deployment
+
+The application can be run locally using Docker Compose for a production-like
+environment without installing Node.js or PostgreSQL locally.
+
+### Quick Start
+
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd portfolio
+
+# 2. Create environment file
+cp docker/.env.example .env
+
+# 3. Build and start all services
+docker compose up --build
+
+# 4. Access the application
+# Public frontend: http://localhost:3000
+# Admin dashboard:  http://localhost:3001
+# Backend API:      http://localhost:5000
+```
+
+### Docker Architecture
+
+```
+Browser
+   │
+   ├── localhost:3000 → Frontend (Nginx)
+   │
+   └── localhost:3001 → Admin (Nginx)
+                         │
+                         ▼
+                   localhost:5000 (Backend API)
+                         │
+                         ▼
+                    PostgreSQL (Docker Volume)
+                         │
+                         └── Named Volume: postgres_data
+```
+
+### Ports
+
+| Service   | Host Port | Container Port |
+|-----------|-----------|----------------|
+| Frontend  | 3000      | 3000           |
+| Admin     | 3001      | 3001           |
+| Backend   | 5000      | 5000           |
+| PostgreSQL| 5432      | 5432           |
+
+### Docker Commands
+
+| Command                          | Description                          |
+|----------------------------------|--------------------------------------|
+| `docker compose up --build`      | Build and start all services         |
+| `docker compose up -d --build`   | Start in detached mode               |
+| `docker compose down`            | Stop services (preserves data)       |
+| `docker compose down -v`         | Stop and remove volumes (erases data)|
+| `docker compose logs -f`         | Follow logs                          |
+| `docker compose logs -f backend` | Follow backend logs                  |
+| `docker compose ps`              | List running services                |
+| `docker compose build --no-cache`| Rebuild without cache                |
+
+### Environment Variables
+
+Docker-specific environment variables are configured in `.env` (see
+`docker/.env.example`). Key variables:
+
+| Variable              | Description                          |
+|-----------------------|--------------------------------------|
+| `POSTGRES_DB`         | PostgreSQL database name             |
+| `POSTGRES_USER`       | PostgreSQL username                  |
+| `POSTGRES_PASSWORD`   | PostgreSQL password                  |
+| `JWT_ACCESS_SECRET`   | JWT access token secret              |
+| `JWT_REFRESH_SECRET`  | JWT refresh token secret             |
+| `ADMIN_PASSWORD`      | Admin user password                  |
+| `VITE_API_BASE_URL`   | Backend API URL (browser-facing)     |
+
+### Database Persistence
+
+PostgreSQL data is stored in a named Docker volume (`postgres_data`). Data
+survives `docker compose down` but is removed with `docker compose down -v`.
+
+### Production Notes
+
+- Docker provides a reproducible development/staging environment
+- For production deployments, use the existing CI/CD pipeline (GitHub Actions)
+- The frontend and admin are served via Nginx with SPA fallback
+- The backend runs Prisma migrations automatically on startup
 
 ## Documentation
 

@@ -300,3 +300,41 @@ a blank screen.
 - [x] `npm run test` passes for all three apps (backend 145, frontend 87, admin 68).
 - [x] `npm run build` passes for frontend and admin.
 - [x] `prisma validate` passes.
+
+## 12. Docker (Phase 17)
+
+### Docker Build Verification
+
+- [ ] `frontend/Dockerfile` builds successfully
+- [ ] `admin/Dockerfile` builds successfully
+- [ ] `backend/Dockerfile` builds successfully
+- [ ] `docker-compose.yml` is valid
+
+### Docker Runtime Verification
+
+- [ ] `docker compose up --build` starts all services
+- [ ] PostgreSQL container becomes healthy
+- [ ] Backend runs migrations successfully
+- [ ] `GET /api/v1/health` returns 200
+- [ ] Frontend loads at `http://localhost:3000`
+- [ ] Admin loads at `http://localhost:3001`
+- [ ] Frontend can retrieve projects from backend
+- [ ] Project detail pages work
+- [ ] Blog pages work
+- [ ] Contact form works
+- [ ] Admin login works
+- [ ] Admin CRUD operations work
+- [ ] Resume functionality works
+
+### Docker Persistence Verification
+
+- [ ] `docker compose down` preserves PostgreSQL data
+- [ ] `docker compose up` restarts with existing data
+- [ ] Uploaded files persist across restarts
+
+### Docker Security Verification
+
+- [ ] Backend container runs as non-root user
+- [ ] PostgreSQL is not exposed to host by default
+- [ ] No secrets in Dockerfiles or docker-compose.yml
+- [ ] `.dockerignore` files exclude sensitive files
