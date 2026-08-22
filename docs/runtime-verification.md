@@ -42,12 +42,14 @@ Login payload: `{ "email": "...", "password": "..." }`
 
 - [ ] `POST /auth/login` — seeded admin credentials → `200`, access token in
       body + HttpOnly refresh cookie.
+
 ```bash
   curl -X POST http://localhost:5001/api/v1/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email":"admin@example.com","password":"YOUR_PASSWORD"}' \
     -c cookies.txt
-  ```
+```
+
 - [ ] Login with wrong password → `401`, no token/cookie.
   ```bash
   curl -X POST http://localhost:5001/api/v1/auth/login \
@@ -265,7 +267,7 @@ a blank screen.
 - [ ] Clicking a project's GitHub/Demo link triggers a `PROJECT_CLICK` event.
 - [ ] Visiting `/blog/:slug` triggers a `BLOG_POST_VIEW` event.
 - [ ] Setting `localStorage.analytics_opt_out = "true"` stops all tracking.
-  Removing it re-enables tracking.
+      Removing it re-enables tracking.
 - [ ] `navigator.sendBeacon` is used for event delivery (verify via dev tools).
 
 ## 10. Performance (Phase 15)

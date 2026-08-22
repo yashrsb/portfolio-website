@@ -286,6 +286,22 @@ survives `docker compose down` but is removed with `docker compose down -v`.
 - [docs/architecture.md](docs/architecture.md) — system and code architecture
 - [docs/api.md](docs/api.md) — API reference
 - [docs/deployment.md](docs/deployment.md) — environment, build, and deployment
+- [docs/runtime-verification.md](docs/runtime-verification.md) — manual verification checklist
+
+## CI/CD
+
+The project includes GitHub Actions workflows for continuous integration and
+deployment:
+
+- **CI** — runs lint, tests, Prisma validation, and builds on every PR and push to `main`
+- **Deploy** — deploys to production after CI passes on `main`; checks out the exact CI-validated commit, applies migrations, runs smoke tests
+
+See [docs/architecture.md#ci-cd-flow-hardened](docs/architecture.md#ci-cd-flow-hardened)
+for full documentation of the CI/CD architecture, required GitHub secrets, migration
+strategy, persistent file safety, SSH host verification, and rollback procedure.
+
+See [docs/deployment.md](docs/deployment.md) for detailed deployment instructions and
+[docs/runtime-verification.md](docs/runtime-verification.md) for the manual verification checklist.
 
 ## License
 
