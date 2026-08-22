@@ -386,227 +386,135 @@ runtime verification.
 - In-memory frontend cache is per-session. HTTP cache headers on the backend provide
   cross-session caching at the browser/CDN level.
 
-## CI/CD Pipeline (Phase 16) — Hardened (Phase 16.1)
+## Docker Architecture (Phase 17)
 
-The project uses GitHub Actions for continuous integration and deployment.
+The application supports containerized deployment using Docker Compose for
+local development and staging environments.
 
-```
-Developer
-   ↓
-Feature Branch
-   ↓
-Pull Request → CI: Lint → Test → Prisma Validate → Build
-                      │
-                      ┓ success
-                      v
-                  Merge to main
-                      ↓
-               Deploy Workflow (workflow_run on CI success)
-                      ↓
-            Checkout EXACT CI commit (head_sha)
-                      ↓
-              Build all artifacts
-                      ↓
-        Database Migration (prisma migrate deploy)
-           ↙                    ↘
-        fail → STOP           success → continue
-   backend NOT restarted    backend still running old version
-                      ↓
-                 Backend Deploy (rsync, --exclude uploads)
-                      ↓
-               Restart backend (PM2/systemd)
-                      ↓
-         Health check + smoke tests
-                      ↓
-               Frontend + Admin Deploy
-                      ↓
-        Verify public endpoints (200)
-```
-
-### Deployment Notifications
-
-Deployment notifications are currently not configured. The repository does not
-include Slack, Discord, or email notification integrations. Deployment status
-can be monitored via the GitHub Actions workflow runs page.
-
-### Workflow Permissions
-
-Both workflows use `permissions: contents: read`:
-
-```yaml
-permissions:
-  contents: read
-```
-
-- **CI (`ci.yml`)**: runs on PRs and pushes to `main`. Has no access to any
-  deployment secrets. Only reads repository contents.
-- **Deploy (`deploy.yml`)**: runs only on `workflow_run` completion (CI success
-  on `main`). Uses `workflow_run` to receive the CI commit SHA — this event is
-  only available on `main`-branch CI completions, meaning PRs cannot trigger
-  deployments or access production secrets.
-
-### Untrusted PR Safety
-
-PRs cannot access deployment secrets because:
-
-1. The deploy workflow only triggers via `workflow_run` on `main`-branch CI
-2. `workflow_run` events are not triggered by PR CI runs
-3. The `DEPLOY_*` secrets are only referenced in `deploy.yml`, not `ci.yml`
-
-### CI Workflow (`.github/workflows/ci.yml`)
-
-Runs on every pull request and every push to `main`.
-
-Stages (each must pass for the next to run):
-
-1. **Install dependencies** — `npm ci` for root + all three apps (frontend, backend, admin)
-2. **Lint** — ESLint with `--max-warnings 0` on all three apps
-3. **Test** — Vitest on all three apps
-4. **Prisma validate** — schema validation
-5. **Build** — Vite production builds for frontend + admin
-
-Uses Node.js 22 LTS (from `.nvmrc`) and npm dependency caching.
-
-### Deploy Workflow (`.github/workflows/deploy.yml`)
-
-Triggers only after CI succeeds on `main` (via `workflow_run`).
-
-Deployment order:
-
-1. **Checkout** the exact CI-validated commit (`head_sha` from `workflow_run`)
-2. **Build** all artifacts (frontend, admin, backend)
-3. **Database migration** — `npx prisma migrate deploy` (never `migrate dev`); fails fast on error
-4. **Deploy backend** — rsync to server (excluding uploads/, node_modules, .env.production), restart via PM2
-5. **Health check + smoke tests** — `GET /api/v1/health`, `/api/v1/projects`, etc.
-6. **Deploy frontend** — rsync `frontend/dist` to web root
-7. **Deploy admin** — rsync `admin/dist` to admin path
-8. **Verify** — frontend + public endpoints (`/projects`, `/sitemap.xml`, `/robots.txt`)
-
-Uses `concurrency` to prevent overlapping deployments (newer pushes cancel older ones).
-
-### CI/CD Flow (Hardened)
+### Docker Services
 
 ```
-Push to main → CI (lint + test + prisma validate + build)
-  ↓ CI passes
-Workflow_run triggers → Deploy workflow
-  ↓
-Checkout EXACT CI-validated commit (workflow_run.head_sha)
-  ↓
-Reproduce build (frontend, admin, backend artifacts)
-  ↓
-Database migration (prisma migrate deploy) → fail fast if broken
-  ↓
-Deploy backend (rsync, excluding uploads/ and .env.production)
-  ↓
-Restart backend (PM2/systemd)
-  ↓
-Backend health check + smoke tests
-  ↓
-Deploy frontend + admin (rsync --delete)
-  ↓
-Public endpoint smoke tests (/projects, /sitemap.xml, /robots.txt)
+Browser
+   │
+   ├── localhost:3000 → Frontend (Nginx)
+   │                      - React + Vite production build
+   │                      - Multi-stage build (Node → Nginx)
+   │                      - SPA fallback for client-side routing
+   │
+   └── localhost:3001 → Admin (Nginx)
+                          - React + Vite production build
+                          - Multi-stage build (Node → Nginx)
+                          - SPA fallback for client-side routing
+                          │
+                          ▼
+                    localhost:5000 (Backend API)
+                          - Express + Prisma
+                          - Multi-stage build (dependencies → prisma → runtime)
+                          - Runs prisma migrate deploy on startup
+                          - Non-root user for security
+                          │
+                          ▼
+                     PostgreSQL 16 (Alpine)
+                          - Named volume: postgres_data
+                          - Healthcheck via pg_isready
+                          - Not exposed to host (container network only)
 ```
 
-### Commit/Artifact Consistency
+### Docker Files
 
-The deploy workflow uses `workflow_run` triggered on `CI` completion on `main`.
-It checks out the repository at `github.event.workflow_run.head_sha` — the exact
-commit that passed CI — ensuring no commit drift between CI and deployment.
+| File                            | Description                          |
+|---------------------------------|--------------------------------------|
+| `frontend/Dockerfile`           | Multi-stage build for public website |
+| `frontend/nginx.conf`           | Nginx config with SPA fallback       |
+| `admin/Dockerfile`              | Multi-stage build for admin          |
+| `admin/nginx.conf`              | Nginx config with SPA fallback       |
+| `backend/Dockerfile`            | Multi-stage build for Express API    |
+| `docker-compose.yml`            | Service orchestration                |
+| `docker/.env.example`           | Docker environment variables         |
+| `.dockerignore`                  | Root Docker ignore rules             |
+| `frontend/.dockerignore`        | Frontend Docker ignore rules         |
+| `admin/.dockerignore`           | Admin Docker ignore rules            |
+| `backend/.dockerignore`         | Backend Docker ignore rules          |
 
-Artifacts (frontend/dist, admin/dist, backend code) are built in the deploy
-workflow from this pinned commit. Prisma migration files are included in the
-backend artifact via the rsync-excluded repository.
+### Container Details
 
-### Migration Safety
+#### Frontend Container
 
-- `prisma migrate deploy` is used (never `migrate dev`)
-- On migration failure: workflow stops immediately, backend NOT restarted,
-  frontend/admin NOT deployed
-- Migrations are forward-only; schema rollback uses corrective forward migrations
-- Expand → Deploy → Contract strategy documented for future destructive changes
+- **Base image**: `nginx:1.27-alpine` (runtime)
+- **Build image**: `node:20-alpine`
+- **Port**: 3000
+- **Build steps**: `npm ci` → `npm run build` → copy to Nginx
+- **SPA fallback**: All routes resolve to `index.html`
+- **Healthcheck**: `GET /health`
 
-### Persistent Resume Storage
+#### Admin Container
 
-Uploaded resume files are stored via `LocalStorageProvider`. In production,
-`STORAGE_LOCAL_UPLOAD_DIR` must be set to an absolute path outside the backend
-code directory (e.g. `/var/lib/portfolio/uploads`).
+- **Base image**: `nginx:1.27-alpine` (runtime)
+- **Build image**: `node:20-alpine`
+- **Port**: 3001
+- **Build steps**: `npm ci` → `npm run build` → copy to Nginx
+- **SPA fallback**: All routes resolve to `index.html`
+- **Healthcheck**: `GET /health`
 
-The deployment rsync excludes `uploads/` and uses `--delete` only on code
-directories, protecting persistent files.
+#### Backend Container
 
-### SSH Host Verification
+- **Base image**: `node:20-alpine`
+- **Build stages**: dependencies → prisma → runtime
+- **Port**: 5000
+- **Startup**: `prisma migrate deploy` → `node src/server.js`
+- **Security**: Runs as non-root user (`appuser`)
+- **Healthcheck**: `GET /api/v1/health`
 
-All SSH deployment steps use `known_hosts` verification via `DEPLOY_KNOWN_HOSTS`
-secret. `StrictHostKeyChecking` is never disabled.
+#### PostgreSQL Container
 
-### Required GitHub Secrets
+- **Image**: `postgres:16-alpine`
+- **Volume**: `postgres_data` (persistent)
+- **Healthcheck**: `pg_isready`
+- **Network**: Internal only (not exposed to host by default)
 
-| Secret                | Description                                               |
-| --------------------- | --------------------------------------------------------- |
-| `DEPLOY_HOST`         | SSH host (server IP or hostname)                          |
-| `DEPLOY_USER`         | SSH username                                              |
-| `DEPLOY_SSH_KEY`      | SSH private key (no passphrase, dedicated deployment key) |
-| `DEPLOY_KNOWN_HOSTS`  | SSH known_hosts entry for host verification               |
-| `DEPLOY_BACKEND_DIR`  | Remote directory for backend code                         |
-| `DEPLOY_PUBLIC_DIR`   | Remote directory for frontend dist                        |
-| `DEPLOY_ADMIN_DIR`    | Remote directory for admin dist                           |
-| `DEPLOY_BACKEND_URL`  | Backend URL for health/smoke checks                       |
-| `DEPLOY_FRONTEND_URL` | Frontend URL for smoke tests                              |
-| `DATABASE_URL`        | Production PostgreSQL connection string                   |
+### Docker Networking
 
-### Required Environment Variables (on server)
+All services communicate through a dedicated bridge network
+(`portfolio_network`). Container-to-container communication uses service names:
 
-The backend reads all configuration from a `.env.production` file on the server.
-Required variables:
+| From      | To        | Hostname  |
+|-----------|-----------|-----------|
+| Backend   | PostgreSQL| `postgres`|
+| Frontend  | Backend   | `backend` (build-time env) |
+| Admin     | Backend   | `backend` (build-time env) |
 
-- `NODE_ENV=production`
-- `DATABASE_URL` (PostgreSQL connection string)
-- `JWT_ACCESS_SECRET` (strong random string)
-- `JWT_REFRESH_SECRET` (strong random string)
-- `FRONTEND_URL` (production frontend URL(s))
-- `VITE_SITE_URL` (production site URL for SEO canonicals)
-- `VISITOR_HASH_SECRET` (random string for analytics hashing)
+Browser-facing requests use `localhost` ports as they originate from outside
+the Docker network.
 
-### Migration Strategy
+### Database Migrations
 
-- **Production**: `prisma migrate deploy` only
-- **Development**: `prisma migrate dev` (never used in CI/deploy)
-- Migrations run **before** backend restart
-- If migration fails, deployment fails — backend is not restarted
-- Forward-fix strategy only — no automatic database rollback
+The backend container automatically runs migrations on startup:
 
-### Rollback Strategy
+```bash
+npx prisma migrate deploy
+```
 
-1. Identify failed deployment via GitHub Actions workflow UI
-2. Revert the production commit: `git revert <commit-sha>`
-3. Push the revert — this triggers a new deploy workflow run with the previous code
-4. If the failed deployment was due to a migration, the revert will include the correct schema
-5. Database migrations are forward-only; a problematic migration should be fixed forward
-   (never rolled back automatically)
+This applies all pending migrations without creating new ones (safe for
+production). The command is idempotent and safe to run repeatedly.
 
-### Branch Protection Recommendations
+### Environment Variables
 
-Configure in GitHub: Settings → Branches → Add rule for `main`:
+Docker-specific environment variables are configured in `.env` (see
+`docker/.env.example`). The `VITE_API_BASE_URL` should point to the
+browser-accessible backend URL (`http://localhost:5000/api/v1`), not the
+internal Docker hostname.
 
-- [x] Require pull request before merging
-- [x] Require status checks to pass (CI workflow)
-- [x] Require branches to be up to date before merging
-- [x] Include administrators
-- [ ] Require one approval (recommended)
+### Persistence
 
-### Concurrency Strategy
+- **PostgreSQL**: Named volume `postgres_data` survives `docker compose down`
+- **Uploads**: Named volume `backend_uploads` for resume files
+- **Removed**: Use `docker compose down -v` to erase all data
 
-- **CI**: `ci-${{ github.ref }}` — no cancellation (CI is fast, let it complete)
-- **Deploy**: `deploy-production` — `cancel-in-progress: true` — newer pushes cancel older deployments
+### Security Practices
 
-### Admin Deployment
-
-The admin dashboard is deployed as a separate static site alongside the frontend.
-It is completely isolated from the public frontend bundle — no admin code ships
-to the public frontend.
-
-### Node Version
-
-`.nvmrc` specifies Node.js 22 (LTS). GitHub Actions uses
-`actions/setup-node` with `node-version-file: .nvmrc`.
+- Backend runs as non-root user (`appuser`)
+- Multi-stage builds exclude build tools from runtime images
+- Production dependencies only in backend runtime
+- No secrets in Dockerfiles or docker-compose.yml
+- PostgreSQL not exposed to host by default
+- Nginx security headers configured

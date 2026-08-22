@@ -303,45 +303,40 @@ a blank screen.
 - [x] `npm run build` passes for frontend and admin.
 - [x] `prisma validate` passes.
 
-## 12. CI/CD (Phase 16)
+## 12. Docker (Phase 17)
 
-### GitHub Actions CI
+### Docker Build Verification
 
-- [x] CI workflow (`.github/workflows/ci.yml`) runs on every PR.
-- [x] CI workflow runs on every push to `main`.
-- [x] CI fails if any lint, test, or build step fails.
-- [x] Node.js version matches `.nvmrc` (20).
-- [x] Dependencies are cached between runs.
+- [ ] `frontend/Dockerfile` builds successfully
+- [ ] `admin/Dockerfile` builds successfully
+- [ ] `backend/Dockerfile` builds successfully
+- [ ] `docker-compose.yml` is valid
 
-### GitHub Actions Deploy
+### Docker Runtime Verification
 
-- [x] Deploy workflow (`.github/workflows/deploy.yml`) triggers only after CI succeeds on `main`.
-- [x] Deploy does NOT trigger on PRs or feature branches.
-- [x] Deploy checks out the exact CI-validated commit (`head_sha`).
-- [x] Build artifacts are built in the deploy workflow from the pinned commit.
-- [x] Database migrations use `prisma migrate deploy` (not `migrate dev`).
-- [x] Migration failure stops the workflow immediately — backend NOT restarted.
-- [x] Backend is health-checked (`GET /api/v1/health`) before frontend deploy.
-- [x] Smoke tests verify `/api/v1/projects`, `/sitemap.xml`, `/robots.txt`.
-- [x] Frontend is verified (HTTP 200) after deployment.
-- [x] Concurrency prevents overlapping production deployments.
-- [x] SSH host verification enabled via `DEPLOY_KNOWN_HOSTS`.
-- [x] Persistent uploads excluded from rsync (`--exclude uploads`).
+- [ ] `docker compose up --build` starts all services
+- [ ] PostgreSQL container becomes healthy
+- [ ] Backend runs migrations successfully
+- [ ] `GET /api/v1/health` returns 200
+- [ ] Frontend loads at `http://localhost:3000`
+- [ ] Admin loads at `http://localhost:3001`
+- [ ] Frontend can retrieve projects from backend
+- [ ] Project detail pages work
+- [ ] Blog pages work
+- [ ] Contact form works
+- [ ] Admin login works
+- [ ] Admin CRUD operations work
+- [ ] Resume functionality works
 
-### Commit/Artifact Consistency
+### Docker Persistence Verification
 
-- [x] Deploy workflow uses `github.event.workflow_run.head_sha` to checkout
-      the exact commit that passed CI.
-- [x] No commit drift between CI and deployment.
+- [ ] `docker compose down` preserves PostgreSQL data
+- [ ] `docker compose up` restarts with existing data
+- [ ] Uploaded files persist across restarts
 
-### Secrets & Security
+### Docker Security Verification
 
-- [x] No secrets are committed to the repository.
-- [x] `.gitignore` excludes `.env`, `.env.production`, and all env variants
-      except `.env.example`.
-- [x] GitHub Secrets are used for deployment configuration.
-- [x] Deployment SSH key is dedicated (not a personal key).
-- [x] SSH host verification via `DEPLOY_KNOWN_HOSTS`.
-- [x] PR workflow (`ci.yml`) has no access to deployment secrets.
-- [x] Branch protection requires CI before merging to `main`.
-- [x] Deployment uses least-privilege permissions (`contents: read`).
+- [ ] Backend container runs as non-root user
+- [ ] PostgreSQL is not exposed to host by default
+- [ ] No secrets in Dockerfiles or docker-compose.yml
+- [ ] `.dockerignore` files exclude sensitive files
