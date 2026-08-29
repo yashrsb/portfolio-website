@@ -42,12 +42,14 @@ Login payload: `{ "email": "...", "password": "..." }`
 
 - [ ] `POST /auth/login` — seeded admin credentials → `200`, access token in
       body + HttpOnly refresh cookie.
+
 ```bash
   curl -X POST http://localhost:5001/api/v1/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email":"admin@example.com","password":"YOUR_PASSWORD"}' \
     -c cookies.txt
-  ```
+```
+
 - [ ] Login with wrong password → `401`, no token/cookie.
   ```bash
   curl -X POST http://localhost:5001/api/v1/auth/login \
@@ -265,7 +267,7 @@ a blank screen.
 - [ ] Clicking a project's GitHub/Demo link triggers a `PROJECT_CLICK` event.
 - [ ] Visiting `/blog/:slug` triggers a `BLOG_POST_VIEW` event.
 - [ ] Setting `localStorage.analytics_opt_out = "true"` stops all tracking.
-  Removing it re-enables tracking.
+      Removing it re-enables tracking.
 - [ ] `navigator.sendBeacon` is used for event delivery (verify via dev tools).
 
 ## 10. Performance (Phase 15)
@@ -300,3 +302,41 @@ a blank screen.
 - [x] `npm run test` passes for all three apps (backend 145, frontend 87, admin 68).
 - [x] `npm run build` passes for frontend and admin.
 - [x] `prisma validate` passes.
+
+## 12. Docker (Phase 17)
+
+### Docker Build Verification
+
+- [x] `frontend/Dockerfile` builds successfully
+- [x] `admin/Dockerfile` builds successfully
+- [x] `backend/Dockerfile` builds successfully
+- [x] `docker-compose.yml` is valid
+
+### Docker Runtime Verification
+
+- [x] `docker compose up --build` starts all services
+- [x] PostgreSQL container becomes healthy
+- [x] Backend runs migrations successfully
+- [x] `GET /api/v1/health` returns 200
+- [x] Frontend loads at `http://localhost:3000`
+- [x] Admin loads at `http://localhost:3001`
+- [x] Frontend can retrieve projects from backend
+- [x] Project detail pages work
+- [x] Blog pages work
+- [x] Contact form works
+- [x] Admin login works
+- [x] Admin CRUD operations work
+- [x] Resume functionality works
+
+### Docker Persistence Verification
+
+- [x] `docker compose down` preserves PostgreSQL data
+- [x] `docker compose up` restarts with existing data
+- [x] Uploaded files persist across restarts
+
+### Docker Security Verification
+
+- [x] Backend container runs as non-root user
+- [x] PostgreSQL is not exposed to host by default
+- [x] No secrets in Dockerfiles or docker-compose.yml
+- [x] `.dockerignore` files exclude sensitive files

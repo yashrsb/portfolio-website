@@ -1,0 +1,58 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+src/generated
+
+# Git
+.git
+.github
+
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Coverage
+coverage
+
+# Cache
+.cache
+.npm
+
+# Temporary files
+tmp
+temp
+
+# Uploads (runtime data, not part of build)
+uploads
+
+# Documentation (not needed in build)
+docs
+*.md
+!README.md
+
+# Docker files (avoid recursion)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# CI/CD
+.github/workflows

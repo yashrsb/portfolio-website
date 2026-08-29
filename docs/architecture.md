@@ -385,3 +385,136 @@ runtime verification.
   hosted on Cloudinary, URL-based transformations could provide additional gains.
 - In-memory frontend cache is per-session. HTTP cache headers on the backend provide
   cross-session caching at the browser/CDN level.
+
+## Docker Architecture (Phase 17)
+
+The application supports containerized deployment using Docker Compose for
+local development and staging environments.
+
+### Docker Services
+
+```
+Browser
+   │
+   ├── localhost:3000 → Frontend (Nginx)
+   │                      - React + Vite production build
+   │                      - Multi-stage build (Node → Nginx)
+   │                      - SPA fallback for client-side routing
+   │
+   └── localhost:3001 → Admin (Nginx)
+                          - React + Vite production build
+                          - Multi-stage build (Node → Nginx)
+                          - SPA fallback for client-side routing
+                          │
+                          ▼
+                    localhost:5000 (Backend API)
+                          - Express + Prisma
+                          - Multi-stage build (dependencies → prisma → runtime)
+                          - Runs prisma migrate deploy on startup
+                          - Non-root user for security
+                          │
+                          ▼
+                     PostgreSQL 16 (Alpine)
+                          - Named volume: postgres_data
+                          - Healthcheck via pg_isready
+                          - Not exposed to host (container network only)
+```
+
+### Docker Files
+
+| File                            | Description                          |
+|---------------------------------|--------------------------------------|
+| `frontend/Dockerfile`           | Multi-stage build for public website |
+| `frontend/nginx.conf`           | Nginx config with SPA fallback       |
+| `admin/Dockerfile`              | Multi-stage build for admin          |
+| `admin/nginx.conf`              | Nginx config with SPA fallback       |
+| `backend/Dockerfile`            | Multi-stage build for Express API    |
+| `docker-compose.yml`            | Service orchestration                |
+| `docker/.env.example`           | Docker environment variables         |
+| `.dockerignore`                  | Root Docker ignore rules             |
+| `frontend/.dockerignore`        | Frontend Docker ignore rules         |
+| `admin/.dockerignore`           | Admin Docker ignore rules            |
+| `backend/.dockerignore`         | Backend Docker ignore rules          |
+
+### Container Details
+
+#### Frontend Container
+
+- **Base image**: `nginx:1.27-alpine` (runtime)
+- **Build image**: `node:22-alpine`
+- **Port**: 3000
+- **Build steps**: `npm ci` → `npm run build` → copy to Nginx
+- **SPA fallback**: All routes resolve to `index.html`
+- **Healthcheck**: `GET /health`
+
+#### Admin Container
+
+- **Base image**: `nginx:1.27-alpine` (runtime)
+- **Build image**: `node:22-alpine`
+- **Port**: 3001
+- **Build steps**: `npm ci` → `npm run build` → copy to Nginx
+- **SPA fallback**: All routes resolve to `index.html`
+- **Healthcheck**: `GET /health`
+
+#### Backend Container
+
+- **Base image**: `node:22-alpine`
+- **Build stages**: dependencies → prisma → runtime
+- **Port**: 5000
+- **Startup**: `prisma migrate deploy` → `node src/server.js`
+- **Security**: Runs as non-root user (`appuser`)
+- **Healthcheck**: `GET /api/v1/health`
+
+#### PostgreSQL Container
+
+- **Image**: `postgres:16-alpine`
+- **Volume**: `postgres_data` (persistent)
+- **Healthcheck**: `pg_isready`
+- **Network**: Internal only (not exposed to host by default)
+
+### Docker Networking
+
+All services communicate through a dedicated bridge network
+(`portfolio_network`). Container-to-container communication uses service names:
+
+| From      | To        | Hostname  |
+|-----------|-----------|-----------|
+| Backend   | PostgreSQL| `postgres`|
+| Frontend  | Backend   | `backend` (build-time env) |
+| Admin     | Backend   | `backend` (build-time env) |
+
+Browser-facing requests use `localhost` ports as they originate from outside
+the Docker network.
+
+### Database Migrations
+
+The backend container automatically runs migrations on startup:
+
+```bash
+npx prisma migrate deploy
+```
+
+This applies all pending migrations without creating new ones (safe for
+production). The command is idempotent and safe to run repeatedly.
+
+### Environment Variables
+
+Docker-specific environment variables are configured in `.env` (see
+`docker/.env.example`). The `VITE_API_BASE_URL` should point to the
+browser-accessible backend URL (`http://localhost:5000/api/v1`), not the
+internal Docker hostname.
+
+### Persistence
+
+- **PostgreSQL**: Named volume `postgres_data` survives `docker compose down`
+- **Uploads**: Named volume `backend_uploads` for resume files
+- **Removed**: Use `docker compose down -v` to erase all data
+
+### Security Practices
+
+- Backend runs as non-root user (`appuser`)
+- Multi-stage builds exclude build tools from runtime images
+- Production dependencies only in backend runtime
+- No secrets in Dockerfiles or docker-compose.yml
+- PostgreSQL not exposed to host by default
+- Nginx security headers configured

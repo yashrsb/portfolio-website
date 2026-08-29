@@ -1,0 +1,130 @@
+# ============================================================
+# Portfolio — Docker Compose Configuration
+# Orchestrates: frontend, admin, backend, postgres
+# ============================================================
+
+services:
+  # --------------------------------------------------------
+  # PostgreSQL Database
+  # --------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: portfolio-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio}
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio_user} -d ${POSTGRES_DB:-portfolio}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - portfolio_network
+
+  # --------------------------------------------------------
+  # Backend API (Express + Prisma)
+  # --------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 5000
+      API_PREFIX: /api/v1
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD:-portfolio_pass}@postgres:5432/${POSTGRES_DB:-portfolio}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret-docker}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret-docker}
+      JWT_ACCESS_SECRET_TTL: ${JWT_ACCESS_SECRET_TTL:-15m}
+      JWT_REFRESH_SECRET_TTL_DAYS: ${JWT_REFRESH_SECRET_TTL_DAYS:-7}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000,http://localhost:3001}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin-password-docker}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      STORAGE_LOCAL_UPLOAD_DIR: /app/uploads
+      STORAGE_LOCAL_PUBLIC_BASE_URL: http://localhost:5000/api/v1
+      STORAGE_MAX_SIZE_BYTES: ${STORAGE_MAX_SIZE_BYTES:-5242880}
+      STORAGE_ALLOWED_MIME_TYPES: ${STORAGE_ALLOWED_MIME_TYPES:-application.pdf}
+      VISITOR_HASH_SECRET: ${VISITOR_HASH_SECRET:-analytics-salt-docker}
+      COOKIE_SECURE: "false"
+      COOKIE_SAME_SITE: lax
+    volumes:
+      - backend_uploads:/app/uploads
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - portfolio_network
+    command: >
+      sh -c "
+        echo 'Running database migrations...' &&
+        npx prisma migrate deploy &&
+        echo 'Starting backend server...' &&
+        node src/server.js
+      "
+
+  # --------------------------------------------------------
+  # Public Frontend (React + Vite → Nginx)
+  # --------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api/v1}
+      VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - portfolio_network
+
+  # --------------------------------------------------------
+  # Admin Frontend (React + Vite → Nginx)
+  # --------------------------------------------------------
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: portfolio-admin
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api/v1}
+      VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost:3001}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+    networks:
+      - portfolio_network
+
+# --------------------------------------------------------
+# Named Volumes
+# --------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+# --------------------------------------------------------
+# Networks
+# --------------------------------------------------------
+networks:
+  portfolio_network:
+    driver: bridge
