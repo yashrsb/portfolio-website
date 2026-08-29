@@ -162,6 +162,23 @@ npm run format        # Prettier write
 npm run format:check  # Prettier check
 ```
 
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run individual suites
+npm run test:backend
+npm run test:frontend
+npm run test:admin
+
+# Run with coverage
+npm run test:coverage
+```
+
+See [docs/testing.md](docs/testing.md) for the full testing documentation.
+
 ## Database Commands (backend/)
 
 | Command                     | Description                         |
