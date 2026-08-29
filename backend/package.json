@@ -9,6 +9,8 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch",
     "import:portfolio": "node src/import/index.js",
     "lint": "eslint . --max-warnings 0",
     "db:migrate": "prisma migrate dev",

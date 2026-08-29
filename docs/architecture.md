@@ -589,4 +589,291 @@ portfolio/
 └── package.json              # Root scripts
 ```
 
-See [docs/folder-structure.md](docs/folder-structure.md) for detailed folder documentation.
+## Conventions
+
+- **JavaScript** (ESM) throughout — no TypeScript.
+- **Prettier** for formatting, **ESLint** for linting (both run with
+  `--max-warnings 0`).
+- **Consistent naming** — plural resource names, `camelCase` identifiers,
+  PascalCase for classes/components/React files.
+- **No commented-out code**; dead code is removed.
+- Each app owns its `package.json` and dependencies; the root scripts delegate
+  using `--prefix`.
+
+## SEO Architecture (Phase 14)
+
+The portfolio uses a **centralized SEO system** with no external SEO framework.
+
+### Configuration
+
+`frontend/src/config/seo.js` exports `SEO_CONFIG` with:
+
+- `siteUrl` — derived from `VITE_SITE_URL` env var (with `window.location.origin` fallback)
+- `siteName`, `siteDescription`, `authorName`, `defaultOgImage`
+- `titleTemplate` — `'%s — Portfolio'` (blog posts override to `'%s — Portfolio Blog'`)
+
+### SEO Utility
+
+`frontend/src/utils/seo.js` provides:
+
+- `setSEOMeta(params)` — central function that creates/updates **and removes** meta tags. Key difference from the old pattern: empty values **remove** stale tags instead of skipping them, preventing meta tag leakage between page navigations.
+- `setJsonLd(id, data)` — safely injects JSON-LD with `<` and `>` escaped as `\u003c`/`\u003e` to prevent script injection.
+- `removeJsonLd(id)` — removes a JSON-LD script tag.
+- `setPageSEO(params)` — convenience wrapper with sensible defaults.
+
+### Page-level SEO
+
+Each page component calls `setSEOMeta` or `setPageSEO` inside a `useEffect`:
+
+- **Home**: Person + WebSite JSON-LD, profile-driven title/description
+- **About/Experience/Skills/Education/Contact/Projects**: Static titles + descriptions
+- **Blog listing**: WebSite JSON-LD with SearchAction
+- **BlogPost**: BlogPosting + BreadcrumbList JSON-LD (via `blogSeo.js` wrapper), `noindex` for drafts
+- **CategoryPosts/TagPosts**: Dynamic titles from category/tag name
+- **ProjectDetailPage**: SoftwareApplication + BreadcrumbList JSON-LD
+- **NotFound**: `noindex, nofollow` robots meta, fallback title
+
+### Sitemap (`/sitemap.xml`)
+
+Generated server-side in `backend/src/routes/index.js`. Includes:
+
+- All static pages (`/`, `/about`, `/experience`, `/skills`, `/projects`, `/education`, `/contact`, `/blog`)
+- Project detail pages (`/projects/:slug`) — only from non-deleted projects
+- Published blog posts (`/blog/:slug`) — only from PUBLISHED posts
+- Blog category/tag pages — only for categories/tags that have published posts
+
+Blog posts have zero entries when no posts are published. No draft or unpublished content appears.
+
+### robots.txt (`/robots.txt`)
+
+Disallows `/admin/`, `/login`, and API auth/admin routes. References the sitemap at the configured site URL.
+
+### Environment Variables
+
+| Variable                 | Description                                      | Default                 |
+| ------------------------ | ------------------------------------------------ | ----------------------- |
+| `VITE_SITE_URL`          | Public site URL for canonicals, OG URLs, JSON-LD | `http://localhost:5173` |
+| `FRONTEND_URL` (backend) | Origin(s) for CORS + sitemap/robots URLs         | `http://localhost:5173` |
+
+The production `VITE_SITE_URL` must be set to the real HTTPS domain before building.
+
+### Performance
+
+- `ProjectDetailPage` and `BlogPost` are **code-split** via React `lazy()` + `Suspense`
+- Blog post images use `loading="eager"` (above-the-fold); project screenshots use `loading="lazy"`
+- All images have explicit `width`/`height` or aspect-ratio to prevent layout shift
+
+## Performance Architecture (Phase 15)
+
+### Bundle Optimization
+
+**Vite `manualChunks`**: The `react-markdown` + `rehype-highlight` + `remark-gfm` +
+`rehype-sanitize` dependency group (~350 kB raw) is split into its own `markdown` chunk,
+loaded on-demand only when a blog post or markdown-rendering page is visited.
+
+**Before (single chunk)**: 579 kB JS (179 kB gzipped)
+**After (split chunks)**: 210 kB initial JS (70 kB gzipped) + 348 kB markdown chunk (106 kB gzipped, lazy)
+
+### Lazy Loading Strategy
+
+- `ProjectDetailPage`, `BlogPost`, `CategoryPosts`, and `TagPosts` are lazy-loaded via
+  `React.lazy` + `Suspense` with an accessible `LoadingState` fallback
+- All images below the fold use `loading="lazy"`
+- Above-the-fold hero images use `loading="eager"` + `fetchPriority="high"`
+- All images include `decoding="async"` to prevent blocking the main thread
+- `aspect-ratio` CSS ensures layout stability before images load
+
+### Image Optimization
+
+- Every `<img>` element includes `decoding="async"`
+- Above-the-fold images (Home profile, BlogPost cover) use `loading="eager"` + `fetchPriority="high"`
+- Below-the-fold images use `loading="lazy"`
+- Explicit `width`/`height` + `style={{ aspectRatio }}` on every image prevents CLS
+- Markdown-rendered images inherit `loading="lazy"` + `decoding="async"` via `MarkdownRenderer`
+
+### Caching Strategy
+
+**Frontend (in-memory)**:
+
+- `apiClient.js` implements a module-level in-memory cache for GET requests (30-second TTL)
+- Duplicate in-flight requests for the same URL are deduplicated
+- Cache is bypassed when an `AbortSignal` is passed (component unmount)
+- POST/PUT/PATCH/DELETE automatically invalidate the entire cache
+
+**Backend (HTTP)**:
+
+- `cacheHeaders()` middleware sets `Cache-Control: public, max-age=N, stale-while-revalidate=60`
+  on public GET endpoints (profile/projects: 600s, blog: 300s, resume: 3600s)
+- Admin/authenticated routes are NOT cached
+- Sitemap.xml: 3600s, RSS feed: 300s, robots.txt: 3600s
+
+### Compression
+
+- `compression()` middleware with Brotli enabled (when client supports it) + gzip level 6
+- 1 KB threshold — small responses are not compressed
+- Admin app is a separate Vite build, completely isolated from the public bundle
+
+### React Rendering Optimizations
+
+- `ThemeContext` value memoized with `useMemo` to prevent unnecessary re-renders
+- App route transition delay reduced from 150ms to 75ms
+
+### Core Web Vitals Considerations
+
+- **LCP**: Above-the-fold images eager-loaded with `fetchPriority="high"`;
+  initial JS bundle reduced from 579 kB to 210 kB
+- **CLS**: All images have explicit dimensions + `aspect-ratio`
+- **INP**: Heavy markdown library (348 kB) loaded on-demand; reduced transition delay
+
+### Lighthouse Results
+
+Lighthouse could not be executed in the current environment because Chrome/Lighthouse tooling
+was unavailable. Performance was validated through production builds, bundle analysis, and
+runtime verification.
+
+**Verified metrics**:
+
+- Initial JS bundle: 210 kB (70 kB gzipped) — down from 579 kB (179 kB gzipped)
+- Markdown chunk: 348 kB (106 kB gzipped) — lazy-loaded only on blog pages
+- CSS: 43 kB main + per-route CSS (blog: 7.2 kB, project: 4.7 kB)
+- All images include `decoding="async"`, explicit dimensions, and `aspect-ratio`
+
+**Known limitations**:
+
+- No build-time image optimization or WebP/AVIF conversion pipeline. If images are
+  hosted on Cloudinary, URL-based transformations could provide additional gains.
+- In-memory frontend cache is per-session. HTTP cache headers on the backend provide
+  cross-session caching at the browser/CDN level.
+
+## Docker Architecture (Phase 17)
+
+The application supports containerized deployment using Docker Compose for
+local development and staging environments.
+
+### Docker Services
+
+```
+Browser
+   │
+   ├── localhost:3000 → Frontend (Nginx)
+   │                      - React + Vite production build
+   │                      - Multi-stage build (Node → Nginx)
+   │                      - SPA fallback for client-side routing
+   │
+   └── localhost:3001 → Admin (Nginx)
+                          - React + Vite production build
+                          - Multi-stage build (Node → Nginx)
+                          - SPA fallback for client-side routing
+                          │
+                          ▼
+                    localhost:5000 (Backend API)
+                          - Express + Prisma
+                          - Multi-stage build (dependencies → prisma → runtime)
+                          - Runs prisma migrate deploy on startup
+                          - Non-root user for security
+                          │
+                          ▼
+                     PostgreSQL 16 (Alpine)
+                          - Named volume: postgres_data
+                          - Healthcheck via pg_isready
+                          - Not exposed to host (container network only)
+```
+
+### Docker Files
+
+| File                            | Description                          |
+|---------------------------------|--------------------------------------|
+| `frontend/Dockerfile`           | Multi-stage build for public website |
+| `frontend/nginx.conf`           | Nginx config with SPA fallback       |
+| `admin/Dockerfile`              | Multi-stage build for admin          |
+| `admin/nginx.conf`              | Nginx config with SPA fallback       |
+| `backend/Dockerfile`            | Multi-stage build for Express API    |
+| `docker-compose.yml`            | Service orchestration                |
+| `docker/.env.example`           | Docker environment variables         |
+| `.dockerignore`                  | Root Docker ignore rules             |
+| `frontend/.dockerignore`        | Frontend Docker ignore rules         |
+| `admin/.dockerignore`           | Admin Docker ignore rules            |
+| `backend/.dockerignore`         | Backend Docker ignore rules          |
+
+### Container Details
+
+#### Frontend Container
+
+- **Base image**: `nginx:1.27-alpine` (runtime)
+- **Build image**: `node:22-alpine`
+- **Port**: 3000
+- **Build steps**: `npm ci` → `npm run build` → copy to Nginx
+- **SPA fallback**: All routes resolve to `index.html`
+- **Healthcheck**: `GET /health`
+
+#### Admin Container
+
+- **Base image**: `nginx:1.27-alpine` (runtime)
+- **Build image**: `node:22-alpine`
+- **Port**: 3001
+- **Build steps**: `npm ci` → `npm run build` → copy to Nginx
+- **SPA fallback**: All routes resolve to `index.html`
+- **Healthcheck**: `GET /health`
+
+#### Backend Container
+
+- **Base image**: `node:22-alpine`
+- **Build stages**: dependencies → prisma → runtime
+- **Port**: 5000
+- **Startup**: `prisma migrate deploy` → `node src/server.js`
+- **Security**: Runs as non-root user (`appuser`)
+- **Healthcheck**: `GET /api/v1/health`
+
+#### PostgreSQL Container
+
+- **Image**: `postgres:16-alpine`
+- **Volume**: `postgres_data` (persistent)
+- **Healthcheck**: `pg_isready`
+- **Network**: Internal only (not exposed to host by default)
+
+### Docker Networking
+
+All services communicate through a dedicated bridge network
+(`portfolio_network`). Container-to-container communication uses service names:
+
+| From      | To        | Hostname  |
+|-----------|-----------|-----------|
+| Backend   | PostgreSQL| `postgres`|
+| Frontend  | Backend   | `backend` (build-time env) |
+| Admin     | Backend   | `backend` (build-time env) |
+
+Browser-facing requests use `localhost` ports as they originate from outside
+the Docker network.
+
+### Database Migrations
+
+The backend container automatically runs migrations on startup:
+
+```bash
+npx prisma migrate deploy
+```
+
+This applies all pending migrations without creating new ones (safe for
+production). The command is idempotent and safe to run repeatedly.
+
+### Environment Variables
+
+Docker-specific environment variables are configured in `.env` (see
+`docker/.env.example`). The `VITE_API_BASE_URL` should point to the
+browser-accessible backend URL (`http://localhost:5000/api/v1`), not the
+internal Docker hostname.
+
+### Persistence
+
+- **PostgreSQL**: Named volume `postgres_data` survives `docker compose down`
+- **Uploads**: Named volume `backend_uploads` for resume files
+- **Removed**: Use `docker compose down -v` to erase all data
+
+### Security Practices
+
+- Backend runs as non-root user (`appuser`)
+- Multi-stage builds exclude build tools from runtime images
+- Production dependencies only in backend runtime
+- No secrets in Dockerfiles or docker-compose.yml
+- PostgreSQL not exposed to host by default
+- Nginx security headers configured

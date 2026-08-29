@@ -12,7 +12,12 @@
     "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
     "install:all": "npm install --prefix frontend && npm install --prefix backend && npm install --prefix admin",
-    "test": "npm run test --prefix backend && npm run test --prefix frontend && npm run test --prefix admin"
+    "test": "npm run test --prefix backend && npm run test --prefix frontend && npm run test --prefix admin",
+    "test:backend": "npm run test --prefix backend",
+    "test:frontend": "npm run test --prefix frontend",
+    "test:admin": "npm run test --prefix admin",
+    "test:coverage": "npm run test:coverage --prefix backend && npm run test:coverage --prefix frontend && npm run test:coverage --prefix admin",
+    "test:watch": "vitest watch"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

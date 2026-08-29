@@ -1,14 +1,16 @@
-# Testing
+# Testing Documentation
 
-This document describes the testing strategy and infrastructure for the Portfolio project.
+## Overview
+
+This document describes the testing strategy and infrastructure for the portfolio application.
 
 ## Testing Stack
 
-| Application | Framework | Environment | Utilities |
-|-------------|-----------|-------------|-----------|
-| Backend | Vitest v4 | Node.js | supertest |
-| Frontend | Vitest v4 | happy-dom | @testing-library/react |
-| Admin | Vitest v4 | happy-dom | @testing-library/react |
+| Application | Framework | Environment | Utilities              |
+| ----------- | --------- | ----------- | ---------------------- |
+| Backend     | Vitest v4 | Node.js     | supertest              |
+| Frontend    | Vitest v4 | happy-dom   | @testing-library/react |
+| Admin       | Vitest v4 | happy-dom   | @testing-library/react |
 
 ## Test Commands
 
@@ -46,222 +48,116 @@ npm run test:coverage --prefix admin
 npm run test:watch
 ```
 
-## Test Results
+## Test Structure
 
-| Application | Test Files | Tests |
-|-------------|------------|-------|
-| Backend | 20 | 205 |
-| Frontend | 7 | 100 |
-| Admin | 8 | 107 |
-| **Total** | **35** | **412** |
+```
+backend/
+├── tests/
+│   ├── setup.js                    # Global test setup
+│   ├── authService.test.js         # Authentication service tests
+│   ├── authenticate.test.js        # Auth middleware tests
+│   ├── errorHandler.test.js        # Error handling tests
+│   ├── security.test.js            # Security regression tests
+│   └── ...                         # Other test files
+
+frontend/
+├── src/
+│   ├── tests/
+│   │   └── setup.js                # Test setup
+│   ├── services/
+│   │   └── apiClient.test.js       # API client tests
+│   └── pages/
+│       └── ...                     # Page component tests
+
+admin/
+├── src/
+│   ├── tests/
+│   │   └── setup.js                # Test setup
+│   ├── services/
+│   │   └── api/
+│   │       └── apiClient.test.js   # API client tests
+│   └── utils/
+│       └── validation.test.js      # Validation utility tests
+```
 
 ## Coverage Thresholds
 
 | Application | Branches | Functions | Lines | Statements |
-|-------------|----------|-----------|-------|------------|
-| Backend | 50% | 60% | 60% | 60% |
-| Frontend | 40% | 50% | 50% | 50% |
-| Admin | 40% | 50% | 50% | 50% |
-
-## Test Structure
-
-### Backend Tests
-
-```
-backend/tests/
-├── setup.js                    # Global test configuration
-├── authService.test.js         # Authentication service tests
-├── authenticate.test.js        # Auth middleware tests
-├── errorHandler.test.js        # Error handling tests
-├── security.test.js            # Security regression tests
-├── visitorHash.test.js         # Visitor hash utility tests
-├── userAgentParser.test.js     # User agent parsing tests
-├── spamProtection.test.js      # Spam protection middleware tests
-├── projectService.test.js      # Project service tests
-├── emailService.test.js        # Email service tests
-├── contactValidator.test.js    # Contact validation tests
-├── contactService.test.js      # Contact service tests
-├── contactRateLimit.test.js    # Contact rate limiting tests
-├── cacheHeaders.test.js        # Cache headers middleware tests
-├── analyticsRepository.test.js # Analytics repository tests
-├── analyticsRateLimit.test.js # Analytics rate limiting tests
-├── botDetection.test.js        # Bot detection tests
-├── blogValidator.test.js       # Blog validation tests
-├── blogService.test.js         # Blog service tests
-├── analyticsValidator.test.js  # Analytics validation tests
-└── analyticsService.test.js    # Analytics service tests
-```
-
-### Frontend Tests
-
-```
-frontend/src/
-├── services/
-│   ├── apiClient.test.js       # API client tests
-│   └── analyticsService.test.js # Analytics service tests
-├── pages/
-│   ├── Blog/
-│   │   └── Blog.test.jsx       # Blog page tests
-│   ├── BlogPost/
-│   │   └── BlogPost.test.jsx   # Blog post page tests
-│   ├── Contact/
-│   │   └── Contact.test.jsx    # Contact page tests
-│   └── ProjectDetailPage/
-│       └── ProjectDetailPage.test.jsx # Project detail tests
-└── utils/
-    └── seo.test.js             # SEO utility tests
-```
-
-### Admin Tests
-
-```
-admin/src/
-├── services/
-│   ├── api/
-│   │   └── apiClient.test.js   # API client tests
-│   └── analyticsService.test.js # Analytics service tests
-├── components/
-│   ├── common/
-│   │   ├── DataTable/
-│   │   │   └── DataTable.test.jsx
-│   │   └── LineChart/
-│   │       └── LineChart.test.jsx
-├── pages/
-│   ├── ContactMessagesPage/
-│   │   └── ContactMessagesPage.test.jsx
-│   ├── BlogPostsPage/
-│   │   └── BlogPostsPage.test.jsx
-│   └── AnalyticsPage/
-│       └── AnalyticsPage.test.jsx
-└── utils/
-    └── validation.test.js      # Validation utility tests
-```
-
-## Test Categories
-
-### Unit Tests
-
-Test individual functions and classes in isolation:
-
-- **Services**: Business logic with mocked repositories
-- **Utilities**: Pure functions (hashing, parsing, validation)
-- **Middleware**: Request processing with mock req/res objects
-
-### Integration Tests
-
-Test multiple layers working together:
-
-- **API Client**: HTTP request/response handling
-- **Middleware Stack**: Authentication, validation, error handling
-
-### Component Tests
-
-Test React components:
-
-- **Rendering**: Component renders correctly with props
-- **User Interaction**: Clicking, typing, form submission
-- **State Management**: Loading, error, success states
-
-### Security Regression Tests
-
-Test security controls:
-
-- **JWT Validation**: Token verification, tampering detection
-- **Authorization**: Role-based access control
-- **Input Sanitization**: HTML sanitization
-- **Password Hashing**: bcrypt verification
-
-## Test Isolation
-
-### Mocked Dependencies
-
-Backend service tests use mocked repositories:
-
-```javascript
-vi.mock('../src/repositories/authRepository.js', () => ({
-  findUserByEmail: vi.fn(),
-  findUserById: vi.fn(),
-  // ...
-}));
-```
-
-### Test Environment
-
-Tests run in isolated environment:
-
-```javascript
-// tests/setup.js
-process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
-process.env.JWT_ACCESS_SECRET = 'test-access-secret';
-```
-
-### Production Database Protection
-
-Tests never access the production database:
-
-- All repository calls are mocked in service tests
-- Test environment uses separate database credentials
-- No destructive operations in test suite
+| ----------- | -------- | --------- | ----- | ---------- |
+| Backend     | 50%      | 60%       | 60%   | 60%        |
+| Frontend    | 40%      | 50%       | 50%   | 50%        |
+| Admin       | 40%      | 50%       | 50%   | 50%        |
 
 ## Test Database Strategy
 
-### For Integration Tests
+### Production Database Safety
 
-If integration tests requiring a real database are needed:
+**IMPORTANT**: Tests must NEVER mutate the production Neon database.
+
+The test suite uses the following strategies to ensure isolation:
+
+1. **Mocked Dependencies**: Backend service tests mock repository layers using `vi.mock()`
+2. **In-Memory Testing**: Middleware tests use in-memory Express apps with supertest
+3. **Environment Isolation**: `tests/setup.js` sets test-specific environment variables
+
+### Test Environment Variables
+
+```bash
+# Backend test environment (set in tests/setup.js)
+NODE_ENV=test
+DATABASE_URL=postgresql://test:test@localhost:5432/test
+JWT_ACCESS_SECRET=test-access-secret
+JWT_REFRESH_SECRET=test-refresh-secret
+```
+
+### Integration Tests with Database
+
+For integration tests requiring a real database:
 
 1. **Local PostgreSQL**: Set `TEST_DATABASE_URL` to a local test database
 2. **Docker PostgreSQL**: Use a dedicated test container
-3. **Separate Schema**: Use a dedicated test schema
+3. **Separate Schema**: Use a dedicated test schema in an existing database
 
 ```bash
 # Example: Run integration tests with local test database
 TEST_DATABASE_URL=postgresql://user:pass@localhost:5432/portfolio_test npm run test:integration
 ```
 
-## Writing New Tests
+## Test Fixtures
 
-### Test File Naming
+Test fixtures are located in `tests/fixtures/` and are clearly separated from production data:
 
-- Backend: `tests/*.test.js`
-- Frontend: `src/**/*.test.{js,jsx}`
-- Admin: `src/**/*.test.{js,jsx}`
+- `tests/fixtures/users.js` - Test user data
+- `tests/fixtures/projects.js` - Test project data
+- `tests/fixtures/blog-posts.js` - Test blog post data
 
-### Test Structure
+**IMPORTANT**: Test fixtures must NOT overwrite or modify production portfolio data.
 
-```javascript
-describe('feature', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+## Security Testing
 
-  it('should handle valid input', async () => {
-    // Arrange
-    const input = { /* ... */ };
+The test suite includes security regression tests covering:
 
-    // Act
-    const result = await feature(input);
+- JWT token validation and tampering detection
+- Password hashing and verification
+- Role-based access control
+- Input sanitization
+- Rate limiting
 
-    // Assert
-    expect(result).toEqual(/* expected */);
-  });
+## CI/CD Integration
 
-  it('should throw on invalid input', async () => {
-    // Arrange
-    const input = { /* invalid */ };
+Tests run automatically on:
 
-    // Act & Assert
-    await expect(feature(input)).rejects.toThrow();
-  });
-});
-```
+- Push to `main` or `develop` branches
+- Pull requests to `main`
 
-### Mocking Guidelines
+The CI pipeline:
 
-1. **Mock external dependencies**: APIs, databases, file system
-2. **Don't mock the code under test**: Test actual implementation
-3. **Use `vi.fn()` for simple mocks**: Return values, resolve/reject
-4. **Use `vi.mock()` for module mocks**: Replace entire modules
+1. Lint check
+2. Backend tests + coverage
+3. Frontend tests + coverage
+4. Admin tests + coverage
+5. Build verification
+6. Format check
 
 ## Debugging Failed Tests
 
@@ -289,22 +185,22 @@ npm run test:backend -- --reporter=verbose
 node --inspect-brk node_modules/.bin/vitest run tests/failing-test.js
 ```
 
-## CI/CD Integration
+## Portfolio Data Protection
 
-Tests run automatically in GitHub Actions:
+The test suite includes safeguards to protect portfolio content:
 
-1. **lint**: ESLint with zero warnings
-2. **test-backend**: Backend tests + coverage
-3. **test-frontend**: Frontend tests + coverage
-4. **test-admin**: Admin tests + coverage
+1. **Read-Only Verification**: Tests verify data existence without modification
+2. **Isolated Fixtures**: Test data is separate from production data
+3. **Mocked Repositories**: Service tests use mocked data access layers
+4. **Environment Separation**: Test environment uses different database credentials
 
-See `.github/workflows/ci.yml` for details.
+## Adding New Tests
 
-## Best Practices
+When adding new tests:
 
-1. **Test behavior, not implementation**: Focus on what the code does, not how
-2. **Keep tests independent**: Each test should set up its own state
-3. **Use descriptive test names**: Explain what the test verifies
-4. **Test edge cases**: Empty input, null values, boundary conditions
-5. **Mock sparingly**: Only mock what's necessary for isolation
-6. **Run tests before committing**: Ensure all tests pass
+1. Follow existing test file naming: `*.test.js` or `*.test.jsx`
+2. Place tests in the appropriate directory
+3. Use `vi.mock()` for external dependencies
+4. Keep tests focused on user-visible behavior
+5. Avoid testing implementation details
+6. Ensure tests are deterministic and isolated

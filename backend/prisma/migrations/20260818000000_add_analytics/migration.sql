@@ -39,10 +39,6 @@ CREATE INDEX "AnalyticsEvent_deviceType_idx" ON "AnalyticsEvent"("deviceType");
 CREATE INDEX "AnalyticsEvent_browser_idx" ON "AnalyticsEvent"("browser");
 CREATE INDEX "AnalyticsEvent_eventType_path_idx" ON "AnalyticsEvent"("eventType", "path");
 
--- Create foreign keys
-ALTER TABLE "BlogPost" ADD CONSTRAINT "BlogPost_analyticsEvents_fkey" FOREIGN KEY ("id") REFERENCES "AnalyticsEvent"("blogPostId") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "Project" ADD CONSTRAINT "Project_analyticsEvents_fkey" FOREIGN KEY ("id") REFERENCES "AnalyticsEvent"("projectId") ON DELETE SET NULL ON UPDATE CASCADE;
-
 -- Create foreign key constraints for existing tables
 ALTER TABLE "AnalyticsEvent" ADD CONSTRAINT "AnalyticsEvent_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "AnalyticsEvent" ADD CONSTRAINT "AnalyticsEvent_blogPostId_fkey" FOREIGN KEY ("blogPostId") REFERENCES "BlogPost"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -132,11 +132,10 @@ portfolio/
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 22+
-- npm 9+
-- PostgreSQL 14+
+- Node.js 22 LTS
+- npm 10+
+- PostgreSQL 14+ (local or hosted)
+- Docker & Docker Compose (optional, for containerized deployment)
 
 ### Installation
 
@@ -198,13 +197,40 @@ npm run server           # → http://localhost:5000
 
 Access the admin dashboard at `http://localhost:5174/login`. Use the credentials from your seed data (default: `admin@example.com` / `change-me-admin-password`).
 
-The admin dashboard provides:
-- Dashboard with analytics overview
-- CRUD management for projects, skills, experience, education, certificates, achievements, and social links
-- Blog post editor with Markdown preview and publish/unpublish workflow
-- Contact message management
-- Resume upload and management
-- Analytics dashboard with charts and date range selection
+## Lint & Format
+
+```bash
+npm run lint          # ESLint on all three apps
+npm run format        # Prettier write
+npm run format:check  # Prettier check
+```
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run individual suites
+npm run test:backend
+npm run test:frontend
+npm run test:admin
+
+# Run with coverage
+npm run test:coverage
+```
+
+See [docs/testing.md](docs/testing.md) for the full testing documentation.
+
+## Database Commands (backend/)
+
+| Command                     | Description                         |
+| --------------------------- | ----------------------------------- |
+| `npm run db:migrate`        | Apply migrations in development     |
+| `npm run db:migrate:deploy` | Apply migrations in production      |
+| `npm run db:generate`       | Regenerate the Prisma client        |
+| `npm run db:seed`           | Seed portfolio content + admin user |
+| `npm run db:studio`         | Open Prisma Studio                  |
 
 ## API
 
@@ -327,108 +353,118 @@ npm run test:admin
 npm run test:coverage
 ```
 
-### Test Coverage
+## Docker Deployment
 
-| Application | Test Files | Tests |
-|-------------|------------|-------|
-| Backend | 20 | 205 |
-| Frontend | 7 | 100 |
-| Admin | 8 | 107 |
-| **Total** | **35** | **412** |
+The application can be run locally using Docker Compose for a production-like
+environment without installing Node.js or PostgreSQL locally.
 
-## Docker
+### Quick Start
 
 ```bash
-# Build and run all services
+# 1. Clone the repository
+git clone <repository-url>
+cd portfolio
+
+# 2. Create environment file
+cp docker/.env.example .env
+
+# 3. Build and start all services
 docker compose up --build
 
-# Run in detached mode
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop services
-docker compose down
+# 4. Access the application
+# Public frontend: http://localhost:3000
+# Admin dashboard:  http://localhost:3001
+# Backend API:      http://localhost:5000
 ```
 
-### Docker Services
+### Docker Architecture
 
-| Service | Port | Description |
-|---------|------|-------------|
-| frontend | 3000 | Public website (Nginx) |
-| admin | 3001 | Admin dashboard (Nginx) |
-| backend | 5000 | Express API |
-| postgres | 5432 | PostgreSQL database |
+```
+Browser
+   │
+   ├── localhost:3000 → Frontend (Nginx)
+   │
+   └── localhost:3001 → Admin (Nginx)
+                         │
+                         ▼
+                   localhost:5000 (Backend API)
+                         │
+                         ▼
+                    PostgreSQL (Docker Volume)
+                         │
+                         └── Named Volume: postgres_data
+```
 
-## CI/CD
+### Ports
 
-The project uses GitHub Actions for continuous integration:
+| Service   | Host Port | Container Port |
+|-----------|-----------|----------------|
+| Frontend  | 3000      | 3000           |
+| Admin     | 3001      | 3001           |
+| Backend   | 5000      | 5000           |
+| PostgreSQL| 5432      | 5432           |
 
-1. **Lint**: ESLint with zero warnings
-2. **Test**: Run all test suites
-3. **Prisma Validation**: Validate Prisma schema
-4. **Build**: Build frontend and admin applications
+### Docker Commands
 
-See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
+| Command                          | Description                          |
+|----------------------------------|--------------------------------------|
+| `docker compose up --build`      | Build and start all services         |
+| `docker compose up -d --build`   | Start in detached mode               |
+| `docker compose down`            | Stop services (preserves data)       |
+| `docker compose down -v`         | Stop and remove volumes (erases data)|
+| `docker compose logs -f`         | Follow logs                          |
+| `docker compose logs -f backend` | Follow backend logs                  |
+| `docker compose ps`              | List running services                |
+| `docker compose build --no-cache`| Rebuild without cache                |
 
-## Deployment
+### Environment Variables
 
-### Production Checklist
+Docker-specific environment variables are configured in `.env` (see
+`docker/.env.example`). Key variables:
 
-- [ ] Set `NODE_ENV=production`
-- [ ] Set `FRONTEND_URL` to your public origins
-- [ ] Set `COOKIE_SECURE=true` (HTTPS only)
-- [ ] Use strong, unique JWT secrets
-- [ ] Set a strong admin password
-- [ ] Point `DATABASE_URL` at a managed PostgreSQL instance
-- [ ] Configure storage directory
-- [ ] Terminate TLS at the reverse proxy
-- [ ] Enable request logging
-- [ ] Verify CORS settings
-- [ ] Run tests and build in CI
+| Variable              | Description                          |
+|-----------------------|--------------------------------------|
+| `POSTGRES_DB`         | PostgreSQL database name             |
+| `POSTGRES_USER`       | PostgreSQL username                  |
+| `POSTGRES_PASSWORD`   | PostgreSQL password                  |
+| `JWT_ACCESS_SECRET`   | JWT access token secret              |
+| `JWT_REFRESH_SECRET`  | JWT refresh token secret             |
+| `ADMIN_PASSWORD`      | Admin user password                  |
+| `VITE_API_BASE_URL`   | Backend API URL (browser-facing)     |
 
-See [docs/deployment.md](docs/deployment.md) for detailed deployment instructions.
+### Database Persistence
+
+PostgreSQL data is stored in a named Docker volume (`postgres_data`). Data
+survives `docker compose down` but is removed with `docker compose down -v`.
+
+### Production Notes
+
+- Docker provides a reproducible development/staging environment
+- For production deployments, use the existing CI/CD pipeline (GitHub Actions)
+- The frontend and admin are served via Nginx with SPA fallback
+- The backend runs Prisma migrations automatically on startup
 
 ## Documentation
 
-- [Architecture](docs/architecture.md) — System and code architecture
-- [API Reference](docs/api.md) — Complete API documentation
-- [Database](docs/database.md) — Database schema and migrations
-- [Deployment](docs/deployment.md) — Deployment guide
-- [Testing](docs/testing.md) — Testing documentation
-- [Security](docs/security.md) — Security considerations
+- [docs/architecture.md](docs/architecture.md) — system and code architecture
+- [docs/api.md](docs/api.md) — API reference
+- [docs/deployment.md](docs/deployment.md) — environment, build, and deployment
+- [docs/runtime-verification.md](docs/runtime-verification.md) — manual verification checklist
 
-## Security
+## CI/CD
 
-- JWT authentication with refresh token rotation
-- Refresh token reuse detection
-- bcrypt password hashing
-- HttpOnly cookies for refresh tokens
-- Role-based access control
-- Input validation and sanitization
-- Rate limiting on sensitive endpoints
-- Helmet security headers
-- CORS configuration
-- Spam protection with honeypot
+The project includes GitHub Actions workflows for continuous integration and
+deployment:
 
-See [docs/security.md](docs/security.md) for detailed security documentation.
+- **CI** — runs lint, tests, Prisma validation, and builds on every PR and push to `main`
+- **Deploy** — deploys to production after CI passes on `main`; checks out the exact CI-validated commit, applies migrations, runs smoke tests
 
-## Known Limitations
+See [docs/architecture.md#ci-cd-flow-hardened](docs/architecture.md#ci-cd-flow-hardened)
+for full documentation of the CI/CD architecture, required GitHub secrets, migration
+strategy, persistent file safety, SSH host verification, and rollback procedure.
 
-- No build-time image optimization (WebP/AVIF conversion)
-- Frontend cache is per-session (no cross-session caching)
-- No real-time features (WebSocket support)
-- Analytics data retention is fixed (no UI for configuration)
-
-## Future Improvements
-
-- Multi-language support (i18n)
-- Advanced image optimization pipeline
-- Content versioning and history
-- Advanced analytics with custom events
-- Email template customization
-- Webhook integrations
+See [docs/deployment.md](docs/deployment.md) for detailed deployment instructions and
+[docs/runtime-verification.md](docs/runtime-verification.md) for the manual verification checklist.
 
 ## License
 
