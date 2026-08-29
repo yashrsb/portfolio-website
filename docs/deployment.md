@@ -1,146 +1,322 @@
 # Deployment
 
-This guide covers environment configuration and production deployment for the
-Portfolio project.
+This guide covers environment configuration and production deployment for the Portfolio project.
+
+## Prerequisites
+
+- Node.js 22+
+- PostgreSQL 14+
+- npm 9+
 
 ## Environment Variables
 
-Copy `.env.example` to the app directory and set real values. Never commit
-secrets.
+### Backend
 
-| Variable                                        | Description                             | Default                                       |
-| ----------------------------------------------- | --------------------------------------- | --------------------------------------------- |
-| `VITE_SITE_URL` (frontend)                     | Public site URL for canonical/OG links  | `http://localhost:5173`                       |
-| `PORT`                                          | Backend server port                     | `5000`                                        |
-| `NODE_ENV`                                      | `development` \| `production` \| `test` | `development`                                 |
-| `API_PREFIX`                                    | Versioned API base path                 | `/api/v1`                                     |
-| `FRONTEND_URL`                                  | Comma-separated allowed CORS origins    | `http://localhost:5173,http://localhost:5174` |
-| `DATABASE_URL`                                  | PostgreSQL connection string            | _(required)_                                  |
-| `JWT_ACCESS_SECRET`                             | Secret for signing access tokens        | _(required)_                                  |
-| `JWT_REFRESH_SECRET`                            | Secret for signing refresh tokens       | _(required)_                                  |
-| `JWT_ACCESS_SECRET_TTL`                         | Access token lifetime (e.g. `15m`)      | `15m`                                         |
-| `JWT_REFRESH_SECRET_TTL_DAYS`                   | Refresh token lifetime in days          | `7`                                           |
-| `REFRESH_TOKEN_COOKIE_NAME`                     | HttpOnly cookie name for refresh token  | `portfolio_refresh`                           |
-| `COOKIE_SECURE`                                 | Set `true` over HTTPS (production)      | `false`                                       |
-| `COOKIE_SAME_SITE`                              | `lax` \| `strict` \| `none`             | `lax`                                         |
-| `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Admin seed account (used by `db:seed`)  | `Admin` / `admin@example.com` / changeme      |
-| `STORAGE_DRIVER`                                | Storage backend (`local`)               | `local`                                       |
-| `STORAGE_LOCAL_UPLOAD_DIR`                      | Local upload directory                  | `uploads`                                     |
-| `STORAGE_LOCAL_PUBLIC_BASE_URL`                 | Public base URL for uploaded files      | `http://localhost:5001/api/v1`                |
-| `STORAGE_MAX_SIZE_BYTES`                        | Max upload size in bytes                | `5242880` (5 MB)                              |
-| `STORAGE_ALLOWED_MIME_TYPES`                    | Comma-separated allowed MIME types      | `application/pdf`                             |
-| `DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS`        | Analytics event rate-limit window (ms)| `60000`                                    |
-| `DEFAULT_ANALYTICS_RATE_LIMIT_MAX`              | Max analytics events per window/IP    | `60`                                        |
-| `DEFAULT_ANALYTICS_RETENTION_DAYS`              | Days to retain analytics events       | `90`                                        |
-| `VISITOR_HASH_SECRET`                           | Secret salt for visitor hashing       | (random)                                    |
+Copy `backend/.env.example` to `backend/.env` and configure:
 
-Frontend and admin each read `VITE_API_BASE_URL`:
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| PORT | Backend server port | No | 5000 |
+| NODE_ENV | Environment (development/production/test) | No | development |
+| API_PREFIX | Versioned API base path | No | /api/v1 |
+| DATABASE_URL | PostgreSQL connection string | Yes | - |
+| JWT_ACCESS_SECRET | Access token signing secret | Yes | - |
+| JWT_REFRESH_SECRET | Refresh token signing secret | Yes | - |
+| JWT_ACCESS_SECRET_TTL | Access token lifetime | No | 15m |
+| JWT_REFRESH_SECRET_TTL_DAYS | Refresh token lifetime in days | No | 7 |
+| FRONTEND_URL | Comma-separated allowed CORS origins | Production | - |
+| REFRESH_TOKEN_COOKIE_NAME | HttpOnly cookie name | No | portfolio_refresh |
+| COOKIE_SECURE | Set true over HTTPS | No | false |
+| COOKIE_SAME_SITE | Cookie SameSite policy | No | lax |
+| ADMIN_NAME | Admin seed name | No | Admin |
+| ADMIN_EMAIL | Admin seed email | No | admin@example.com |
+| ADMIN_PASSWORD | Admin seed password | No | - |
+| STORAGE_DRIVER | Storage backend (local) | No | local |
+| STORAGE_LOCAL_UPLOAD_DIR | Local upload directory | No | uploads |
+| STORAGE_LOCAL_PUBLIC_BASE_URL | Public base URL for uploads | No | - |
+| STORAGE_MAX_SIZE_BYTES | Max upload size in bytes | No | 5242880 |
+| STORAGE_ALLOWED_MIME_TYPES | Comma-separated allowed MIME types | No | application/pdf |
+| EMAIL_PROVIDER | Email provider (smtp) | No | smtp |
+| EMAIL_FROM | Sender email address | No | - |
+| CONTACT_NOTIFICATION_EMAIL | Notification recipient | No | - |
+| EMAIL_SMTP_HOST | SMTP server host | No | - |
+| EMAIL_SMTP_PORT | SMTP server port | No | 587 |
+| EMAIL_SMTP_USER | SMTP username | No | - |
+| EMAIL_SMTP_PASS | SMTP password | No | - |
+| CONTACT_RATE_LIMIT_WINDOW_MS | Contact rate limit window | No | 900000 |
+| CONTACT_RATE_LIMIT_MAX | Max contact submissions per window | No | 5 |
+| DEFAULT_ANALYTICS_RATE_LIMIT_WINDOW_MS | Analytics rate limit window | No | 60000 |
+| DEFAULT_ANALYTICS_RATE_LIMIT_MAX | Max analytics events per window | No | 60 |
+| DEFAULT_ANALYTICS_RETENTION_DAYS | Analytics data retention | No | 90 |
+| VISITOR_HASH_SECRET | Secret salt for visitor hashing | No | random |
 
-```
-VITE_API_BASE_URL=http://localhost:5001/api/v1
-```
+### Frontend
 
-> Note: Vite env vars are inlined at build time. Set them before running
-> `npm run build`.
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| VITE_API_BASE_URL | Backend API URL | No | http://localhost:5000/api/v1 |
+| VITE_SITE_URL | Public site URL for SEO | No | http://localhost:5173 |
+
+### Admin
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| VITE_API_BASE_URL | Backend API URL | No | http://localhost:5000/api/v1 |
+
+> **Note:** Vite environment variables are inlined at build time. Set them before running `npm run build`.
 
 ## Local Development
 
 ```bash
-# install all dependencies
+# Install all dependencies
 npm install
 npm run install:all
 
-# backend
-cp backend/.env.example backend/.env   # then fill in DATABASE_URL + secrets
+# Configure backend
+cp backend/.env.example backend/.env
+# Edit backend/.env with DATABASE_URL and secrets
 
-# database
+# Set up database
 cd backend
-npm run db:migrate   # apply migrations (dev)
-npm run db:seed      # seed portfolio content + admin user
-npm run db:generate  # regenerate Prisma client
+npm run db:migrate      # Apply migrations
+npm run db:generate     # Generate Prisma client
+npm run db:seed         # Seed portfolio content + admin user
+cd ..
 
-# run everything from the repo root
-npm run dev        # frontend :5173
-npm run admin      # admin :5174
-npm run server     # backend :5000
+# Run all applications
+npm run dev             # Frontend :5173
+npm run admin           # Admin :5174
+npm run server          # Backend :5000
 ```
 
 ## Production Build
 
+### Frontend
+
 ```bash
-# frontend (public website)
 cd frontend
-npm run build        # outputs to frontend/dist
-
-# admin dashboard
-cd ../admin
-npm run build        # outputs to admin/dist
-
-# backend
-cd ../backend
-npm run db:migrate:deploy   # apply migrations in production
-npm run start               # node src/server.js
+npm run build           # Outputs to frontend/dist
 ```
 
-Serve `frontend/dist` and `admin/dist` with any static host (Nginx, Vercel,
-Netlify, S3 + CloudFront) and route `/api/*` to the backend.
+### Admin
+
+```bash
+cd admin
+npm run build           # Outputs to admin/dist
+```
+
+### Backend
+
+```bash
+cd backend
+npm run db:migrate:deploy   # Apply migrations in production
+npm run start               # Start with: node src/server.js
+```
+
+## Docker Deployment
+
+### Quick Start
+
+```bash
+# Build and run all services
+docker compose up --build
+
+# Run in detached mode
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+### Docker Services
+
+| Service | Image | Port | Description |
+|---------|-------|------|-------------|
+| frontend | nginx:1.27-alpine | 3000 | Public website |
+| admin | nginx:1.27-alpine | 3001 | Admin dashboard |
+| backend | node:22-alpine | 5000 | Express API |
+| postgres | postgres:16-alpine | 5432 | PostgreSQL database |
+
+### Docker Volumes
+
+| Volume | Description |
+|--------|-------------|
+| postgres_data | PostgreSQL data persistence |
+| uploads | Resume file uploads |
+
+### Docker Networks
+
+| Network | Description |
+|---------|-------------|
+| portfolio_network | Internal bridge network |
+
+### Environment Configuration
+
+Create `docker/.env` with production values:
+
+```env
+DATABASE_URL=postgresql://portfolio:password@postgres:5432/portfolio
+JWT_ACCESS_SECRET=your-secure-access-secret
+JWT_REFRESH_SECRET=your-secure-refresh-secret
+FRONTEND_URL=https://yourdomain.com,https://admin.yourdomain.com
+COOKIE_SECURE=true
+```
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration.
+
+### Workflow
+
+```mermaid
+graph LR
+    Lint[ESLint] --> Test[Tests]
+    Test --> Prisma[Prisma Validate]
+    Prisma --> Build[Build]
+```
+
+### GitHub Actions Jobs
+
+1. **lint**: ESLint with `--max-warnings 0`
+2. **test-backend**: Backend tests + coverage
+3. **test-frontend**: Frontend tests + coverage
+4. **test-admin**: Admin tests + coverage
+5. **build**: Prisma validation + frontend/admin builds
+6. **format-check**: Prettier format check
+
+### Required GitHub Secrets
+
+| Secret | Description |
+|--------|-------------|
+| DATABASE_URL | Test database connection string |
+| JWT_ACCESS_SECRET | Test JWT access secret |
+| JWT_REFRESH_SECRET | Test JWT refresh secret |
 
 ## Production Hardening Checklist
 
-- [ ] Set `NODE_ENV=production`.
-- [ ] Set `FRONTEND_URL` to your real public origins (comma-separated).
-- [ ] Set `COOKIE_SECURE=true` (HTTPS only).
-- [ ] Use strong, unique, random `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`.
-- [ ] Set a strong `ADMIN_PASSWORD` and rotate admin credentials.
-- [ ] Point `DATABASE_URL` at a managed PostgreSQL instance.
-- [ ] Configure `STORAGE_LOCAL_UPLOAD_DIR` to a persistent, non-public volume.
-      Ensure the directory is gitignored.
-- [ ] Terminate TLS at the reverse proxy / load balancer.
-- [ ] Enable request logging and centralize logs (e.g. stdout → log aggregator).
-- [ ] Verify CORS only permits your own origins.
-- [ ] Confirm the rate limiter is active (default 100 req / 15 min).
-- [ ] Schedule the analytics cleanup script (`npm run analytics:cleanup`) via
-      cron or a task scheduler — purges events older than
-      `DEFAULT_ANALYTICS_RETENTION_DAYS` (default 90 days).
-- [ ] Run `npm run lint` and `npm run build` in CI before deploy.
+- [ ] Set `NODE_ENV=production`
+- [ ] Set `FRONTEND_URL` to your real public origins (comma-separated)
+- [ ] Set `COOKIE_SECURE=true` (HTTPS only)
+- [ ] Use strong, unique, random `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`
+- [ ] Set a strong `ADMIN_PASSWORD` and rotate admin credentials
+- [ ] Point `DATABASE_URL` at a managed PostgreSQL instance
+- [ ] Configure `STORAGE_LOCAL_UPLOAD_DIR` to a persistent, non-public volume
+- [ ] Ensure the uploads directory is gitignored
+- [ ] Terminate TLS at the reverse proxy / load balancer
+- [ ] Enable request logging and centralize logs
+- [ ] Verify CORS only permits your own origins
+- [ ] Confirm the rate limiter is active
+- [ ] Schedule the analytics cleanup script via cron
+- [ ] Run `npm run lint` and `npm run build` in CI before deploy
 
-## Example: Reverse Proxy (Nginx)
+## Reverse Proxy Configuration
+
+### Nginx Example
 
 ```nginx
 server {
-  listen 80;
-  server_name example.com;
+    listen 80;
+    server_name example.com;
 
-  # Public website
-  location / {
-    proxy_pass http://127.0.0.1:5173;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-  }
+    # Public website
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
 
-  # Admin dashboard
-  location /admin {
-    proxy_pass http://127.0.0.1:5174;
-  }
+server {
+    listen 80;
+    server_name admin.example.com;
 
-  # API
-  location /api/ {
-    proxy_pass http://127.0.0.1:5000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
+    # Admin dashboard
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name api.example.com;
+
+    # API
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
+## Health Checks
+
+### Backend Health
+
+```bash
+curl http://localhost:5000/api/v1/health
+```
+
+### Docker Healthchecks
+
+All Docker services include health checks:
+
+| Service | Health Check |
+|---------|--------------|
+| backend | `curl http://localhost:5000/api/v1/health` |
+| frontend | `curl http://localhost:80` |
+| admin | `curl http://localhost:80` |
+| postgres | `pg_isready` |
+
+## Rollback Strategy
+
+### Database Migrations
+
+```bash
+# Revert last migration (development)
+npx prisma migrate resolve --rolled-back "migration_name"
+
+# Reset and reapply (development only)
+npx prisma migrate reset
+```
+
+### Application Rollback
+
+1. Revert to previous Docker image tag
+2. Redeploy previous version
+3. Database migrations are backward-compatible by design
+
+## Monitoring
+
+### Logs
+
+```bash
+# Docker logs
+docker compose logs -f backend
+
+# Application logs
+# Backend logs to stdout via morgan
+```
+
+### Metrics
+
+- Backend exposes `/api/v1/health` with uptime and status
+- Admin dashboard shows analytics metrics
+
 ## Troubleshooting
 
-| Symptom                             | Likely cause / fix                                                          |
-| ----------------------------------- | --------------------------------------------------------------------------- |
-| Backend fails to start              | Missing `DATABASE_URL` or JWT secrets — `env.js` fails fast. Set them.      |
-| CORS error in browser               | `FRONTEND_URL` does not include the origin you are calling from.            |
-| Login works but refresh fails       | `COOKIE_SECURE`/`COOKIE_SAME_SITE` mismatch with your HTTPS setup.          |
-| Resume upload rejected              | File not PDF or exceeds `STORAGE_MAX_SIZE_BYTES`.                           |
-| Prisma can't connect                | `DATABASE_URL` unreachable or migrations not applied (`db:migrate:deploy`). |
-| Env var not picked up by Vite build | Vite env vars are inlined at build time — rebuild after changing `.env`.    |
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Backend fails to start | Missing DATABASE_URL or JWT secrets | Set required env vars |
+| CORS error in browser | FRONTEND_URL doesn't include origin | Add origin to FRONTEND_URL |
+| Login works but refresh fails | COOKIE_SECURE/COOKIE_SAME_SITE mismatch | Match HTTPS setup |
+| Resume upload rejected | File not PDF or exceeds size | Check file type and size |
+| Prisma can't connect | DATABASE_URL unreachable | Check connection string |
+| Env var not picked up | Vite env vars inlined at build time | Rebuild after changing .env |
