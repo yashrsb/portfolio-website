@@ -97,6 +97,7 @@ export const env = {
   },
   storage: {
     driver: process.env.STORAGE_DRIVER || DEFAULT_STORAGE_DRIVER,
+    provider: process.env.STORAGE_PROVIDER || 'local',
     local: {
       uploadDir: process.env.STORAGE_LOCAL_UPLOAD_DIR || DEFAULT_UPLOAD_DIR,
       publicBaseUrl:
@@ -113,6 +114,11 @@ export const env = {
       .split(',')
       .map((type) => type.trim())
       .filter(Boolean),
+  },
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    secretKey: process.env.SUPABASE_SECRET_KEY,
+    storageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'resumes',
   },
   email: {
     provider: process.env.EMAIL_PROVIDER || 'smtp',

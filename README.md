@@ -8,7 +8,7 @@ A full-stack personal portfolio website with a public-facing site, admin dashboa
 - **Admin Dashboard**: Secure content management system with role-based access control
 - **Blog Engine**: Custom Markdown-powered blog with categories, tags, and SEO optimization
 - **Contact System**: Spam-protected contact form with email notifications
-- **Resume Management**: PDF upload and public download functionality
+- **Resume Management**: PDF upload and public download via Supabase Storage
 - **Analytics**: Privacy-conscious first-party analytics dashboard
 - **SEO**: Dynamic meta tags, Open Graph, Twitter cards, JSON-LD structured data, sitemap, and RSS
 
@@ -27,12 +27,12 @@ A full-stack personal portfolio website with a public-facing site, admin dashboa
                     │  :5000  /api/v1           │
                     └──────┬────────────────────┘
                            │
-               ┌───────────┼──────────────┐
-               ▼           ▼              ▼
-         ┌──────────┐  ┌─────────┐  ┌────────────┐
-         │PostgreSQL│  │ Files   │  │  Email     │
-         │(Prisma)  │  │(uploads)│  │ (SMTP)     │
-         └──────────┘  └─────────┘  └────────────┘
+               ┌───────────┼──────────────┬──────────────┐
+               ▼           ▼              ▼              ▼
+         ┌──────────┐  ┌─────────┐  ┌────────────┐  ┌──────────┐
+         │PostgreSQL│  │Supabase │  │  Email     │  │  Local   │
+         │(Prisma)  │  │Storage  │  │ (SMTP)     │  │ (dev)    │
+         └──────────┘  └─────────┘  └────────────┘  └──────────┘
 ```
 
 The backend follows a layered architecture: Routes → Controllers → Services → Repositories → Prisma → PostgreSQL. Each layer has a single responsibility and depends only on the layer below it.
@@ -50,6 +50,7 @@ The backend follows a layered architecture: Routes → Controllers → Services 
 - **Node.js** & **Express** — HTTP server
 - **PostgreSQL** — Database
 - **Prisma 7** — ORM and migrations
+- **Supabase Storage** — Production file storage (resume PDFs)
 - **JWT** — Access + refresh tokens
 - **bcryptjs** — Password hashing
 - **helmet, cors, compression, express-rate-limit** — Security & performance
@@ -321,9 +322,21 @@ The contact system includes multiple layers of protection:
 
 - **PDF Only**: Only PDF files are accepted
 - **Size Limit**: Configurable maximum file size (default: 5 MB)
-- **Storage Abstraction**: Pluggable storage backend (local by default)
+- **Storage Abstraction**: Pluggable storage backend
+  - **Development**: Local filesystem (`STORAGE_PROVIDER=local`)
+  - **Production**: Supabase Storage (`STORAGE_PROVIDER=supabase`)
 - **Public Download**: Latest resume available at `/api/v1/resume/download`
-- **Metadata Tracking**: File metadata stored in database
+- **Direct URL**: `Profile.resumeUrl` points to the Supabase public URL
+- **Metadata Tracking**: File metadata stored in Neon PostgreSQL
+
+### Supabase Storage Configuration
+
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SECRET_KEY` | Server-side secret key (never exposed to frontend) |
+| `SUPABASE_STORAGE_BUCKET` | Bucket name (default: `resumes`) |
+| `STORAGE_PROVIDER` | `local` (dev) or `supabase` (production) |
 
 ## SEO
 

@@ -17,7 +17,7 @@ graph TB
 
     subgraph Data["Data Layer"]
         DB[(PostgreSQL)]
-        FS[File Storage<br/>uploads/]
+        FS[Supabase Storage<br/>resumes bucket]
         E[Email SMTP]
     end
 

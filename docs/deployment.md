@@ -55,11 +55,15 @@ This guide covers environment configuration and production deployment for the Po
 | ADMIN_NAME | Admin seed name | No | Admin |
 | ADMIN_EMAIL | Admin seed email | No | admin@example.com |
 | ADMIN_PASSWORD | Admin seed password | No | - |
+| STORAGE_PROVIDER | Storage provider: `local` or `supabase` | No | local |
 | STORAGE_DRIVER | Storage backend (local) | No | local |
 | STORAGE_LOCAL_UPLOAD_DIR | Local upload directory | No | uploads |
 | STORAGE_LOCAL_PUBLIC_BASE_URL | Public base URL for uploads | No | - |
 | STORAGE_MAX_SIZE_BYTES | Max upload size in bytes | No | 5242880 |
 | STORAGE_ALLOWED_MIME_TYPES | Comma-separated allowed MIME types | No | application/pdf |
+| SUPABASE_URL | Supabase project URL | When STORAGE_PROVIDER=supabase | - |
+| SUPABASE_SECRET_KEY | Supabase server-side secret key | When STORAGE_PROVIDER=supabase | - |
+| SUPABASE_STORAGE_BUCKET | Supabase storage bucket name | No | resumes |
 | EMAIL_PROVIDER | Email provider (smtp) | No | smtp |
 | EMAIL_FROM | Sender email address | No | - |
 | CONTACT_NOTIFICATION_EMAIL | Notification recipient | No | - |
@@ -518,4 +522,70 @@ platform of choice.
 | Login works but refresh fails | COOKIE_SECURE/COOKIE_SAME_SITE mismatch | Match HTTPS setup |
 | Resume upload rejected | File not PDF or exceeds size | Check file type and size |
 | Prisma can't connect | DATABASE_URL unreachable | Check connection string |
+| Resume download returns 404 | Resume file missing from storage | Re-upload resume via admin dashboard |
 | Env var not picked up | Vite env vars inlined at build time | Rebuild after changing .env |
+| Supabase client not initialized | Missing SUPABASE_URL or SUPABASE_SECRET_KEY | Set Supabase environment variables |
+
+## Render Production Configuration (Supabase Storage)
+
+Render's filesystem is **ephemeral** — uploaded files are deleted when the container
+restarts (deployments, scaling, or idle spin-down). The Render Free plan does not
+support Persistent Disks. Therefore, production uses **Supabase Storage** for
+resume file persistence.
+
+### Supabase Setup
+
+1. Create a Supabase project at https://supabase.com
+2. Go to **Storage** → **New Bucket**
+3. Name: `resumes`
+4. Make bucket **public** (required for public resume downloads)
+5. Note your project URL and `service_role` secret key
+
+### Required Render Environment Variables
+
+In Render Dashboard → backend service → **Environment**:
+
+```
+STORAGE_PROVIDER=supabase
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SECRET_KEY=your-service-role-secret-key
+SUPABASE_STORAGE_BUCKET=resumes
+```
+
+### Security Considerations
+
+- The `SUPABASE_SECRET_KEY` is the server-side `service_role` key — never expose it to the frontend
+- The `resumes` bucket is public for read access (required for public downloads)
+- Uploads only happen through the authenticated Admin backend
+- The backend validates file type (PDF only) and size (5 MB limit)
+
+### Resume Flow (Production)
+
+```
+Admin Dashboard
+  → POST /api/v1/admin/resume
+  → ResumeService.uploadResume()
+  → SupabaseStorageProvider.upload()
+  → Supabase Storage bucket "resumes"
+  → ResumeFile metadata stored in Neon
+  → Profile.resumeUrl updated with Supabase public URL
+  → Frontend opens profile.resumeUrl directly
+
+Public Download
+  → Frontend: window.open(profile.resumeUrl, '_blank')
+  → Browser fetches directly from Supabase CDN
+```
+
+### Verification
+
+```bash
+# Should return HTTP 200 with the PDF file
+curl -I "https://portfolio-backend-j24o.onrender.com/api/v1/resume/download"
+
+# Check Supabase Storage for uploaded file
+# (Use Supabase Dashboard → Storage → resumes bucket)
+```
+
+### Why Local Storage Fails on Render
+
+The `LocalStorageProvider` writes files to `STORAGE_LOCAL_UPLOAD_DIR`. On Render's ephemeral filesystem, files survive only until the next container restart. The database records (`ResumeFile` and `Profile.resumeUrl`) persist, but the actual file is gone — causing the download endpoint to return **404**. Supabase Storage solves this by providing persistent, CDN-backed file storage.
