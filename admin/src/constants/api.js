@@ -9,6 +9,10 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
 
+/** Public portfolio site URL. */
+export const PUBLIC_SITE_URL =
+  import.meta.env.VITE_SITE_URL || 'http://localhost:5173';
+
 /** HTTP methods. */
 export const HTTP_METHODS = Object.freeze({
   GET: 'get',

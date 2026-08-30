@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import styles from './Sidebar.module.css';
+import { PUBLIC_SITE_URL } from '../../../constants/api';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: '📊', end: true },
@@ -141,7 +142,7 @@ function Sidebar({ isOpen, onClose }) {
       <div className={styles.footer}>
         <a
           className={styles.viewSiteLink}
-          href="http://localhost:5173"
+          href={PUBLIC_SITE_URL}
           target="_blank"
           rel="noopener noreferrer"
         >
