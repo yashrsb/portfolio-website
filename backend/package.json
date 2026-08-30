@@ -17,6 +17,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:seed": "node prisma/seed.js",
+    "db:seed:admin": "node scripts/seed-admin.js",
     "db:studio": "prisma studio",
     "analytics:cleanup": "node src/scripts/cleanupAnalytics.js",
     "postinstall": "prisma generate"
