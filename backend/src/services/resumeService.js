@@ -19,15 +19,22 @@ import { ERROR_CODES } from '../constants/errorCodes.js';
 
 /**
  * Builds the public download URL for a resume.
+ * @param {string} [storageKey] - Optional storage key for specific file URL.
  * @returns {Promise<string>} Public URL.
  */
-const buildPublicUrl = () => storage.getPublicUrl();
+const buildPublicUrl = (storageKey) => {
+  if (storageKey && typeof storage.getPublicUrlForKey === 'function') {
+    return storage.getPublicUrlForKey(storageKey);
+  }
+  return storage.getPublicUrl();
+};
 
 /**
  * Updates the Profile.resumeUrl to point at the latest public URL.
+ * @param {string} [storageKey] - Optional storage key for specific file URL.
  * @returns {Promise<object>} Updated profile.
  */
-const syncProfileResumeUrl = async () => {
+const syncProfileResumeUrl = async (storageKey) => {
   const profile = await getProfile();
   if (!profile) {
     throw new ApiError(
@@ -36,7 +43,7 @@ const syncProfileResumeUrl = async () => {
       ERROR_CODES.NOT_FOUND,
     );
   }
-  const publicUrl = await buildPublicUrl();
+  const publicUrl = await buildPublicUrl(storageKey);
   return updateProfile(profile.id, { resumeUrl: publicUrl });
 };
 
@@ -66,7 +73,7 @@ export const uploadResume = async (file) => {
   await storage.validate(file);
 
   const stored = await storage.upload(file);
-  const publicUrl = await buildPublicUrl();
+  const publicUrl = await buildPublicUrl(stored.storageKey);
 
   const resume = await createResume({
     filename: file.originalname,
@@ -79,7 +86,7 @@ export const uploadResume = async (file) => {
     url: publicUrl,
   });
 
-  await syncProfileResumeUrl();
+  await syncProfileResumeUrl(stored.storageKey);
 
   return { resume, publicUrl };
 };
@@ -103,7 +110,7 @@ export const replaceResume = async (file) => {
   }
 
   const stored = await storage.upload(file);
-  const publicUrl = await buildPublicUrl();
+  const publicUrl = await buildPublicUrl(stored.storageKey);
 
   const resume = await updateResume(existing.id, {
     filename: file.originalname,
@@ -119,7 +126,7 @@ export const replaceResume = async (file) => {
   // Remove the previous file from storage after the new one is persisted.
   await storage.delete(existing.storageKey);
 
-  await syncProfileResumeUrl();
+  await syncProfileResumeUrl(stored.storageKey);
 
   return { resume, publicUrl };
 };

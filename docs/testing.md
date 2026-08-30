@@ -57,7 +57,8 @@ backend/
 │   ├── authService.test.js         # Authentication service tests
 │   ├── authenticate.test.js        # Auth middleware tests
 │   ├── errorHandler.test.js        # Error handling tests
-│   ├── security.test.js            # Security regression tests
+│   ├── localStorageProvider.test.js # Local storage provider tests
+│   ├── supabaseStorageProvider.test.js # Supabase storage provider tests
 │   └── ...                         # Other test files
 
 frontend/
@@ -194,13 +195,45 @@ The test suite includes safeguards to protect portfolio content:
 3. **Mocked Repositories**: Service tests use mocked data access layers
 4. **Environment Separation**: Test environment uses different database credentials
 
-## Adding New Tests
+## Storage Provider Testing
 
-When adding new tests:
+### LocalStorageProvider Tests
 
-1. Follow existing test file naming: `*.test.js` or `*.test.jsx`
-2. Place tests in the appropriate directory
-3. Use `vi.mock()` for external dependencies
-4. Keep tests focused on user-visible behavior
-5. Avoid testing implementation details
-6. Ensure tests are deterministic and isolated
+`tests/localStorageProvider.test.js` tests the local filesystem storage provider using temporary directories. Tests cover:
+- File upload and retrieval
+- File deletion (including no-op for missing files)
+- File existence checks
+- Path traversal prevention
+- File validation (size, MIME type, empty files)
+
+### SupabaseStorageProvider Tests
+
+`tests/supabaseStorageProvider.test.js` tests the Supabase Storage provider using a **mocked Supabase client**. Tests never connect to a real Supabase project. Coverage includes:
+
+1. **Successful upload** — file is uploaded to the correct bucket with correct content type
+2. **Upload failure** — Supabase errors are converted to ApiError
+3. **Successful delete** — file is removed from the bucket
+4. **Delete failure** — errors are handled gracefully (no-op for missing files)
+5. **Public URL generation** — bucket base URL and file-specific URLs
+6. **Correct bucket selection** — provider uses configured bucket name
+7. **Correct storage path/key** — unique filenames are generated
+8. **Content type handling** — MIME type is preserved during upload
+9. **File validation** — empty files, oversized files, and invalid MIME types are rejected
+
+### Mocking Strategy
+
+The Supabase client is fully mocked using `vi.fn()`:
+
+```javascript
+const mockClient = {
+  storage: {
+    from: vi.fn().mockReturnValue({
+      upload: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      remove: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      list: vi.fn().mockResolvedValue({ data: [], error: null }),
+      download: vi.fn().mockResolvedValue({ data: new Blob(), error: null }),
+      getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: '...' } }),
+    }),
+  },
+};
+```

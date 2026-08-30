@@ -195,6 +195,17 @@ class LocalStorageProvider extends StorageService {
   }
 
   /**
+   * Builds the public URL for a specific stored file.
+   * For the local provider, this is the same as getPublicUrl() since
+   * the backend endpoint serves the latest resume regardless of key.
+   * @param {string} _storageKey - Stored filename (unused for local provider).
+   * @returns {Promise<string>} Public download URL.
+   */
+  async getPublicUrlForKey(_storageKey) {
+    return this.getPublicUrl();
+  }
+
+  /**
    * Opens a readable stream for a stored file.
    * @param {string} storageKey - Stored filename.
    * @returns {import('node:stream').Readable} Readable stream.
