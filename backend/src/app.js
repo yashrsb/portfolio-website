@@ -46,8 +46,10 @@ const createApp = () => {
   app.use(cookieParser());
 
   // Body parsing
-  app.use(express.json({ limit: '10kb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+  // 2 MB accommodates long-form blog post Markdown content (the largest
+  // legitimate payload in the app) while still rejecting excessive bodies.
+  app.use(express.json({ limit: '2mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
   // HTTP request logging
   app.use(requestLogger);
