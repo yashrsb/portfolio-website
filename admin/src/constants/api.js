@@ -22,8 +22,15 @@ export const HTTP_METHODS = Object.freeze({
   DELETE: 'delete',
 });
 
-/** Request timeout (ms). */
-export const REQUEST_TIMEOUT = 15000;
+/** Request timeout (ms).
+ *
+ * Long-form blog posts (1–2 MB of Markdown) are written to a hosted Neon
+ * Postgres instance; end-to-end create/update round trips can legitimately
+ * take 15–40 s. The previous 15 s timeout aborted the request client-side
+ * while the backend was still writing, which surfaced as a misleading
+ * "Network error" even though the backend eventually returned 201.
+ */
+export const REQUEST_TIMEOUT = 60000;
 
 /** Retry settings. */
 export const RETRY = Object.freeze({

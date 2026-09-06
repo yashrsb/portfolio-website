@@ -138,6 +138,15 @@ const normalizeError = (err) => {
     );
   }
 
+  // body-parser raises PayloadTooLargeError with type 'entity.too.large'
+  if (err.type === 'entity.too.large') {
+    return new ApiError(
+      HTTP_STATUS.PAYLOAD_TOO_LARGE,
+      'Request payload is too large.',
+      ERROR_CODES.PAYLOAD_TOO_LARGE,
+    );
+  }
+
   // body-parser raises SyntaxError with status 400 for malformed JSON
   if (
     err.type === 'entity.parse.failed' ||

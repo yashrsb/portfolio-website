@@ -78,18 +78,7 @@ describe('useResource — refresh regression', () => {
   });
 
   it('does not lose data when load is called multiple times (effect re-run)', async () => {
-    let resolveFirst;
-    let resolveSecond;
-    const firstPromise = new Promise((resolve) => {
-      resolveFirst = resolve;
-    });
-    const secondPromise = new Promise((resolve) => {
-      resolveSecond = resolve;
-    });
-
-    let callCount = 0;
     apiClient.get.mockImplementation(() => {
-      callCount += 1;
       const data = {
         success: true,
         data: [{ id: '1', name: 'microservices', slug: 'microservices' }],

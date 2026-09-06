@@ -158,6 +158,37 @@ describe('errorHandler middleware', () => {
     );
   });
 
+  it('maps entity.too.large (PayloadTooLargeError) to 413', () => {
+    const error = { type: 'entity.too.large', status: 413 };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    expect(mockRes.status).toHaveBeenCalledWith(413);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        message: 'Request payload is too large.',
+        code: 'PAYLOAD_TOO_LARGE',
+      }),
+    );
+  });
+
+  it('does not expose body-parser internals in the 413 response', () => {
+    const error = {
+      type: 'entity.too.large',
+      status: 413,
+      message: 'request entity too large',
+      stack: 'PayloadTooLargeError: request entity too large\n    at readStream (raw-body/index.js)',
+    };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    const payload = mockRes.json.mock.calls[0][0];
+    expect(JSON.stringify(payload)).not.toContain('raw-body');
+    expect(JSON.stringify(payload)).not.toContain('body-parser');
+    expect(JSON.stringify(payload)).not.toContain('entity too large');
+  });
+
   it('maps JSON parse error to 400', () => {
     const error = { type: 'entity.parse.failed' };
 
