@@ -81,7 +81,7 @@ class BaseCrudService {
       return data.data;
     };
 
-    const deduped = dedupe(key, request());
+    const deduped = dedupe(key, request, signal);
     if (this.cacheList) {
       deduped.then((result) => set(key, result, this.cacheTtl));
     }

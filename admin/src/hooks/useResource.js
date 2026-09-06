@@ -107,7 +107,10 @@ function useResource(service, options = {}) {
         const result = await service.list({}, controller.signal);
         // Ignore stale responses from aborted/superseded requests.
         if (mountedRef.current && requestId === requestIdRef.current) {
-          setData(result || []);
+          // Guard against non-array responses (e.g. paginated envelopes,
+          // null, or unexpected shapes) so the UI never falsely renders
+          // an empty state when the backend actually returned records.
+          setData(Array.isArray(result) ? result : []);
         }
       } catch (err) {
         // Ignore abort errors caused by unmount or a newer request.
