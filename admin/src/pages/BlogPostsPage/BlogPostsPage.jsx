@@ -58,6 +58,7 @@ function BlogPostsPage() {
     data: items,
     loading,
     error,
+    errorRef,
     create,
     update,
     remove,
@@ -189,21 +190,34 @@ function BlogPostsPage() {
       tagIds: form.tagIds,
     };
 
-    setSubmitting(true);
-    let result;
-    if (editingId) {
-      result = await update(editingId, payload);
-    } else {
-      result = await create(payload);
-    }
-
-    if (result) {
-      resetDirty();
-      setModalOpen(false);
-      setEditingId(null);
-    }
-    setSubmitting(false);
-  };
+      setSubmitting(true);
+      let result;
+      if (editingId) {
+        result = await update(editingId, payload);
+      } else {
+        result = await create(payload);
+      }
+      if (result) {
+        resetDirty();
+        setModalOpen(false);
+        setEditingId(null);
+      } else {
+        // Surface server-side validation errors on the individual form
+        // fields so the user can see exactly what to fix while the modal
+        // is still open (the page-level banner is hidden behind the modal).
+        const fieldErrors = errorRef.current?.fieldErrors || [];
+        if (fieldErrors.length > 0) {
+          setErrors((prev) => {
+            const next = { ...prev };
+            fieldErrors.forEach(({ field, message }) => {
+              next[field] = message;
+            });
+            return next;
+          });
+        }
+      }
+      setSubmitting(false);
+    };
 
   const handleDelete = async () => {
     if (!deleteTarget || deleting) return;
