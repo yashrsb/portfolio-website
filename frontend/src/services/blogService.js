@@ -46,7 +46,7 @@ const toUiPostCard = (post) => ({
     ? { slug: post.category.slug, name: post.category.name }
     : null,
   tags: post.tags
-    ? post.tags.map((t) => ({ slug: t.tag.slug, name: t.tag.name }))
+    ? post.tags.map((t) => ({ slug: t.slug, name: t.name }))
     : [],
 });
 
@@ -75,7 +75,7 @@ export const toUiPostDetail = (post) => ({
     ? { slug: post.category.slug, name: post.category.name }
     : null,
   tags: post.tags
-    ? post.tags.map((t) => ({ slug: t.tag.slug, name: t.tag.name }))
+    ? post.tags.map((t) => ({ slug: t.slug, name: t.name }))
     : [],
 });
 
@@ -105,8 +105,8 @@ export async function fetchBlogPosts(query = {}, signal) {
 
   const response = await apiClient.get('/blog/posts', { params, signal });
 
-  const meta = response.meta || {};
-  const posts = (response.data || []).map(toUiPostCard);
+  const meta = response._meta || {};
+  const posts = (response || []).map(toUiPostCard);
 
   return {
     posts,
@@ -129,7 +129,7 @@ export async function fetchBlogPosts(query = {}, signal) {
  */
 export async function fetchBlogPost(slug, signal) {
   const response = await apiClient.get(`/blog/posts/${slug}`, { signal });
-  return toUiPostDetail(response.data);
+  return toUiPostDetail(response);
 }
 
 /**
@@ -142,7 +142,7 @@ export async function fetchFeaturedPosts(limit = 3, signal) {
   const response = await apiClient.get(`/blog/featured?limit=${limit}`, {
     signal,
   });
-  return (response.data || []).map(toUiPostCard);
+  return (response || []).map(toUiPostCard);
 }
 
 /**
@@ -152,7 +152,7 @@ export async function fetchFeaturedPosts(limit = 3, signal) {
  */
 export async function fetchBlogCategories(signal) {
   const response = await apiClient.get('/blog/categories', { signal });
-  return response.data || [];
+  return response || [];
 }
 
 /**
@@ -162,7 +162,7 @@ export async function fetchBlogCategories(signal) {
  */
 export async function fetchBlogTags(signal) {
   const response = await apiClient.get('/blog/tags', { signal });
-  return response.data || [];
+  return response || [];
 }
 
 /**
@@ -189,8 +189,8 @@ export async function fetchPostsByCategory(slug, query = {}, signal) {
     signal,
   });
 
-  const { data, meta } = response;
-  const posts = (data || []).map(toUiPostCard);
+  const meta = response._meta || {};
+  const posts = (response || []).map(toUiPostCard);
 
   return {
     posts,
@@ -230,8 +230,8 @@ export async function fetchPostsByTag(slug, query = {}, signal) {
     signal,
   });
 
-  const { data, meta } = response;
-  const posts = (data || []).map(toUiPostCard);
+  const meta = response._meta || {};
+  const posts = (response || []).map(toUiPostCard);
 
   return {
     posts,
@@ -254,5 +254,5 @@ export async function fetchPostsByTag(slug, query = {}, signal) {
  */
 export async function fetchBlogSitemapData(signal) {
   const response = await apiClient.get('/blog/sitemap', { signal });
-  return response.data || [];
+  return response || [];
 }

@@ -7,7 +7,7 @@ import styles from './ErrorState.module.css';
  * @param {string} [props.title='Something went wrong'] - Error title
  * @param {string} [props.message=''] - Error message
  */
-function ErrorState({ title = 'Something went wrong', message = '' }) {
+function ErrorState({ title = 'Something went wrong', message = '', onRetry, retryLabel = 'Retry' }) {
   return (
     <div className={styles.wrapper} role="alert">
       <span className={styles.icon} aria-hidden="true">
@@ -15,6 +15,16 @@ function ErrorState({ title = 'Something went wrong', message = '' }) {
       </span>
       <h2 className={styles.title}>{title}</h2>
       {message && <p className={styles.message}>{message}</p>}
+      {onRetry && (
+        <button
+          type="button"
+          className={styles.retryButton}
+          onClick={onRetry}
+          aria-label={retryLabel}
+        >
+          {retryLabel}
+        </button>
+      )}
     </div>
   );
 }

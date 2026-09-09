@@ -204,6 +204,21 @@ async function doFetch(urlString, fetchOptions, timeoutId) {
       'success' in data &&
       'data' in data
     ) {
+      if (
+        data.meta &&
+        typeof data.meta === 'object' &&
+        Object.keys(data.meta).length > 0 &&
+        data.data !== null &&
+        typeof data.data === 'object'
+      ) {
+        Object.defineProperty(data.data, '_meta', {
+          value: data.meta,
+          enumerable: false,
+          writable: false,
+          configurable: true,
+        });
+        return data.data;
+      }
       return data.data;
     }
 

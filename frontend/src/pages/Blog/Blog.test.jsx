@@ -133,7 +133,9 @@ describe('Blog page', () => {
     mockUseBlogPosts.error = null;
     mockUseBlogPosts.posts = [];
     render(<Blog />);
-    expect(screen.getByText('No articles found.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No articles published yet.'),
+    ).toBeInTheDocument();
   });
 
   it('renders post cards when posts are available', () => {

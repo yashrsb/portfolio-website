@@ -30,3 +30,19 @@
   margin: 0;
   max-width: 480px;
 }
+
+.retryButton {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-size: var(--font-size-sm, 0.875rem);
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 6px;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text, #1a1a1a);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: var(--color-bg-tertiary, #f8f9fa);
+}
