@@ -216,7 +216,7 @@ describe('BlogList', () => {
   it('renders search input with correct placeholder and aria-label', () => {
     render(<BlogList />);
 
-    const input = screen.getByPlaceholderText('Search articles...');
+    const input = screen.getByPlaceholderText('Search articles by title, topic, or keyword...');
     expect(input).toHaveAttribute('aria-label', 'Search blog posts');
   });
 
@@ -245,14 +245,14 @@ describe('BlogList', () => {
     render(<BlogList showSearch={false} />);
 
     expect(
-      screen.queryByPlaceholderText('Search articles...'),
+      screen.queryByPlaceholderText('Search articles by title, topic, or keyword...'),
     ).not.toBeInTheDocument();
   });
 
   it('hides category filter when showCategoryFilter is false', () => {
     render(<BlogList showCategoryFilter={false} />);
 
-    expect(screen.queryByText('Category:')).not.toBeInTheDocument();
+    expect(screen.queryByText('Categories')).not.toBeInTheDocument();
   });
 
   it('renders pagination when totalPages > 1', () => {

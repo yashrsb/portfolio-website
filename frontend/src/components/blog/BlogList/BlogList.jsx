@@ -134,46 +134,51 @@ function BlogList({
   return (
     <div>
       {showSearch && (
-        <div className={styles.searchContainer}>
-          <input
-            type="search"
-            placeholder="Search articles..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.searchInput}
-            aria-label="Search blog posts"
-          />
+        <div className={styles.exploreSection}>
+          <h2 className={styles.exploreLabel}>Explore articles</h2>
+          <div className={styles.searchContainer}>
+            <input
+              type="search"
+              placeholder="Search articles by title, topic, or keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles.searchInput}
+              aria-label="Search blog posts"
+            />
+          </div>
         </div>
       )}
 
       {showCategoryFilter && categories.length > 0 && (
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Category:</span>
-          <button
-            type="button"
-            className={
-              activeCategory
-                ? styles.filterButton
-                : `${styles.filterButton} ${styles.filterButtonActive}`
-            }
-            onClick={() => handleFilterCategory(null)}
-          >
-            All
-          </button>
-          {categories.map((cat) => (
+          <span className={styles.filterLabel}>Categories</span>
+          <div className={styles.filterButtons}>
             <button
-              key={cat.slug}
               type="button"
               className={
-                activeCategory === cat.slug
-                  ? `${styles.filterButton} ${styles.filterButtonActive}`
-                  : styles.filterButton
+                activeCategory
+                  ? styles.filterButton
+                  : `${styles.filterButton} ${styles.filterButtonActive}`
               }
-              onClick={() => handleFilterCategory(cat.slug)}
+              onClick={() => handleFilterCategory(null)}
             >
-              {cat.name}
+              All
             </button>
-          ))}
+            {categories.map((cat) => (
+              <button
+                key={cat.slug}
+                type="button"
+                className={
+                  activeCategory === cat.slug
+                    ? `${styles.filterButton} ${styles.filterButtonActive}`
+                    : styles.filterButton
+                }
+                onClick={() => handleFilterCategory(cat.slug)}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -204,7 +209,7 @@ function BlogList({
               <p className={styles.emptyTitle}>No articles published yet.</p>
               <p className={styles.emptySubtitle}>
                 Check back soon for new technical articles on software
-                engineering, system design, and infrastructure.
+                engineering, system design, databases, and infrastructure.
               </p>
             </>
           )}

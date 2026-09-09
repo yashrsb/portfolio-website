@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import Container from '../../components/common/Container/Container';
-import Section from '../../components/common/Section/Section';
+import BlogHero from '../../components/blog/BlogHero/BlogHero';
 import BlogList from '../../components/blog/BlogList/BlogList';
-import { setJsonLd, setPageSEO } from '../../utils/seo';
-import { buildUrl } from '../../config/seo';
+import { setPageSEO } from '../../utils/seo';
 import styles from './Blog.module.css';
 
 function Blog() {
@@ -11,40 +10,15 @@ function Blog() {
     setPageSEO({
       title: 'Blog',
       description:
-        'Technical articles on software engineering, system design, and infrastructure.',
+        'Practical articles on backend engineering, system design, databases, cloud infrastructure, JavaScript, and other areas of computer science.',
       path: '/blog',
       type: 'website',
-    });
-
-    setJsonLd('website-ld', {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'Portfolio Blog',
-      url: buildUrl('/blog'),
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: buildUrl('/blog') + '?q={search_term_string}',
-        'query-input': 'required name=search_term_string',
-      },
     });
   }, []);
 
   return (
     <div className={styles.page}>
-      <Section
-        title="Blog"
-        subtitle="Technical articles on software engineering, system design, and infrastructure."
-        background="alt"
-      >
-        <Container>
-          <div className={styles.intro}>
-            <p>
-              Thoughts, experiments, and lessons learned from building systems
-              at scale.
-            </p>
-          </div>
-        </Container>
-      </Section>
+      <BlogHero />
 
       <Container>
         <BlogList />
