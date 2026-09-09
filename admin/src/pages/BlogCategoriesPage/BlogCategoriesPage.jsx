@@ -31,6 +31,7 @@ function BlogCategoriesPage() {
     update,
     remove,
     clearError,
+    errorRef,
   } = useResource(blogCategoryService);
   const { markDirty, resetDirty } = useDirtyForm();
 
@@ -87,11 +88,21 @@ function BlogCategoriesPage() {
     const result = editingId
       ? await update(editingId, form)
       : await create(form);
-
     if (result) {
       resetDirty();
       setModalOpen(false);
       setEditingId(null);
+    } else {
+      // Surface backend field errors next to their inputs instead of only
+      // showing a generic toast/banner.
+      const fieldErrors = errorRef.current?.fieldErrors || [];
+      if (fieldErrors.length > 0) {
+        const nextErrors = {};
+        fieldErrors.forEach(({ field, message }) => {
+          nextErrors[field] = message;
+        });
+        setErrors((prev) => ({ ...prev, ...nextErrors }));
+      }
     }
     setSubmitting(false);
   };

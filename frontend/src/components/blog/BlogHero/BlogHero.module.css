@@ -1,0 +1,136 @@
+/* ============================================ */
+/* BlogHero — Blog Introduction Component       */
+/* ============================================ */
+
+.hero {
+  text-align: center;
+  padding: var(--spacing-4xl) 0 var(--spacing-3xl);
+  margin-bottom: var(--spacing-3xl);
+  position: relative;
+}
+
+/* ---- Inner content wrapper ---- */
+
+.inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+/* ---- Eyebrow ---- */
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-accent, #2563eb);
+  margin-bottom: var(--spacing-lg);
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-accent, #2563eb);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-accent-bg, rgba(37, 99, 235, 0.08));
+}
+
+/* ---- Headline ---- */
+
+.headline {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--spacing-lg);
+}
+
+.headlineLine {
+  display: block;
+}
+
+/* ---- Description ---- */
+
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ---- Decorative row ---- */
+
+.decorRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--spacing-xl);
+  font-family: var(--font-family-mono, 'SF Mono', 'Fira Code', monospace);
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary, #94a3b8);
+  opacity: 0.7;
+}
+
+.decorItem {
+  letter-spacing: 0.02em;
+}
+
+.decorDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent, #2563eb);
+  opacity: 0.5;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-3xl) 0 var(--spacing-2xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .headline {
+    font-size: var(--font-size-3xl);
+  }
+
+  .headlineLine {
+    display: block;
+  }
+
+  .description {
+    font-size: var(--font-size-sm);
+  }
+
+  .decorRow {
+    font-size: 0.7rem;
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--spacing-2xl) 0 var(--spacing-xl);
+  }
+
+  .headline {
+    font-size: var(--font-size-2xl);
+  }
+
+  .decorRow {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---- Reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

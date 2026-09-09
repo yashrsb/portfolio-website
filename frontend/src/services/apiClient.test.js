@@ -46,6 +46,28 @@ describe('apiClient', () => {
       expect(result).toEqual([1, 2, 3]);
     });
 
+    it('preserves non-empty meta as non-enumerable _meta property', async () => {
+      const mockData = {
+        success: true,
+        message: 'OK',
+        data: [{ id: 1 }, { id: 2 }],
+        meta: { page: 1, total: 2, totalPages: 1 },
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: () => 'application/json' },
+        json: () => Promise.resolve(mockData),
+      });
+
+      const result = await apiClient.get('/paginated');
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(result._meta).toEqual({ page: 1, total: 2, totalPages: 1 });
+      expect(Object.keys(result)).toEqual(['0', '1']);
+      expect(Object.keys(result)).not.toContain('_meta');
+    });
+
     it('returns data as-is when no envelope', async () => {
       const mockData = { id: 1, name: 'Test' };
       mockFetch.mockResolvedValueOnce({

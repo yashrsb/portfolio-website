@@ -31,15 +31,41 @@ const isPrismaError = (err) =>
   typeof err?.code === 'string' && /^P\d{4}$/.test(err.code);
 
 /**
+ * Builds a human-readable message for a Prisma unique-constraint error.
+ * Uses `meta.target` (Prisma 5+) to surface the offending field(s) when
+ * available, while keeping a safe default when the metadata is missing.
+ * @param {{ code: string, meta?: { target?: string[]|string } }} err
+ * @returns {string}
+ */
+const uniqueConstraintMessage = (err) => {
+  const target = err?.meta?.target;
+  const fields = Array.isArray(target)
+    ? target
+    : typeof target === 'string'
+      ? [target]
+      : [];
+
+  if (fields.length > 0) {
+    const list = fields.join(', ');
+    if (fields.length === 1 && fields[0] === 'slug') {
+      return 'A record with this slug already exists.';
+    }
+    return `A record with the same ${list} already exists.`;
+  }
+
+  return 'A record with the same unique value already exists.';
+};
+
+/**
  * Maps a Prisma error code to an ApiError.
- * @param {{ code: string }} err - Prisma error.
+ * @param {{ code: string, meta?: object }} err - Prisma error.
  * @returns {ApiError} Normalized ApiError.
  */
 const mapPrismaError = (err) => {
   if (err.code === PRISMA_UNIQUE_CONSTRAINT) {
     return new ApiError(
       HTTP_STATUS.CONFLICT,
-      'A record with the same unique value already exists.',
+      uniqueConstraintMessage(err),
       ERROR_CODES.CONFLICT,
     );
   }
@@ -109,6 +135,15 @@ const normalizeError = (err) => {
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       'The database is currently unavailable. Please try again later.',
       ERROR_CODES.DATABASE_UNAVAILABLE,
+    );
+  }
+
+  // body-parser raises PayloadTooLargeError with type 'entity.too.large'
+  if (err.type === 'entity.too.large') {
+    return new ApiError(
+      HTTP_STATUS.PAYLOAD_TOO_LARGE,
+      'Request payload is too large.',
+      ERROR_CODES.PAYLOAD_TOO_LARGE,
     );
   }
 

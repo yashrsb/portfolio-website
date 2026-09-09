@@ -1,20 +1,41 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useBlogPosts, useBlogCategories, useBlogTags } from '../../../hooks';
 import BlogPostCard from '../BlogPostCard/BlogPostCard';
-import LoadingState from '../../common/LoadingState/LoadingState';
+import ErrorState from '../../common/ErrorState/ErrorState';
 import Button from '../../common/Button/Button';
 import Reveal from '../../common/Reveal/Reveal';
 import styles from './BlogList.module.css';
 
-/**
- * Reusable blog post listing with search, category/tag filtering, and pagination.
- *
- * @param {Object} props
- * @param {Object} [props.initialQuery] - Initial query params (category, tag, limit, featured).
- * @param {boolean} [props.showSearch] - Whether to show the search box.
- * @param {boolean} [props.showCategoryFilter] - Whether to show category filter buttons.
- * @param {boolean} [props.showTagCloud] - Whether to show the tag cloud.
- */
+const SKELETON_COUNT = 6;
+
+function SkeletonCard() {
+  return (
+    <div className={styles.skeletonCard} aria-hidden="true">
+      <div className={styles.skeletonImage} />
+      <div className={styles.skeletonContent}>
+        <div className={styles.skeletonLine} />
+        <div className={styles.skeletonLineShort} />
+        <div className={styles.skeletonLine} />
+        <div className={styles.skeletonLineShort} />
+      </div>
+    </div>
+  );
+}
+
+function FeaturedSkeletonCard() {
+  return (
+    <div className={styles.skeletonFeaturedCard} aria-hidden="true">
+      <div className={styles.skeletonFeaturedImage} />
+      <div className={styles.skeletonContent}>
+        <div className={styles.skeletonLine} />
+        <div className={styles.skeletonLine} />
+        <div className={styles.skeletonLine} />
+        <div className={styles.skeletonLineShort} />
+      </div>
+    </div>
+  );
+}
+
 function BlogList({
   initialQuery = {},
   showSearch = true,
@@ -73,68 +94,91 @@ function BlogList({
 
   const hasActiveFilters = debouncedSearch || activeCategory || activeTag;
 
+  // Separate featured post from the rest for prominent display
+  const featuredPost = posts.find((p) => p.featured);
+  const otherPosts = featuredPost
+    ? posts.filter((p) => p.id !== featuredPost.id)
+    : posts;
+
   if (loading) {
-    return <LoadingState label="Loading articles..." />;
+    return (
+      <div data-testid="loading">
+        {showSearch && (
+          <div className={styles.searchContainer}>
+            <div className={styles.skeletonSearch} />
+          </div>
+        )}
+
+        <FeaturedSkeletonCard />
+
+        <div className={styles.postGrid}>
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+            <SkeletonCard key={`skeleton-${i}`} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className={styles.error}>
-        <p>{error}</p>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className={styles.retryButton}
-        >
-          Retry
-        </button>
-      </div>
+      <ErrorState
+        title="Unable to load articles"
+        message={error}
+        onRetry={() => window.location.reload()}
+        retryLabel="Retry"
+      />
     );
   }
 
   return (
     <div>
       {showSearch && (
-        <div className={styles.searchContainer}>
-          <input
-            type="search"
-            placeholder="Search articles..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.searchInput}
-            aria-label="Search blog posts"
-          />
+        <div className={styles.exploreSection}>
+          <h2 className={styles.exploreLabel}>Explore articles</h2>
+          <div className={styles.searchContainer}>
+            <input
+              type="search"
+              placeholder="Search articles by title, topic, or keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles.searchInput}
+              aria-label="Search blog posts"
+            />
+          </div>
         </div>
       )}
 
       {showCategoryFilter && categories.length > 0 && (
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Category:</span>
-          <button
-            type="button"
-            className={
-              activeCategory
-                ? styles.filterButton
-                : `${styles.filterButton} ${styles.filterButtonActive}`
-            }
-            onClick={() => handleFilterCategory(null)}
-          >
-            All
-          </button>
-          {categories.map((cat) => (
+          <span className={styles.filterLabel}>Categories</span>
+          <div className={styles.filterButtons}>
             <button
-              key={cat.slug}
               type="button"
               className={
-                activeCategory === cat.slug
-                  ? `${styles.filterButton} ${styles.filterButtonActive}`
-                  : styles.filterButton
+                activeCategory
+                  ? styles.filterButton
+                  : `${styles.filterButton} ${styles.filterButtonActive}`
               }
-              onClick={() => handleFilterCategory(cat.slug)}
+              onClick={() => handleFilterCategory(null)}
             >
-              {cat.name}
+              All
             </button>
-          ))}
+            {categories.map((cat) => (
+              <button
+                key={cat.slug}
+                type="button"
+                className={
+                  activeCategory === cat.slug
+                    ? `${styles.filterButton} ${styles.filterButtonActive}`
+                    : styles.filterButton
+                }
+                onClick={() => handleFilterCategory(cat.slug)}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -150,17 +194,39 @@ function BlogList({
 
       {posts.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No articles found.</p>
-          {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
-              Clear filters
-            </Button>
+          {hasActiveFilters ? (
+            <>
+              <p className={styles.emptyTitle}>No articles found.</p>
+              <p className={styles.emptySubtitle}>
+                Try a different search term or clear your filters.
+              </p>
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className={styles.emptyTitle}>No articles published yet.</p>
+              <p className={styles.emptySubtitle}>
+                Check back soon for new technical articles on software
+                engineering, system design, databases, and infrastructure.
+              </p>
+            </>
           )}
         </div>
       ) : (
         <>
+          {featuredPost && (
+            <div className={styles.featuredSection}>
+              <h2 className={styles.featuredTitle}>Featured Article</h2>
+              <Reveal>
+                <BlogPostCard post={featuredPost} />
+              </Reveal>
+            </div>
+          )}
+
           <div className={styles.postGrid}>
-            {posts.map((post, index) => (
+            {otherPosts.map((post, index) => (
               <Reveal key={post.id} delay={index * 50}>
                 <BlogPostCard post={post} />
               </Reveal>

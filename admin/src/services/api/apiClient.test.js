@@ -112,4 +112,24 @@ describe('normalizeApiError', () => {
       { field: 'password', message: 'Too short' },
     ]);
   });
+  it('is idempotent: re-normalizing a normalized error preserves fieldErrors', () => {
+    const error = {
+      response: {
+        data: {
+          success: false,
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          errors: [{ field: 'slug', message: 'Slug must contain only lowercase letters, numbers, and hyphens.' }],
+        },
+        status: 422,
+      },
+    };
+    const once = normalizeApiError(error);
+    const twice = normalizeApiError(once);
+    expect(twice.message).toBe('Validation failed');
+    expect(twice.isNetworkError).toBe(false);
+    expect(twice.fieldErrors).toEqual([
+      { field: 'slug', message: 'Slug must contain only lowercase letters, numbers, and hyphens.' },
+    ]);
+  });
 });

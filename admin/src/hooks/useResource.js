@@ -53,7 +53,10 @@ function useResource(service, options = {}) {
   const [loading, setLoading] = useState(autoLoad && !backgroundRefetch);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-
+  // Mirrors the latest `error` value so async callers (e.g. a form's
+  // handleSubmit that awaits create/update) can read fresh field errors
+  // without hitting a stale closure on the re-render-bound `error` state.
+  const errorRef = useRef(null);
   const mountedRef = useRef(true);
   const abortRef = useRef(null);
   const requestIdRef = useRef(0);
@@ -107,7 +110,10 @@ function useResource(service, options = {}) {
         const result = await service.list({}, controller.signal);
         // Ignore stale responses from aborted/superseded requests.
         if (mountedRef.current && requestId === requestIdRef.current) {
-          setData(result || []);
+          // Guard against non-array responses (e.g. paginated envelopes,
+          // null, or unexpected shapes) so the UI never falsely renders
+          // an empty state when the backend actually returned records.
+          setData(Array.isArray(result) ? result : []);
         }
       } catch (err) {
         // Ignore abort errors caused by unmount or a newer request.
@@ -117,6 +123,7 @@ function useResource(service, options = {}) {
         if (mountedRef.current && requestId === requestIdRef.current) {
           const normalized = normalizeApiError(err);
           setError(normalized);
+          errorRef.current = normalized;
           if (normalized.isAuthError) {
             showToast(
               'error',
@@ -167,6 +174,7 @@ function useResource(service, options = {}) {
         if (mountedRef.current) {
           handlers.rollback();
           setError(normalized);
+          errorRef.current = normalized;
           if (normalized.isNetworkError) {
             showToast(
               'error',
@@ -302,13 +310,17 @@ function useResource(service, options = {}) {
   /**
    * Clears the current error state.
    */
-  const clearError = useCallback(() => setError(null), []);
+  const clearError = useCallback(() => {
+    setError(null);
+    errorRef.current = null;
+  }, []);
 
   return {
     data,
     loading,
     refreshing,
     error,
+    errorRef,
     create,
     update,
     remove,

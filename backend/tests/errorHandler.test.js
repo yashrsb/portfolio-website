@@ -60,6 +60,57 @@ describe('errorHandler middleware', () => {
     );
   });
 
+  it('maps Prisma unique constraint on slug to a friendly conflict message', () => {
+    const error = {
+      code: 'P2002',
+      message: 'Unique constraint failed',
+      meta: { target: ['slug'] },
+    };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    expect(mockRes.status).toHaveBeenCalledWith(409);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'A record with this slug already exists.',
+        code: 'CONFLICT',
+      }),
+    );
+  });
+
+  it('maps Prisma unique constraint with multiple target fields', () => {
+    const error = {
+      code: 'P2002',
+      message: 'Unique constraint failed',
+      meta: { target: ['postId', 'tagId'] },
+    };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'A record with the same postId, tagId already exists.',
+      }),
+    );
+  });
+
+  it('never leaks Prisma internals in the 409 response', () => {
+    const error = {
+      code: 'P2002',
+      message:
+        "\nInvalid `prisma.blogTag.create()` invocation:\n\n\nUnique constraint failed on the fields: (`slug`)",
+      meta: { target: ['slug'] },
+    };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    const payload = mockRes.json.mock.calls[0][0];
+    expect(payload.message).not.toContain('prisma');
+    expect(payload.message).not.toContain('invocation');
+    expect(payload.message).not.toContain('constraint');
+    expect(payload.message).toBe('A record with this slug already exists.');
+  });
+
   it('maps Prisma record not found error to 404', () => {
     const error = { code: 'P2025', message: 'Record not found' };
 
@@ -105,6 +156,37 @@ describe('errorHandler middleware', () => {
         message: 'Exactly one file must be uploaded.',
       }),
     );
+  });
+
+  it('maps entity.too.large (PayloadTooLargeError) to 413', () => {
+    const error = { type: 'entity.too.large', status: 413 };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    expect(mockRes.status).toHaveBeenCalledWith(413);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        message: 'Request payload is too large.',
+        code: 'PAYLOAD_TOO_LARGE',
+      }),
+    );
+  });
+
+  it('does not expose body-parser internals in the 413 response', () => {
+    const error = {
+      type: 'entity.too.large',
+      status: 413,
+      message: 'request entity too large',
+      stack: 'PayloadTooLargeError: request entity too large\n    at readStream (raw-body/index.js)',
+    };
+
+    errorHandler(error, mockReq, mockRes, vi.fn());
+
+    const payload = mockRes.json.mock.calls[0][0];
+    expect(JSON.stringify(payload)).not.toContain('raw-body');
+    expect(JSON.stringify(payload)).not.toContain('body-parser');
+    expect(JSON.stringify(payload)).not.toContain('entity too large');
   });
 
   it('maps JSON parse error to 400', () => {

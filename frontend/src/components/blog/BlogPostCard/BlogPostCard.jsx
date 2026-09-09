@@ -30,6 +30,16 @@ function BlogPostCard({ post }) {
           />
         )}
         <div className={styles.cardContent}>
+          {post.featured && (
+            <span
+              className={styles.featuredBadge}
+              aria-label="Featured article"
+              title="Featured"
+            >
+              Featured
+            </span>
+          )}
+
           {post.category && (
             <Tag variant="info" size="sm" className={styles.categoryTag}>
               {post.category.name}

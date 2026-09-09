@@ -68,21 +68,55 @@ export const set = (key, value, ttl = CACHE.ttl) => {
 
 /**
  * Deduplicates identical simultaneous GET requests.
- * Returns the in-flight promise when a fetch for the same key is already
- * active, otherwise registers the given promise and clears it on settle.
+ *
+ * Accepts a thunk so the request function is only invoked when no identical
+ * request is already in flight. This prevents wasted network calls and avoids
+ * the bug where a canceled request's rejection is shared with a fresh caller.
+ *
+ * If an AbortSignal is provided, the in-flight entry is removed as soon as
+ * the signal fires, so the next caller starts a fresh request instead of
+ * inheriting a canceled promise.
+ *
  * @param {string} key - The cache key.
- * @param {Promise<*>} promise - The fetch promise.
+ * @param {() => Promise<*>} fn - Factory that returns the fetch promise.
+ * @param {AbortSignal} [signal] - Optional cancellation signal.
  * @returns {Promise<*>} The shared promise.
  */
-export const dedupe = (key, promise) => {
-  if (inflight.has(key)) {
-    return inflight.get(key);
+export const dedupe = (key, fn, signal) => {
+  const existing = inflight.get(key);
+  if (existing) {
+    // If the existing request was canceled, drop it and start fresh so the
+    // caller doesn't inherit a settled-with-cancel promise.
+    if (existing._canceled) {
+      inflight.delete(key);
+    } else {
+      return existing;
+    }
   }
+
+  const promise = fn();
   inflight.set(key, promise);
   const clear = () => {
-    inflight.delete(key);
+    if (inflight.get(key) === promise) {
+      inflight.delete(key);
+    }
   };
   promise.then(clear, clear);
+
+  // If a signal is provided, remove the inflight entry when it fires so the
+  // next caller can start a fresh request.
+  if (signal) {
+    const onAbort = () => {
+      promise._canceled = true;
+      clear();
+    };
+    if (signal.aborted) {
+      onAbort();
+    } else {
+      signal.addEventListener('abort', onAbort, { once: true });
+    }
+  }
+
   return promise;
 };
 

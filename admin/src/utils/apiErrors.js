@@ -53,9 +53,15 @@ const extractFieldErrors = (data) => {
  * @returns {import('../services/types.js').ApiError} Normalized error.
  */
 export const normalizeApiError = (error) => {
+  // Idempotency guard: the apiClient response interceptor already rejects with
+  // a normalized ApiError object (not an axios error). Re-normalizing that
+  // object would lose `fieldErrors` and misflag it as a network error, so
+  // short-circuit and return it unchanged.
+  if (error && !error.response && typeof error === 'object' && Array.isArray(error.fieldErrors)) {
+    return error;
+  }
   const status = error?.response?.status || 0;
   const data = error?.response?.data || {};
-
   return {
     name: 'ApiError',
     message: extractMessage(error),
