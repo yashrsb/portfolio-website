@@ -5,6 +5,7 @@ import {
   architectureConnectors,
   technologySummary,
   statusLabel,
+  nodePositions,
 } from './architectureData';
 import styles from './SystemArchitecture.module.css';
 
@@ -245,13 +246,13 @@ function SystemArchitecture({ title = 'system.ts' }) {
                   <g className={styles.flowDot} aria-hidden="true">
                     <circle
                       cx="240"
-                      cy="96"
+                      cy="122"
                       r="3"
                       fill="var(--color-primary)"
                     >
                       <animate
                         attributeName="cy"
-                        values="96;140"
+                        values="122;160"
                         dur="2.2s"
                         repeatCount="indefinite"
                       />
@@ -285,26 +286,26 @@ function SystemArchitecture({ title = 'system.ts' }) {
                       className={`${styles.nodeRect} ${
                         isActive ? styles.nodeRectActive : ''
                       }`}
-                      x={node.id === 'api' ? 20 : node.id === 'services' ? 180 : node.id === 'events' ? 340 : 160}
-                      y={node.id === 'data' ? 160 : 44}
-                      width={node.id === 'data' ? 160 : 120}
-                      height={node.id === 'events' ? 78 : 52}
-                      rx="6"
+                      x={nodePositions[node.id].x}
+                      y={nodePositions[node.id].y}
+                      width={nodePositions[node.id].width}
+                      height={nodePositions[node.id].height}
+                      rx={6}
                     />
                     <text
                       className={styles.nodeTitle}
-                      x={node.id === 'api' ? 80 : node.id === 'services' ? 240 : node.id === 'events' ? 400 : 240}
-                      y={node.id === 'data' ? 182 : 66}
+                      x={nodePositions[node.id].x + nodePositions[node.id].width / 2}
+                      y={nodePositions[node.id].y + 22}
                     >
                       {node.label}
                     </text>
-                    {wrapTechLines(node.technologies, node.id === 'events' ? 16 : 22).map(
+                    {wrapTechLines(node.technologies, 16).map(
                       (line, lineIndex) => (
                         <text
                           key={lineIndex}
                           className={styles.nodeTech}
-                          x={node.id === 'api' ? 80 : node.id === 'services' ? 240 : node.id === 'events' ? 400 : 240}
-                          y={node.id === 'data' ? 202 + lineIndex * 13 : 86 + lineIndex * 13}
+                          x={nodePositions[node.id].x + nodePositions[node.id].width / 2}
+                          y={nodePositions[node.id].y + 42 + lineIndex * 13}
                         >
                           {line}
                         </text>
