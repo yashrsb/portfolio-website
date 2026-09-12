@@ -1,0 +1,208 @@
+/* ============================================ */
+/* SystemArchitecture — Hero Visual Component   */
+/* ============================================ */
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ---- Terminal frame ---- */
+
+.terminal {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, var(--color-surface), var(--color-background-secondary));
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.625rem var(--spacing-md);
+  background-color: var(--color-background-tertiary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.terminalControls {
+  display: flex;
+  gap: 6px;
+}
+
+.controlDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.controlDot:nth-child(1) {
+  background-color: var(--color-danger, #dc2626);
+}
+
+.controlDot:nth-child(2) {
+  background-color: var(--color-warning, #d97706);
+}
+
+.controlDot:nth-child(3) {
+  background-color: var(--color-success, #16a34a);
+}
+
+.terminalTitle {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-left: var(--spacing-xs);
+}
+
+/* ---- Terminal body ---- */
+
+.terminalBody {
+  padding: var(--spacing-md);
+}
+
+.diagram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---- Status ---- */
+
+.statusGroup {
+  font-family: var(--font-family-mono);
+}
+
+.statusDot {
+  fill: var(--color-success);
+  transform-origin: center;
+}
+
+.statusText {
+  font-family: var(--font-family-mono);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  fill: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+}
+
+/* ---- Nodes ---- */
+
+.nodeGroup {
+  font-family: var(--font-family-primary);
+}
+
+.nodeRect {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  strokeWidth: 1;
+  transition:
+    fill var(--transition-fast),
+    stroke var(--transition-fast);
+}
+
+.nodeTitle {
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  fill: var(--color-text);
+  text-anchor: middle;
+  letter-spacing: 0.02em;
+}
+
+.nodeTech {
+  font-size: 9px;
+  font-weight: var(--font-weight-medium);
+  fill: var(--color-text-secondary);
+  text-anchor: middle;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Connectors ---- */
+
+.connectors {
+  fill: none;
+}
+
+.connector {
+  stroke: var(--color-border);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- Tech summary ---- */
+
+.techSummaryGroup {
+  font-family: var(--font-family-mono);
+}
+
+.techSummaryLabel {
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  fill: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.techSummaryValue {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  fill: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+  .wrapper {
+    max-width: 440px;
+  }
+
+  .terminalBody {
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    max-width: 100%;
+  }
+
+  .terminalTitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .nodeTitle {
+    font-size: 10px;
+  }
+
+  .nodeTech {
+    font-size: 8px;
+  }
+
+  .statusText {
+    font-size: 10px;
+  }
+
+  .techSummaryValue {
+    font-size: 9px;
+  }
+}
+
+/* ---- Reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .controlDot,
+  .statusDot {
+    animation: none;
+  }
+}
