@@ -4,6 +4,7 @@ import Container from '../../components/common/Container/Container';
 import Button from '../../components/common/Button/Button';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
+import SystemArchitecture from '../../components/hero/SystemArchitecture';
 import {
   useProfile,
   useIntersectionObserver,
@@ -70,7 +71,6 @@ function StatValue({ value, start }) {
 function Home() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const { profile, loading, error } = useProfile();
-  const [profileImageFailed, setProfileImageFailed] = useState(false);
   const { ref: heroRef, isVisible: heroVisible } = useIntersectionObserver({
     threshold: 0.1,
   });
@@ -229,31 +229,8 @@ function Home() {
                 </Link>
               </div>
             </div>
-            <div className={styles.heroImage}>
-              {profile.profileImageUrl && !profileImageFailed ? (
-                <img
-                  src={profile.profileImageUrl}
-                  alt={`${profile.name} portrait`}
-                  className={styles.profileImage}
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  width="320"
-                  height="320"
-                  style={{ aspectRatio: '1/1' }}
-                  onError={() => setProfileImageFailed(true)}
-                />
-              ) : (
-                <div
-                  className={styles.imagePlaceholder}
-                  role="img"
-                  aria-label="Profile photo placeholder"
-                >
-                  <span className={styles.imageEmoji} aria-hidden="true">
-                    👨‍💻
-                  </span>
-                </div>
-              )}
+            <div className={styles.heroVisual}>
+              <SystemArchitecture />
             </div>
           </div>
 
