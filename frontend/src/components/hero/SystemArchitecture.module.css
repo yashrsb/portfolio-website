@@ -105,7 +105,7 @@
 .nodeRect {
   fill: var(--color-surface);
   stroke: var(--color-border);
-  strokeWidth: 1;
+  stroke-width: 1;
   transition:
     fill var(--transition-fast),
     stroke var(--transition-fast);
@@ -204,5 +204,185 @@
   .controlDot,
   .statusDot {
     animation: none;
+  }
+}
+
+/* ---- Interactive states ---- */
+
+.diagramWrapper {
+  position: relative;
+}
+
+.nodeGroup {
+  cursor: pointer;
+}
+
+.nodeRect {
+  transition:
+    fill var(--transition-fast),
+    stroke var(--transition-fast),
+    filter var(--transition-fast);
+}
+
+.nodeGroupActive .nodeRect {
+  fill: var(--color-primary-light);
+  stroke: var(--color-primary);
+  filter: url('#activeGlow');
+}
+
+.nodeGroupDimmed {
+  opacity: 0.4;
+}
+
+.nodeGroupDimmed .nodeRect {
+  fill: var(--color-surface);
+}
+
+.nodeGroup:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.connector {
+  transition:
+    stroke var(--transition-fast),
+    stroke-width var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.connectorActive {
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.statusDotActive {
+  animation: statusPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 1;
+    r: 4;
+  }
+  50% {
+    opacity: 0.5;
+    r: 5;
+  }
+}
+
+.flowDot circle {
+  filter: drop-shadow(0 0 3px var(--color-primary));
+}
+
+.detailPanel {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  animation: fadeIn 0.25s ease;
+}
+
+.detailTitle {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-xs);
+}
+
+.detailDescription {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.detailTechs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.detailTech {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusDotActive {
+    animation: none;
+  }
+
+  .detailPanel {
+    animation: none;
+  }
+
+  .nodeRect,
+  .connector {
+    transition: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    max-width: 440px;
+  }
+
+  .terminalBody {
+    padding: var(--spacing-sm);
+  }
+
+  .detailPanel {
+    padding: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    max-width: 100%;
+  }
+
+  .terminalTitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .nodeTitle {
+    font-size: 10px;
+  }
+
+  .nodeTech {
+    font-size: 8px;
+  }
+
+  .statusText {
+    font-size: 10px;
+  }
+
+  .techSummaryValue {
+    font-size: 9px;
+  }
+
+  .detailTitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .detailDescription {
+    font-size: 11px;
+  }
+
+  .detailTech {
+    font-size: 9px;
+    padding: 0.05rem 0.4rem;
   }
 }
