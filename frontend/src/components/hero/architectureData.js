@@ -91,8 +91,20 @@ export const architectureConnectors = [
 
 /**
  * Primary request-flow path: SYSTEM → API → SERVICES → DATA
+ * The animation travels along this connector path.
  */
 export const requestFlowPath = ['api-services'];
+
+/**
+ * Conceptual node status indicators.
+ * These are illustrative UI labels, not real production metrics.
+ */
+export const nodeStatus = {
+  api: 'online',
+  services: 'online',
+  events: 'online',
+  data: 'online',
+};
 
 export const technologySummary = ['Node.js', 'PostgreSQL', 'Redis', 'Docker'];
 
@@ -102,6 +114,7 @@ export default {
   architectureNodes,
   architectureConnectors,
   requestFlowPath,
+  nodeStatus,
   technologySummary,
   statusLabel,
 };

@@ -6,6 +6,7 @@ import {
   technologySummary,
   statusLabel,
   nodePositions,
+  nodeStatus,
 } from './architectureData';
 import styles from './SystemArchitecture.module.css';
 
@@ -214,6 +215,14 @@ function SystemArchitecture({ title = 'system.ts' }) {
                     floodOpacity="0.35"
                   />
                 </filter>
+                {/* Hidden motion path for request-flow animation.
+                    Traces SYSTEM → API → SERVICES → DATA along
+                    actual connector geometry. */}
+                <path
+                  id="requestFlowMotionPath"
+                  d="M 80 44 L 80 122 L 240 122 L 240 160"
+                  fill="none"
+                />
               </defs>
 
               {/* ---- Status indicator ---- */}
@@ -241,21 +250,22 @@ function SystemArchitecture({ title = 'system.ts' }) {
                     fill="none"
                   />
                 ))}
-                {/* Animated request-flow dot */}
+                {/* Animated request-flow dot following the real path geometry.
+                    Travels SYSTEM → API → SERVICES → DATA. */}
                 {flowActive && (
                   <g className={styles.flowDot} aria-hidden="true">
                     <circle
-                      cx="240"
-                      cy="122"
                       r="3"
                       fill="var(--color-primary)"
+                      filter="url(#activeGlow)"
                     >
-                      <animate
-                        attributeName="cy"
-                        values="122;160"
-                        dur="2.2s"
+                      <animateMotion
+                        dur="2.6s"
                         repeatCount="indefinite"
-                      />
+                        rotate="auto"
+                      >
+                        <mpath href="#requestFlowMotionPath" />
+                      </animateMotion>
                     </circle>
                   </g>
                 )}
@@ -299,6 +309,14 @@ function SystemArchitecture({ title = 'system.ts' }) {
                     >
                       {node.label}
                     </text>
+                    {nodeStatus[node.id] && (
+                      <circle
+                        className={styles.nodeStatusDot}
+                        cx={nodePositions[node.id].x + nodePositions[node.id].width - 14}
+                        cy={nodePositions[node.id].y + 14}
+                        r="3"
+                      />
+                    )}
                     {wrapTechLines(node.technologies, 16).map(
                       (line, lineIndex) => (
                         <text

@@ -276,6 +276,11 @@
   filter: drop-shadow(0 0 3px var(--color-primary));
 }
 
+.nodeStatusDot {
+  fill: var(--color-success);
+  opacity: 0.85;
+}
+
 .detailPanel {
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);
@@ -330,6 +335,11 @@
   .nodeRect,
   .connector {
     transition: none;
+  }
+
+  /* Disable animateMotion under reduced motion */
+  .flowDot circle animateMotion {
+    display: none;
   }
 }
 
