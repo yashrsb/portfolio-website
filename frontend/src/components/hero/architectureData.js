@@ -15,6 +15,12 @@ export const architectureNodes = [
     technologies: ['REST', 'Validation', 'Auth'],
     description:
       'Handles incoming requests, validation, authentication and API contracts.',
+    responsibilities: [
+      'Request validation and sanitization',
+      'Authentication and authorization',
+      'Rate limiting and API versioning',
+      'OpenAPI documentation',
+    ],
     connections: ['system-api', 'api-services'],
   },
   {
@@ -23,6 +29,12 @@ export const architectureNodes = [
     technologies: ['Node.js', 'TypeScript', 'gRPC'],
     description:
       'Contains application services and business logic that communicate through defined interfaces.',
+    responsibilities: [
+      'Business logic and orchestration',
+      'Inter-service communication',
+      'Transaction coordination',
+      'Domain event emission',
+    ],
     connections: ['api-services', 'services-data'],
   },
   {
@@ -31,6 +43,12 @@ export const architectureNodes = [
     technologies: ['Queues', 'Kafka', 'Async Processing'],
     description:
       'Supports asynchronous communication and background processing through event-driven patterns.',
+    responsibilities: [
+      'Event publishing and consumption',
+      'Background job processing',
+      'Retry and dead-letter handling',
+      'Event sourcing support',
+    ],
     connections: ['events-data'],
   },
   {
@@ -39,6 +57,12 @@ export const architectureNodes = [
     technologies: ['PostgreSQL', 'MongoDB', 'Redis'],
     description:
       'Provides persistence, caching and data access for services and events.',
+    responsibilities: [
+      'Relational data persistence',
+      'Document storage for unstructured data',
+      'In-memory caching and session store',
+      'Read replica and failover management',
+    ],
     connections: ['services-data', 'events-data'],
   },
 ];
