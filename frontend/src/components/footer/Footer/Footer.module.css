@@ -1,6 +1,6 @@
-/* ============================================ */
-/* Footer — Design System Component             */
-/* ============================================ */
+/**
+ * Footer — Design System Component
+ */
 
 .footer {
   background-color: var(--color-footer-bg);
@@ -58,8 +58,12 @@
 }
 
 .socialIcon {
-  font-size: var(--font-size-lg);
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
   line-height: 1;
+  color: inherit;
+  transition: color var(--transition-fast);
 }
 
 .socialLabel {

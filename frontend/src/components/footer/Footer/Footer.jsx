@@ -2,21 +2,17 @@ import { useIntersectionObserver, useSocial } from '../../../hooks';
 import styles from './Footer.module.css';
 import Container from '../../common/Container/Container';
 import Button from '../../common/Button/Button';
-
-const PLATFORM_ICONS = {
-  github: '🐙',
-  linkedin: '🔗',
-  twitter: '🐦',
-  leetcode: '👨‍💻',
-  email: '✉️',
-};
+import SocialIcon from '../SocialIcon/SocialIcon';
 
 const PLATFORM_LABELS = {
   github: 'GitHub',
   linkedin: 'LinkedIn',
   twitter: 'Twitter',
   leetcode: 'LeetCode',
+  medium: 'Medium',
   email: 'Email',
+  phone: 'Phone',
+  location: 'Location',
 };
 
 /**
@@ -54,7 +50,6 @@ function Footer() {
           <div className={styles.socials}>
             {socialLinks.map((link) => {
               const label = getLabel(link.platform);
-              const icon = link.icon || PLATFORM_ICONS[link.platform] || '🔗';
               return (
                 <a
                   key={link.platform}
@@ -65,7 +60,7 @@ function Footer() {
                   aria-label={label}
                 >
                   <span className={styles.socialIcon} aria-hidden="true">
-                    {icon}
+                    <SocialIcon platform={link.platform} />
                   </span>
                   <span className={styles.socialLabel}>{label}</span>
                 </a>
