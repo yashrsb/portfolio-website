@@ -57,6 +57,22 @@
   color: var(--color-primary-hover);
 }
 
+.socialLink[data-platform='github']:hover {
+  color: #181717;
+}
+
+.socialLink[data-platform='linkedin']:hover {
+  color: #0a66c2;
+}
+
+.socialLink[data-platform='leetcode']:hover {
+  color: #ffa116;
+}
+
+.socialLink[data-platform='medium']:hover {
+  color: #000000;
+}
+
 .socialIcon {
   width: 18px;
   height: 18px;

@@ -55,6 +55,7 @@ function Footer() {
                   key={link.platform}
                   href={link.url}
                   className={styles.socialLink}
+                  data-platform={link.platform}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
