@@ -84,6 +84,25 @@
   color: var(--color-text);
 }
 
+/* ---- Back to top ---- */
+
+/* Light mode: footer background is dark, so the ghost button needs a
+   light text color to be readable. Hover preserves the existing
+   high-contrast appearance (light background + dark text). */
+.footer button {
+  color: var(--color-footer-text);
+}
+
+.footer button:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+/* Dark mode: preserve the existing appearance exactly. */
+[data-theme='dark'] .footer button,
+[data-theme='dark'] .footer button:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
 .socialIcon {
   width: 18px;
   height: 18px;
