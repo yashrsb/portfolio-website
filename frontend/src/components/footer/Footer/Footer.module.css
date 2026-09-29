@@ -1,6 +1,6 @@
-/* ============================================ */
-/* Footer — Design System Component             */
-/* ============================================ */
+/**
+ * Footer — Design System Component
+ */
 
 .footer {
   background-color: var(--color-footer-bg);
@@ -57,9 +57,40 @@
   color: var(--color-primary-hover);
 }
 
+.socialLink[data-platform='github']:hover {
+  color: #181717;
+}
+
+.socialLink[data-platform='linkedin']:hover {
+  color: #0a66c2;
+}
+
+.socialLink[data-platform='leetcode']:hover {
+  color: #ffa116;
+}
+
+.socialLink[data-platform='medium']:hover {
+  color: #000000;
+}
+
+/* Dark mode: GitHub and Medium use an off-white hover color so they
+   remain clearly visible against the near-black footer background.
+   LinkedIn and LeetCode keep their brand colors in both themes. */
+[data-theme='dark'] .socialLink[data-platform='github']:hover {
+  color: var(--color-text);
+}
+
+[data-theme='dark'] .socialLink[data-platform='medium']:hover {
+  color: var(--color-text);
+}
+
 .socialIcon {
-  font-size: var(--font-size-lg);
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
   line-height: 1;
+  color: inherit;
+  transition: color var(--transition-fast);
 }
 
 .socialLabel {
