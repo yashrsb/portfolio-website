@@ -73,6 +73,17 @@
   color: #000000;
 }
 
+/* Dark mode: GitHub and Medium use an off-white hover color so they
+   remain clearly visible against the near-black footer background.
+   LinkedIn and LeetCode keep their brand colors in both themes. */
+[data-theme='dark'] .socialLink[data-platform='github']:hover {
+  color: var(--color-text);
+}
+
+[data-theme='dark'] .socialLink[data-platform='medium']:hover {
+  color: var(--color-text);
+}
+
 .socialIcon {
   width: 18px;
   height: 18px;
