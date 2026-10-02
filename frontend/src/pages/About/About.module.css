@@ -2,6 +2,43 @@
 /* About Page                                   */
 /* ============================================ */
 
+/* ---- Introduction ---- */
+
+.intro {
+  padding: var(--spacing-3xl) 0 var(--spacing-2xl);
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin: 0 0 var(--spacing-md);
+}
+
+.introHeading {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+  margin: 0 0 var(--spacing-xl);
+}
+
+.introBody {
+  text-align: left;
+}
+
+.lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--spacing-md);
+}
+
 .paragraph {
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
@@ -9,42 +46,188 @@
   margin: 0 0 var(--spacing-md);
 }
 
-.summary {
-  font-size: var(--font-size-lg);
-  color: var(--color-text);
-  line-height: var(--line-height-relaxed);
-  margin: 0;
-  text-align: center;
-  max-width: 640px;
-  margin-left: auto;
-  margin-right: auto;
-}
+/* ---- Core Strengths ---- */
 
-.list {
+.strengthGrid {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--spacing-md);
 }
 
-.listItem {
-  padding: var(--spacing-md);
+.strengthCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  height: 100%;
+  padding: var(--spacing-lg);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--transition-base),
+    transform var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.strengthCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-light);
+}
+
+.strengthMarker {
+  flex-shrink: 0;
+  width: 4px;
+  align-self: stretch;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+}
+
+.strengthText {
   color: var(--color-text);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
 }
 
-@media (max-width: 640px) {
-  .list {
+/* ---- Engineering Principles ---- */
+
+.principleGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.principleCard {
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  border-top: 3px solid var(--color-primary);
+}
+
+.principleTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.principleText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* ---- Interests ---- */
+
+.chipList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.chip {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ---- Career Goals ---- */
+
+.goalList {
+  list-style: none;
+  counter-reset: goals;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.goalItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+.goalNumber {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.goalText {
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+  .intro {
+    padding: var(--spacing-2xl) 0 var(--spacing-xl);
+  }
+
+  .introHeading {
+    font-size: var(--font-size-2xl);
+  }
+
+  .lead {
+    font-size: var(--font-size-base);
+  }
+
+  .strengthGrid,
+  .principleGrid {
     grid-template-columns: 1fr;
   }
 
-  .summary {
-    font-size: var(--font-size-base);
+  .goalItem {
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strengthCard,
+  .chip {
+    transition: none;
+  }
+
+  .strengthCard:hover {
+    transform: none;
   }
 }
