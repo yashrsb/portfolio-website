@@ -67,35 +67,50 @@ describe('About page', () => {
     expect(screen.getByText('Failed to load profile')).toBeInTheDocument();
   });
 
-  it('renders tagline, bio paragraphs, strengths, interests, and goals', () => {
+  it('renders new intro heading, bio paragraphs, strengths with descriptions, interests with intro, goals, and closing', () => {
     mockUseProfileResult.current = { profile, loading: false, error: null };
     render(<About />);
 
+    // New stronger intro heading
     expect(
-      screen.getByRole('heading', { level: 1, name: profile.tagline }),
+      screen.getByRole('heading', { level: 1, name: 'I build backend systems that are designed to last.' }),
     ).toBeInTheDocument();
+
+    // Bio paragraphs
     expect(screen.getByText('First paragraph.')).toBeInTheDocument();
     expect(screen.getByText('Second paragraph.')).toBeInTheDocument();
 
+    // Core Strengths section
     expect(
       screen.getByRole('heading', { name: 'Core Strengths' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Scalable Backend Development')).toBeInTheDocument();
     expect(screen.getByText('System Design')).toBeInTheDocument();
 
-    expect(
-      screen.getByRole('heading', { name: 'Beyond the Code' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Continuous Learning')).toBeInTheDocument();
+    // Strength descriptions (from frontend mapping)
+    expect(screen.getByText('Building maintainable backend services and APIs designed for scale.')).toBeInTheDocument();
+    expect(screen.getByText('Thinking about scalability, failure modes, service boundaries, and long-term maintainability.')).toBeInTheDocument();
 
+    // Engineering Principles
+    expect(
+      screen.getByRole('heading', { name: 'How I Think About Engineering' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Performance')).toBeInTheDocument();
+
+    // Beyond the Code with intro
+    expect(
+      screen.getByRole('heading', { name: "Beyond the Code" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("I'm naturally curious about how things work and tend to keep learning even outside the immediate requirements of a project.")).toBeInTheDocument();
+    expect(screen.getByText('Continuous Learning')).toBeInTheDocument();
+    expect(screen.getByText('Cloud Technologies')).toBeInTheDocument();
+
+    // Where I'm Heading with closing
     expect(
       screen.getByRole('heading', { name: "Where I'm Heading" }),
     ).toBeInTheDocument();
     expect(screen.getByText('Grow into Staff engineering')).toBeInTheDocument();
     expect(screen.getByText('Mentor engineers')).toBeInTheDocument();
-
-    expect(
-      screen.getByRole('heading', { name: 'How I Think About Engineering' }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("I'm still learning, still experimenting, and still looking for better ways to build software.")).toBeInTheDocument();
   });
 });

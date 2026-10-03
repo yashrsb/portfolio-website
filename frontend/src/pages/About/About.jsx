@@ -36,6 +36,20 @@ const ENGINEERING_PRINCIPLES = [
 ];
 
 /**
+ * Frontend-only mapping of strength names to richer descriptions.
+ * Derived from existing profile.strengths array — no schema change needed.
+ * Kept in the component to avoid hardcoding in the database.
+ */
+const STRENGTH_DESCRIPTIONS = {
+  'Scalable Backend Development': 'Building maintainable backend services and APIs designed for scale.',
+  'Distributed Systems': 'Working with service-to-service communication, asynchronous workflows, and distributed architectures.',
+  'Microservices Architecture': 'Decomposing domains into independently deployable services with clear boundaries.',
+  'API Design (REST, GraphQL, gRPC)': 'Designing interfaces that are reliable, versionable, and developer-friendly.',
+  'Database Performance Optimization': 'Optimizing queries, indexes, data access patterns, and database-heavy workloads.',
+  'System Design': 'Thinking about scalability, failure modes, service boundaries, and long-term maintainability.',
+};
+
+/**
  * About page — personal story, strengths, engineering principles,
  * interests, and career direction. All profile content comes from
  * the existing profile API.
@@ -74,7 +88,7 @@ function About() {
       <section className={styles.intro} aria-labelledby="about-heading">
         <p className={styles.eyebrow}>About</p>
         <h1 id="about-heading" className={styles.introHeading}>
-          {profile.tagline}
+          I build backend systems that are designed to last.
         </h1>
         <div className={styles.introBody}>
           {leadParagraph && (
@@ -96,8 +110,15 @@ function About() {
               <li key={strength}>
                 <Reveal delay={Math.min(index * 60, 300)}>
                   <div className={styles.strengthCard}>
-                    <span className={styles.strengthMarker} aria-hidden="true" />
-                    <span className={styles.strengthText}>{strength}</span>
+                    <div className={styles.strengthContent}>
+                      <span className={styles.strengthMarker} aria-hidden="true" />
+                      <span className={styles.strengthTitle}>{strength}</span>
+                    </div>
+                    {STRENGTH_DESCRIPTIONS[strength] && (
+                      <p className={styles.strengthDescription}>
+                        {STRENGTH_DESCRIPTIONS[strength]}
+                      </p>
+                    )}
                   </div>
                 </Reveal>
               </li>
@@ -130,6 +151,10 @@ function About() {
           title="Beyond the Code"
           subtitle="What keeps me curious outside day-to-day work."
         >
+          <p className={styles.interestsIntro}>
+            I&apos;m naturally curious about how things work and tend to keep learning
+            even outside the immediate requirements of a project.
+          </p>
           <ul className={styles.chipList}>
             {profile.interests.map((interest) => (
               <li key={interest} className={styles.chip}>
@@ -157,6 +182,10 @@ function About() {
               </li>
             ))}
           </ol>
+          <p className={styles.closing}>
+            I&apos;m still learning, still experimenting, and still looking for
+            better ways to build software.
+          </p>
         </Section>
       </Reveal>
     </Container>

@@ -53,14 +53,13 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--spacing-md);
 }
 
 .strengthCard {
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
+  flex-direction: column;
   height: 100%;
   padding: var(--spacing-lg);
   background-color: var(--color-surface);
@@ -79,6 +78,12 @@
   border-color: var(--color-primary-light);
 }
 
+.strengthContent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
 .strengthMarker {
   flex-shrink: 0;
   width: 4px;
@@ -87,11 +92,18 @@
   background-color: var(--color-primary);
 }
 
-.strengthText {
+.strengthTitle {
   color: var(--color-text);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-normal);
+}
+
+.strengthDescription {
+  margin: var(--spacing-sm) 0 0 var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
 }
 
 /* ---- Engineering Principles ---- */
@@ -129,6 +141,17 @@
 
 /* ---- Interests ---- */
 
+.interestsIntro {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--spacing-xl);
+  text-align: center;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .chipList {
   list-style: none;
   padding: 0;
@@ -163,7 +186,7 @@
   list-style: none;
   counter-reset: goals;
   padding: 0;
-  margin: 0 auto;
+  margin: 0 auto var(--spacing-xl);
   max-width: 720px;
   display: flex;
   flex-direction: column;
@@ -195,6 +218,16 @@
   line-height: var(--line-height-relaxed);
 }
 
+.closing {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+  font-style: italic;
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 768px) {
@@ -215,9 +248,21 @@
     grid-template-columns: 1fr;
   }
 
+  .strengthGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .strengthDescription {
+    margin-left: 0;
+  }
+
   .goalItem {
     gap: var(--spacing-md);
     padding: var(--spacing-md);
+  }
+
+  .interestsIntro {
+    font-size: var(--font-size-sm);
   }
 }
 
