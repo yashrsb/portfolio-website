@@ -33,6 +33,10 @@ const ENGINEERING_PRINCIPLES = [
     title: 'Observability',
     text: 'A production system should tell you what is happening when something goes wrong.',
   },
+  {
+    title: 'Trade-offs',
+    text: 'Every engineering decision has trade-offs. Choose deliberately based on the problem, constraints, and long-term impact.',
+  },
 ];
 
 /**
@@ -41,12 +45,18 @@ const ENGINEERING_PRINCIPLES = [
  * Kept in the component to avoid hardcoding in the database.
  */
 const STRENGTH_DESCRIPTIONS = {
-  'Scalable Backend Development': 'Building maintainable backend services and APIs designed for scale.',
-  'Distributed Systems': 'Working with service-to-service communication, asynchronous workflows, and distributed architectures.',
-  'Microservices Architecture': 'Decomposing domains into independently deployable services with clear boundaries.',
-  'API Design (REST, GraphQL, gRPC)': 'Designing interfaces that are reliable, versionable, and developer-friendly.',
-  'Database Performance Optimization': 'Optimizing queries, indexes, data access patterns, and database-heavy workloads.',
-  'System Design': 'Thinking about scalability, failure modes, service boundaries, and long-term maintainability.',
+  'Scalable Backend Development':
+    'Building maintainable backend services and APIs designed for scale.',
+  'Distributed Systems':
+    'Working with service-to-service communication, asynchronous workflows, and distributed architectures.',
+  'Microservices Architecture':
+    'Decomposing domains into independently deployable services with clear boundaries.',
+  'API Design (REST, GraphQL, gRPC)':
+    'Designing interfaces that are reliable, versionable, and developer-friendly.',
+  'Database Performance Optimization':
+    'Optimizing queries, indexes, data access patterns, and database-heavy workloads.',
+  'System Design':
+    'Thinking about scalability, failure modes, service boundaries, and long-term maintainability.',
 };
 
 /**
@@ -91,9 +101,7 @@ function About() {
           I build backend systems that are designed to last.
         </h1>
         <div className={styles.introBody}>
-          {leadParagraph && (
-            <p className={styles.lead}>{leadParagraph}</p>
-          )}
+          {leadParagraph && <p className={styles.lead}>{leadParagraph}</p>}
           {restParagraphs.map((paragraph, index) => (
             <p key={index} className={styles.paragraph}>
               {paragraph}
@@ -104,14 +112,20 @@ function About() {
 
       {/* ---- Core Strengths ---- */}
       <Reveal>
-        <Section title="Core Strengths" subtitle="What I build and where I focus.">
+        <Section
+          title="Core Strengths"
+          subtitle="What I build and where I focus."
+        >
           <ul className={styles.strengthGrid}>
             {profile.strengths.map((strength, index) => (
               <li key={strength}>
                 <Reveal delay={Math.min(index * 60, 300)}>
                   <div className={styles.strengthCard}>
                     <div className={styles.strengthContent}>
-                      <span className={styles.strengthMarker} aria-hidden="true" />
+                      <span
+                        className={styles.strengthMarker}
+                        aria-hidden="true"
+                      />
                       <span className={styles.strengthTitle}>{strength}</span>
                     </div>
                     {STRENGTH_DESCRIPTIONS[strength] && (
@@ -152,8 +166,8 @@ function About() {
           subtitle="What keeps me curious outside day-to-day work."
         >
           <p className={styles.interestsIntro}>
-            I&apos;m naturally curious about how things work and tend to keep learning
-            even outside the immediate requirements of a project.
+            I&apos;m naturally curious about how things work and tend to keep
+            learning even outside the immediate requirements of a project.
           </p>
           <ul className={styles.chipList}>
             {profile.interests.map((interest) => (
