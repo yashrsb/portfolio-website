@@ -4,11 +4,6 @@
 
 /* ---- Introduction ---- */
 
-.intro {
-  padding: var(--spacing-3xl) 0 var(--spacing-2xl);
-  text-align: center;
-}
-
 .tagline {
   text-align: center;
   color: var(--color-text-secondary);
@@ -219,10 +214,6 @@
 /* ---- Responsive ---- */
 
 @media (max-width: 768px) {
-  .intro {
-    padding: var(--spacing-2xl) 0 var(--spacing-xl);
-  }
-
   .tagline {
     font-size: var(--font-size-base);
   }

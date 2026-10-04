@@ -96,23 +96,21 @@ function About() {
   return (
     <Container size="lg">
       {/* ---- Introduction ---- */}
-      <section className={styles.intro} aria-labelledby="about-heading">
-        <Heading level={1} alignment="center" id="about-heading">
-          About
-        </Heading>
-        {tagline && (
-          <p className={styles.tagline}>
-            {tagline}
+      <Heading level={1} alignment="center" id="about-heading">
+        About
+      </Heading>
+      {tagline && (
+        <p className={styles.tagline}>
+          {tagline}
+        </p>
+      )}
+      <div className={styles.introBody}>
+        {bioParagraphs.map((paragraph, index) => (
+          <p key={index} className={styles.paragraph}>
+            {paragraph}
           </p>
-        )}
-        <div className={styles.introBody}>
-          {bioParagraphs.map((paragraph, index) => (
-            <p key={index} className={styles.paragraph}>
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      </section>
+        ))}
+      </div>
 
       {/* ---- Core Strengths ---- */}
       <Reveal>
