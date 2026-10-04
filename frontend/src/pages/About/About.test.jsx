@@ -67,18 +67,25 @@ describe('About page', () => {
     expect(screen.getByText('Failed to load profile')).toBeInTheDocument();
   });
 
-  it('renders new intro heading, bio paragraphs, strengths with descriptions, interests with intro, goals, and closing', () => {
+  it('renders page title, tagline from profile, bio paragraphs, strengths, interests, goals', () => {
     mockUseProfileResult.current = { profile, loading: false, error: null };
-    render(<About />);
+    const { container } = render(<About />);
 
-    // New stronger intro heading
+    // Page title heading (matches other pages like Experience, Skills, Projects)
     expect(
-      screen.getByRole('heading', { level: 1, name: 'I build backend systems that are designed to last.' }),
+      screen.getByRole('heading', { level: 1, name: 'About' }),
     ).toBeInTheDocument();
 
-    // Bio paragraphs
+    // Tagline from profile
+    expect(screen.getByText('Building scalable systems.')).toBeInTheDocument();
+
+    // Bio paragraphs (all use consistent .paragraph class, no .lead class)
     expect(screen.getByText('First paragraph.')).toBeInTheDocument();
     expect(screen.getByText('Second paragraph.')).toBeInTheDocument();
+
+    // Verify no .lead class is used (first paragraph not bold/larger)
+    const leadElements = container.querySelectorAll('.lead');
+    expect(leadElements).toHaveLength(0);
 
     // Core Strengths section
     expect(
@@ -112,5 +119,55 @@ describe('About page', () => {
     expect(screen.getByText('Grow into Staff engineering')).toBeInTheDocument();
     expect(screen.getByText('Mentor engineers')).toBeInTheDocument();
     expect(screen.getByText("I'm still learning, still experimenting, and still looking for better ways to build software.")).toBeInTheDocument();
+  });
+
+  it('renders tagline from profile when it differs from default', () => {
+    const customProfile = { ...profile, tagline: 'Custom tagline from database.' };
+    mockUseProfileResult.current = { profile: customProfile, loading: false, error: null };
+    render(<About />);
+
+    expect(screen.getByText('Custom tagline from database.')).toBeInTheDocument();
+    expect(screen.queryByText('I build backend systems that are designed to last.')).not.toBeInTheDocument();
+  });
+
+  it('does not render empty tagline element when tagline is empty string', () => {
+    const emptyTaglineProfile = { ...profile, tagline: '' };
+    mockUseProfileResult.current = { profile: emptyTaglineProfile, loading: false, error: null };
+    const { container } = render(<About />);
+
+    // Tagline paragraph should not exist
+    const taglineParagraphs = container.querySelectorAll('[class*="tagline"]');
+    expect(taglineParagraphs).toHaveLength(0);
+  });
+
+  it('does not render empty tagline element when tagline is whitespace only', () => {
+    const whitespaceTaglineProfile = { ...profile, tagline: '   \n\t  ' };
+    mockUseProfileResult.current = { profile: whitespaceTaglineProfile, loading: false, error: null };
+    const { container } = render(<About />);
+
+    const taglineParagraphs = container.querySelectorAll('[class*="tagline"]');
+    expect(taglineParagraphs).toHaveLength(0);
+  });
+
+  it('does not render empty tagline element when tagline is null', () => {
+    const nullTaglineProfile = { ...profile, tagline: null };
+    mockUseProfileResult.current = { profile: nullTaglineProfile, loading: false, error: null };
+    const { container } = render(<About />);
+
+    const taglineParagraphs = container.querySelectorAll('[class*="tagline"]');
+    expect(taglineParagraphs).toHaveLength(0);
+  });
+
+  it('renders multiple bio paragraphs as separate paragraphs', () => {
+    const multiParaProfile = {
+      ...profile,
+      bio: 'Paragraph one.\n\nParagraph two.\nParagraph three.',
+    };
+    mockUseProfileResult.current = { profile: multiParaProfile, loading: false, error: null };
+    render(<About />);
+
+    expect(screen.getByText('Paragraph one.')).toBeInTheDocument();
+    expect(screen.getByText('Paragraph two.')).toBeInTheDocument();
+    expect(screen.getByText('Paragraph three.')).toBeInTheDocument();
   });
 });

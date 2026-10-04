@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import Container from '../../components/common/Container/Container';
+import Heading from '../../components/common/Heading/Heading';
 import Section from '../../components/common/Section/Section';
 import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
@@ -90,19 +91,22 @@ function About() {
   }
 
   const bioParagraphs = profile.bio.split('\n').filter((p) => p.trim());
-  const [leadParagraph, ...restParagraphs] = bioParagraphs;
+  const tagline = profile.tagline?.trim();
 
   return (
-    <Container size="md">
+    <Container size="lg">
       {/* ---- Introduction ---- */}
       <section className={styles.intro} aria-labelledby="about-heading">
-        <p className={styles.eyebrow}>About</p>
-        <h1 id="about-heading" className={styles.introHeading}>
-          I build backend systems that are designed to last.
-        </h1>
+        <Heading level={1} alignment="center" id="about-heading">
+          About
+        </Heading>
+        {tagline && (
+          <p className={styles.tagline}>
+            {tagline}
+          </p>
+        )}
         <div className={styles.introBody}>
-          {leadParagraph && <p className={styles.lead}>{leadParagraph}</p>}
-          {restParagraphs.map((paragraph, index) => (
+          {bioParagraphs.map((paragraph, index) => (
             <p key={index} className={styles.paragraph}>
               {paragraph}
             </p>
