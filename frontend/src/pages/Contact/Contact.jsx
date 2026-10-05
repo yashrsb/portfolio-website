@@ -6,6 +6,7 @@ import Button from '../../components/common/Button/Button';
 import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
+import SocialIcon from '../../components/footer/SocialIcon/SocialIcon';
 import { useProfile, useSocial } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import { submitContact } from '../../services';
@@ -227,18 +228,20 @@ function Contact() {
   }
 
   const contactItems = [
-    { label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
+    { label: 'Email', value: contact.email, href: `mailto:${contact.email}`, platform: 'email' },
     {
       label: 'LinkedIn',
       value: 'LinkedIn Profile',
       href: social.linkedin || contact.linkedin,
+      platform: 'linkedin',
     },
     {
       label: 'GitHub',
       value: 'GitHub Profile',
       href: social.github || contact.github,
+      platform: 'github',
     },
-    { label: 'Location', value: contact.location },
+    { label: 'Location', value: contact.location, platform: 'location' },
   ].filter((item) => item.value);
 
   const isSubmitting = formState === FORM_STATES.SUBMITTING;
@@ -260,25 +263,38 @@ function Contact() {
         <Reveal>
           <div className={styles.info}>
             <h2 className={styles.sectionTitle}>Get in Touch</h2>
-            <ul className={styles.list}>
+            <div className={styles.contactCards}>
               {contactItems.map((item) => (
-                <li key={item.label} className={styles.listItem}>
-                  <span className={styles.label}>{item.label}</span>
-                  {item.href ? (
-                    <a
-                      href={item.href}
-                      className={styles.value}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {item.value}
-                    </a>
-                  ) : (
-                    <span className={styles.value}>{item.value}</span>
-                  )}
-                </li>
+                <Card
+                  key={item.label}
+                  className={styles.contactCard}
+                  padding="md"
+                  shadow="sm"
+                  hoverable
+                >
+                  <div className={styles.contactCardInner}>
+                    <div className={styles.contactCardIcon} aria-hidden="true">
+                      <SocialIcon platform={item.platform} size={24} />
+                    </div>
+                    <div className={styles.contactCardContent}>
+                      <span className={styles.contactCardLabel}>{item.label}</span>
+                      {item.href ? (
+                        <a
+                          href={item.href}
+                          className={styles.contactCardValue}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {item.value}
+                        </a>
+                      ) : (
+                        <span className={styles.contactCardValue}>{item.value}</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
               ))}
-            </ul>
+            </div>
           </div>
         </Reveal>
 
@@ -290,9 +306,12 @@ function Contact() {
                 role="status"
                 aria-live="polite"
               >
-                <span className={styles.successIcon} aria-hidden="true">
-                  ✓
-                </span>
+                <div className={styles.successIcon} aria-hidden="true">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
                 <p className={styles.successTitle}>Message Sent</p>
                 <p className={styles.successText}>
                   Thank you for reaching out. I&apos;ll get back to you as soon

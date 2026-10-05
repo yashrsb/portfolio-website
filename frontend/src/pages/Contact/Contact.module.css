@@ -21,26 +21,56 @@
   margin: 0 0 var(--spacing-lg);
 }
 
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* Contact Cards */
+.contactCards {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
 }
 
-.listItem {
+.contactCard {
+  height: 100%;
+  min-height: 80px;
+}
+
+.contactCardInner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.contactCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background-color: var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  color: var(--color-primary);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.contactCard:hover .contactCardIcon {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  transform: scale(1.05);
+}
+
+.contactCardContent {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-  padding: var(--spacing-md);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  flex: 1;
+  min-width: 0;
 }
 
-.label {
+.contactCardLabel {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
@@ -48,18 +78,20 @@
   letter-spacing: 0.05em;
 }
 
-.value {
+.contactCardValue {
   font-size: var(--font-size-base);
   color: var(--color-text);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   word-break: break-word;
+  transition: color var(--transition-fast);
 }
 
-a.value:hover {
+a.contactCardValue:hover {
   color: var(--color-primary);
 }
 
+/* Form Card */
 .formCard {
   padding: var(--spacing-xl);
 }
@@ -67,7 +99,7 @@ a.value:hover {
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
 }
 
 .field {
@@ -101,7 +133,13 @@ a.value:hover {
   border-radius: var(--radius-md);
   transition:
     border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.input:hover,
+.textarea:hover {
+  border-color: var(--color-text-secondary);
 }
 
 .input:focus,
@@ -109,6 +147,7 @@ a.value:hover {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-light);
+  background-color: var(--color-surface);
 }
 
 .inputError,
@@ -116,9 +155,14 @@ a.value:hover {
   border-color: var(--color-danger);
 }
 
+.inputError:focus,
+.textareaError:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
 .textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 140px;
 }
 
 .submit {
@@ -134,20 +178,40 @@ a.value:hover {
   font-size: var(--font-size-sm);
 }
 
+/* Success State */
 .successState {
   text-align: center;
   padding: var(--spacing-2xl) var(--spacing-lg);
 }
 
 .successIcon {
-  font-size: var(--font-size-3xl);
-  margin-bottom: var(--spacing-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-lg);
+  background-color: var(--color-success);
+  border-radius: var(--radius-full);
+  color: var(--color-text-inverse);
+  animation: successScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes successScale {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .successTitle {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
+  color: var(--color-success);
   margin: 0 0 var(--spacing-md);
 }
 
@@ -158,6 +222,7 @@ a.value:hover {
   margin: 0 0 var(--spacing-xl);
 }
 
+/* Honeypot */
 .honeypot {
   position: absolute;
   left: -9999px;
@@ -167,6 +232,7 @@ a.value:hover {
   overflow: hidden;
 }
 
+/* Submitting Overlay */
 .submittingOverlay {
   position: absolute;
   inset: 0;
@@ -175,8 +241,18 @@ a.value:hover {
   pointer-events: none;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .formCard {
+    padding: var(--spacing-lg);
+  }
+
+  .contactCardIcon {
+    width: 40px;
+    height: 40px;
   }
 }
