@@ -96,6 +96,31 @@ a.contactCardValue:hover {
   padding: var(--spacing-xl);
 }
 
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.formHeader {
+  margin-bottom: var(--spacing-xl);
+}
+
+.formTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm);
+  letter-spacing: -0.01em;
+}
+
+.formSubtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -105,13 +130,14 @@ a.contactCardValue:hover {
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 .fieldLabel {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
+  margin-left: var(--spacing-xs);
 }
 
 .fieldError {
@@ -163,10 +189,27 @@ a.contactCardValue:hover {
 .textarea {
   resize: vertical;
   min-height: 140px;
+  line-height: var(--line-height-relaxed);
 }
 
 .submit {
   margin-top: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: gap var(--transition-fast);
+}
+
+.submit:hover {
+  gap: var(--spacing-md);
+}
+
+.arrow {
+  transition: transform var(--transition-fast);
+}
+
+.submit:hover .arrow {
+  transform: translateX(2px);
 }
 
 .errorSummary {
@@ -249,6 +292,14 @@ a.contactCardValue:hover {
 
   .formCard {
     padding: var(--spacing-lg);
+  }
+
+  .formHeader {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .formTitle {
+    font-size: var(--font-size-lg);
   }
 
   .contactCardIcon {

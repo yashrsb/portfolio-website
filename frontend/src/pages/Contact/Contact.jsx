@@ -329,174 +329,200 @@ function Contact() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className={styles.form} noValidate>
-                <input
-                  type="text"
-                  name="website"
-                  className={styles.honeypot}
-                  tabIndex={-1}
-                  autoComplete="off"
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  aria-hidden="true"
-                  value={formData.website}
-                  onChange={handleChange}
-                />
-
-                <div className={styles.field}>
-                  <label htmlFor="name" className={styles.fieldLabel}>
-                    Name
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    className={`${styles.input} ${
-                      fieldErrors.name ? styles.inputError : ''
-                    }`}
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    maxLength={MAX_NAME_LENGTH}
-                    autoComplete="name"
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.name)}
-                    aria-describedby={
-                      fieldErrors.name ? 'name-error' : undefined
-                    }
-                  />
-                  {fieldErrors.name && (
-                    <p
-                      id="name-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className={styles.field}>
-                  <label htmlFor="email" className={styles.fieldLabel}>
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className={`${styles.input} ${
-                      fieldErrors.email ? styles.inputError : ''
-                    }`}
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    autoComplete="email"
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.email)}
-                    aria-describedby={
-                      fieldErrors.email ? 'email-error' : undefined
-                    }
-                  />
-                  {fieldErrors.email && (
-                    <p
-                      id="email-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.email}
-                    </p>
-                  )}
-                </div>
-
-                <div className={styles.field}>
-                  <label htmlFor="subject" className={styles.fieldLabel}>
-                    Subject
-                  </label>
-                  <input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    className={`${styles.input} ${
-                      fieldErrors.subject ? styles.inputError : ''
-                    }`}
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    maxLength={MAX_SUBJECT_LENGTH}
-                    autoComplete="off"
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.subject)}
-                    aria-describedby={
-                      fieldErrors.subject ? 'subject-error' : undefined
-                    }
-                  />
-                  {fieldErrors.subject && (
-                    <p
-                      id="subject-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.subject}
-                    </p>
-                  )}
-                </div>
-
-                <div className={styles.field}>
-                  <label htmlFor="message" className={styles.fieldLabel}>
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    className={`${styles.textarea} ${
-                      fieldErrors.message ? styles.textareaError : ''
-                    }`}
-                    rows={5}
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    maxLength={MAX_MESSAGE_LENGTH}
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.message)}
-                    aria-describedby={
-                      fieldErrors.message ? 'message-error' : undefined
-                    }
-                  />
-                  {fieldErrors.message && (
-                    <p
-                      id="message-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.message}
-                    </p>
-                  )}
-                </div>
-
-                {serverError && (
-                  <p className={styles.errorSummary} role="alert">
-                    {serverError}
+              <div className={styles.formWrapper}>
+                <div className={styles.formHeader}>
+                  <h2 className={styles.formTitle}>Send a Message</h2>
+                  <p className={styles.formSubtitle}>
+                    Have a project in mind or want to connect? Feel free to
+                    send me a message.
                   </p>
-                )}
+                </div>
+                <form onSubmit={handleSubmit} className={styles.form} noValidate>
+                  <input
+                    type="text"
+                    name="website"
+                    className={styles.honeypot}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    aria-hidden="true"
+                    value={formData.website}
+                    onChange={handleChange}
+                  />
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  className={styles.submit}
-                  loading={isSubmitting}
-                  disabled={isSubmitting}
-                  aria-busy={isSubmitting}
-                >
-                  {isSubmitting ? 'Sending...' : 'Send Message'}
-                </Button>
+                  <div className={styles.field}>
+                    <label htmlFor="name" className={styles.fieldLabel}>
+                      Name
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      className={`${styles.input} ${
+                        fieldErrors.name ? styles.inputError : ''
+                      }`}
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      maxLength={MAX_NAME_LENGTH}
+                      autoComplete="name"
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.name)}
+                      aria-describedby={
+                        fieldErrors.name ? 'name-error' : undefined
+                      }
+                    />
+                    {fieldErrors.name && (
+                      <p
+                        id="name-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.name}
+                      </p>
+                    )}
+                  </div>
 
-                <div
-                  aria-live={hasError ? 'assertive' : 'off'}
-                  aria-atomic="true"
-                />
-              </form>
+                  <div className={styles.field}>
+                    <label htmlFor="email" className={styles.fieldLabel}>
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      className={`${styles.input} ${
+                        fieldErrors.email ? styles.inputError : ''
+                      }`}
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      autoComplete="email"
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.email)}
+                      aria-describedby={
+                        fieldErrors.email ? 'email-error' : undefined
+                      }
+                    />
+                    {fieldErrors.email && (
+                      <p
+                        id="email-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="subject" className={styles.fieldLabel}>
+                      Subject
+                    </label>
+                    <input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      className={`${styles.input} ${
+                        fieldErrors.subject ? styles.inputError : ''
+                      }`}
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                      maxLength={MAX_SUBJECT_LENGTH}
+                      autoComplete="off"
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.subject)}
+                      aria-describedby={
+                        fieldErrors.subject ? 'subject-error' : undefined
+                      }
+                    />
+                    {fieldErrors.subject && (
+                      <p
+                        id="subject-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.subject}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="message" className={styles.fieldLabel}>
+                      Message
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      className={`${styles.textarea} ${
+                        fieldErrors.message ? styles.textareaError : ''
+                      }`}
+                      rows={6}
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      maxLength={MAX_MESSAGE_LENGTH}
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.message)}
+                      aria-describedby={
+                        fieldErrors.message ? 'message-error' : undefined
+                      }
+                    />
+                    {fieldErrors.message && (
+                      <p
+                        id="message-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {serverError && (
+                    <p className={styles.errorSummary} role="alert">
+                      {serverError}
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    className={styles.submit}
+                    loading={isSubmitting}
+                    disabled={isSubmitting}
+                    aria-busy={isSubmitting}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {!isSubmitting && (
+                      <svg
+                        className={styles.arrow}
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    )}
+                  </Button>
+
+                  <div
+                    aria-live={hasError ? 'assertive' : 'off'}
+                    aria-atomic="true"
+                  />
+                </form>
+              </div>
             )}
           </Card>
         </Reveal>
