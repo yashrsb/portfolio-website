@@ -65,7 +65,7 @@ function getIcon(platform) {
       );
     case 'email':
       return (
-        <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2ZM2 6l10 7 10-7Z" />
+        <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7-8-5 8-5 8 5-8 5z" />
       );
     case 'phone':
       return (
