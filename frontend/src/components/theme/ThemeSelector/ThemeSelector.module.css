@@ -1,0 +1,85 @@
+/* ============================================ */
+/* ThemeSelector — Segmented Control             */
+/* ============================================ */
+
+.selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 4px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.option:hover {
+  color: var(--color-text);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.optionActive {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.optionActive .icon {
+  font-size: var(--font-size-base);
+}
+
+.icon {
+  font-size: var(--font-size-xs);
+  line-height: 1;
+  display: inline-block;
+}
+
+.label {
+  display: inline-block;
+}
+
+/* Hide label on very small screens, show icon-only */
+@media (max-width: 480px) {
+  .label {
+    display: none;
+  }
+
+  .option {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .icon {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option,
+  .optionActive {
+    transition: none;
+  }
+}

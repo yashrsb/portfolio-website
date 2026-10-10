@@ -2,19 +2,20 @@ import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import Container from '../../common/Container/Container';
-import Button from '../../common/Button/Button';
+import ThemeSelector from '../../theme/ThemeSelector/ThemeSelector';
 import navigation from '../../../data/navigation';
 
 /**
- * Responsive navigation bar with hamburger menu and dark mode toggle.
+ * Responsive navigation bar with hamburger menu and theme selector.
  * Sticky positioned at the top of the viewport.
  * Uses React Router NavLink for active page highlighting.
  *
  * @param {Object} props
- * @param {'light' | 'dark'} [props.theme='light'] - Current theme (for toggle icon)
- * @param {() => void} [props.onToggleTheme] - Theme toggle callback
+ * @param {import('../../context/ThemeContext').ThemePreference} [props.preference='system'] - Current theme preference.
+ * @param {(pref: import('../../context/ThemeContext').ThemePreference) => void} [props.onPreferenceChange] - Theme preference change callback.
+ * @deprecated Use `preference` and `onPreferenceChange` instead of `theme` and `onToggleTheme`.
  */
-function Navbar({ theme = 'light', onToggleTheme }) {
+function Navbar({ preference = 'system', onPreferenceChange }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -58,14 +59,10 @@ function Navbar({ theme = 'light', onToggleTheme }) {
             ))}
           </ul>
           <div className={styles.actions}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleTheme}
-              ariaLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
-            </Button>
+            <ThemeSelector
+              preference={preference}
+              onPreferenceChange={onPreferenceChange}
+            />
             <button
               type="button"
               className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ''}`}
