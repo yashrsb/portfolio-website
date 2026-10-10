@@ -13,12 +13,12 @@ import styles from './ThemeSelector.module.css';
 const ICONS = {
   light: (
     <svg
-      width="16"
-      height="16"
+      width="21"
+      height="21"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -29,12 +29,12 @@ const ICONS = {
   ),
   dark: (
     <svg
-      width="16"
-      height="16"
+      width="21"
+      height="21"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -44,12 +44,12 @@ const ICONS = {
   ),
   system: (
     <svg
-      width="16"
-      height="16"
+      width="21"
+      height="21"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
