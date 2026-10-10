@@ -6,6 +6,7 @@ import Button from '../../components/common/Button/Button';
 import Reveal from '../../components/common/Reveal/Reveal';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
 import ErrorState from '../../components/common/ErrorState/ErrorState';
+import SocialIcon from '../../components/footer/SocialIcon/SocialIcon';
 import { useProfile, useSocial } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import { submitContact } from '../../services';
@@ -227,18 +228,20 @@ function Contact() {
   }
 
   const contactItems = [
-    { label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
+    { label: 'Email', value: contact.email, href: `mailto:${contact.email}`, platform: 'email' },
     {
       label: 'LinkedIn',
       value: 'LinkedIn Profile',
       href: social.linkedin || contact.linkedin,
+      platform: 'linkedin',
     },
     {
       label: 'GitHub',
       value: 'GitHub Profile',
       href: social.github || contact.github,
+      platform: 'github',
     },
-    { label: 'Location', value: contact.location },
+    { label: 'Location', value: contact.location, platform: 'location' },
   ].filter((item) => item.value);
 
   const isSubmitting = formState === FORM_STATES.SUBMITTING;
@@ -260,25 +263,38 @@ function Contact() {
         <Reveal>
           <div className={styles.info}>
             <h2 className={styles.sectionTitle}>Get in Touch</h2>
-            <ul className={styles.list}>
+            <div className={styles.contactCards}>
               {contactItems.map((item) => (
-                <li key={item.label} className={styles.listItem}>
-                  <span className={styles.label}>{item.label}</span>
-                  {item.href ? (
-                    <a
-                      href={item.href}
-                      className={styles.value}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {item.value}
-                    </a>
-                  ) : (
-                    <span className={styles.value}>{item.value}</span>
-                  )}
-                </li>
+                <Card
+                  key={item.label}
+                  className={styles.contactCard}
+                  padding="md"
+                  shadow="sm"
+                  hoverable
+                >
+                  <div className={styles.contactCardInner}>
+                    <div className={styles.contactCardIcon} aria-hidden="true">
+                      <SocialIcon platform={item.platform} size={24} />
+                    </div>
+                    <div className={styles.contactCardContent}>
+                      <span className={styles.contactCardLabel}>{item.label}</span>
+                      {item.href ? (
+                        <a
+                          href={item.href}
+                          className={styles.contactCardValue}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {item.value}
+                        </a>
+                      ) : (
+                        <span className={styles.contactCardValue}>{item.value}</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
               ))}
-            </ul>
+            </div>
           </div>
         </Reveal>
 
@@ -290,9 +306,12 @@ function Contact() {
                 role="status"
                 aria-live="polite"
               >
-                <span className={styles.successIcon} aria-hidden="true">
-                  ✓
-                </span>
+                <div className={styles.successIcon} aria-hidden="true">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
                 <p className={styles.successTitle}>Message Sent</p>
                 <p className={styles.successText}>
                   Thank you for reaching out. I&apos;ll get back to you as soon
@@ -310,174 +329,200 @@ function Contact() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className={styles.form} noValidate>
-                <input
-                  type="text"
-                  name="website"
-                  className={styles.honeypot}
-                  tabIndex={-1}
-                  autoComplete="off"
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  aria-hidden="true"
-                  value={formData.website}
-                  onChange={handleChange}
-                />
-
-                <div className={styles.field}>
-                  <label htmlFor="name" className={styles.fieldLabel}>
-                    Name
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    className={`${styles.input} ${
-                      fieldErrors.name ? styles.inputError : ''
-                    }`}
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    maxLength={MAX_NAME_LENGTH}
-                    autoComplete="name"
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.name)}
-                    aria-describedby={
-                      fieldErrors.name ? 'name-error' : undefined
-                    }
-                  />
-                  {fieldErrors.name && (
-                    <p
-                      id="name-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className={styles.field}>
-                  <label htmlFor="email" className={styles.fieldLabel}>
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className={`${styles.input} ${
-                      fieldErrors.email ? styles.inputError : ''
-                    }`}
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    autoComplete="email"
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.email)}
-                    aria-describedby={
-                      fieldErrors.email ? 'email-error' : undefined
-                    }
-                  />
-                  {fieldErrors.email && (
-                    <p
-                      id="email-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.email}
-                    </p>
-                  )}
-                </div>
-
-                <div className={styles.field}>
-                  <label htmlFor="subject" className={styles.fieldLabel}>
-                    Subject
-                  </label>
-                  <input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    className={`${styles.input} ${
-                      fieldErrors.subject ? styles.inputError : ''
-                    }`}
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    maxLength={MAX_SUBJECT_LENGTH}
-                    autoComplete="off"
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.subject)}
-                    aria-describedby={
-                      fieldErrors.subject ? 'subject-error' : undefined
-                    }
-                  />
-                  {fieldErrors.subject && (
-                    <p
-                      id="subject-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.subject}
-                    </p>
-                  )}
-                </div>
-
-                <div className={styles.field}>
-                  <label htmlFor="message" className={styles.fieldLabel}>
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    className={`${styles.textarea} ${
-                      fieldErrors.message ? styles.textareaError : ''
-                    }`}
-                    rows={5}
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    maxLength={MAX_MESSAGE_LENGTH}
-                    disabled={inputDisabled}
-                    aria-invalid={Boolean(fieldErrors.message)}
-                    aria-describedby={
-                      fieldErrors.message ? 'message-error' : undefined
-                    }
-                  />
-                  {fieldErrors.message && (
-                    <p
-                      id="message-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
-                      {fieldErrors.message}
-                    </p>
-                  )}
-                </div>
-
-                {serverError && (
-                  <p className={styles.errorSummary} role="alert">
-                    {serverError}
+              <div className={styles.formWrapper}>
+                <div className={styles.formHeader}>
+                  <h2 className={styles.formTitle}>Send a Message</h2>
+                  <p className={styles.formSubtitle}>
+                    Have a project in mind or want to connect? Feel free to
+                    send me a message.
                   </p>
-                )}
+                </div>
+                <form onSubmit={handleSubmit} className={styles.form} noValidate>
+                  <input
+                    type="text"
+                    name="website"
+                    className={styles.honeypot}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    aria-hidden="true"
+                    value={formData.website}
+                    onChange={handleChange}
+                  />
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  className={styles.submit}
-                  loading={isSubmitting}
-                  disabled={isSubmitting}
-                  aria-busy={isSubmitting}
-                >
-                  {isSubmitting ? 'Sending...' : 'Send Message'}
-                </Button>
+                  <div className={styles.field}>
+                    <label htmlFor="name" className={styles.fieldLabel}>
+                      Name
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      className={`${styles.input} ${
+                        fieldErrors.name ? styles.inputError : ''
+                      }`}
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      maxLength={MAX_NAME_LENGTH}
+                      autoComplete="name"
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.name)}
+                      aria-describedby={
+                        fieldErrors.name ? 'name-error' : undefined
+                      }
+                    />
+                    {fieldErrors.name && (
+                      <p
+                        id="name-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.name}
+                      </p>
+                    )}
+                  </div>
 
-                <div
-                  aria-live={hasError ? 'assertive' : 'off'}
-                  aria-atomic="true"
-                />
-              </form>
+                  <div className={styles.field}>
+                    <label htmlFor="email" className={styles.fieldLabel}>
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      className={`${styles.input} ${
+                        fieldErrors.email ? styles.inputError : ''
+                      }`}
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      autoComplete="email"
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.email)}
+                      aria-describedby={
+                        fieldErrors.email ? 'email-error' : undefined
+                      }
+                    />
+                    {fieldErrors.email && (
+                      <p
+                        id="email-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="subject" className={styles.fieldLabel}>
+                      Subject
+                    </label>
+                    <input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      className={`${styles.input} ${
+                        fieldErrors.subject ? styles.inputError : ''
+                      }`}
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                      maxLength={MAX_SUBJECT_LENGTH}
+                      autoComplete="off"
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.subject)}
+                      aria-describedby={
+                        fieldErrors.subject ? 'subject-error' : undefined
+                      }
+                    />
+                    {fieldErrors.subject && (
+                      <p
+                        id="subject-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.subject}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="message" className={styles.fieldLabel}>
+                      Message
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      className={`${styles.textarea} ${
+                        fieldErrors.message ? styles.textareaError : ''
+                      }`}
+                      rows={6}
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      maxLength={MAX_MESSAGE_LENGTH}
+                      disabled={inputDisabled}
+                      aria-invalid={Boolean(fieldErrors.message)}
+                      aria-describedby={
+                        fieldErrors.message ? 'message-error' : undefined
+                      }
+                    />
+                    {fieldErrors.message && (
+                      <p
+                        id="message-error"
+                        className={styles.fieldError}
+                        role="alert"
+                      >
+                        {fieldErrors.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {serverError && (
+                    <p className={styles.errorSummary} role="alert">
+                      {serverError}
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    className={styles.submit}
+                    loading={isSubmitting}
+                    disabled={isSubmitting}
+                    aria-busy={isSubmitting}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {!isSubmitting && (
+                      <svg
+                        className={styles.arrow}
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    )}
+                  </Button>
+
+                  <div
+                    aria-live={hasError ? 'assertive' : 'off'}
+                    aria-atomic="true"
+                  />
+                </form>
+              </div>
             )}
           </Card>
         </Reveal>
