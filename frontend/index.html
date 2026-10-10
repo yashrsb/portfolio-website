@@ -20,6 +20,26 @@
     <link rel="canonical" href="%VITE_SITE_URL%" />
     <link rel="alternate" type="application/rss+xml" title="Blog RSS" href="/rss.xml" />
     <title>Portfolio</title>
+    <script>
+      (function () {
+        var STORAGE_KEY = 'portfolio-theme-preference';
+        var stored = null;
+        try {
+          stored = localStorage.getItem(STORAGE_KEY);
+        } catch (e) {
+          stored = null;
+        }
+        var preference = (stored === 'light' || stored === 'dark' || stored === 'system')
+          ? stored
+          : 'system';
+        var theme = preference;
+        if (preference === 'system') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

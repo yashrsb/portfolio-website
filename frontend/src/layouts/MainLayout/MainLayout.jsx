@@ -5,17 +5,17 @@ import styles from './MainLayout.module.css';
 
 /**
  * MainLayout wraps every page with the Navbar, main content area, and Footer.
- * Handles theme toggling and responsive spacing automatically.
+ * Handles theme preference and responsive spacing automatically.
  *
  * @param {Object} props
  * @param {React.ReactNode} props.children - Page content
  */
 function MainLayout({ children }) {
-  const { theme, toggleTheme } = useTheme();
+  const { preference, setPreference } = useTheme();
 
   return (
     <div className={styles.layout}>
-      <Navbar theme={theme} onToggleTheme={toggleTheme} />
+      <Navbar preference={preference} onPreferenceChange={setPreference} />
       <main className={styles.main} id="main-content">
         {children}
       </main>
