@@ -6,15 +6,16 @@ import Button from '../../common/Button/Button';
 import navigation from '../../../data/navigation';
 
 /**
- * Responsive navigation bar with hamburger menu and dark mode toggle.
+ * Responsive navigation bar with hamburger menu, dark mode toggle, and command palette trigger.
  * Sticky positioned at the top of the viewport.
  * Uses React Router NavLink for active page highlighting.
  *
  * @param {Object} props
  * @param {'light' | 'dark'} [props.theme='light'] - Current theme (for toggle icon)
  * @param {() => void} [props.onToggleTheme] - Theme toggle callback
+ * @param {() => void} [props.onOpenCommandPalette] - Command palette open callback
  */
-function Navbar({ theme = 'light', onToggleTheme }) {
+function Navbar({ theme = 'light', onToggleTheme, onOpenCommandPalette }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -58,6 +59,14 @@ function Navbar({ theme = 'light', onToggleTheme }) {
             ))}
           </ul>
           <div className={styles.actions}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenCommandPalette}
+              ariaLabel="Open command palette (⌘K)"
+            >
+              <kbd className={styles.kbd}>⌘K</kbd>
+            </Button>
             <Button
               variant="ghost"
               size="sm"

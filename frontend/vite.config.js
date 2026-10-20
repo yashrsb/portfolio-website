@@ -7,11 +7,17 @@ export default defineConfig({
     port: 5173,
     open: false,
   },
+  resolve: {
+    extensions: ['.js', '.jsx', '.json'],
+  },
   test: {
     environment: 'happy-dom',
     setupFiles: ['./src/tests/setup.js'],
     include: ['src/**/*.test.{js,jsx}'],
     globals: true,
+    resolve: {
+      extensions: ['.js', '.jsx', '.json'],
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

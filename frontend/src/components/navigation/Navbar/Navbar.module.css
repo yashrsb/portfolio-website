@@ -103,6 +103,27 @@
   gap: var(--spacing-sm);
 }
 
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 var(--spacing-xs);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-tertiary);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: opacity var(--transition-fast);
+}
+
+.kbd:hover {
+  opacity: 0.8;
+}
+
 /* ---- Hamburger ---- */
 
 .hamburger {
