@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import Container from '../../common/Container/Container';
-import Button from '../../common/Button/Button';
+import ThemeSelector from '../../theme/ThemeSelector/ThemeSelector';
 import navigation from '../../../data/navigation';
 
 /**
