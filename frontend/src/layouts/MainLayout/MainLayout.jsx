@@ -1,6 +1,9 @@
+import { useState, useCallback } from 'react';
 import Navbar from '../../components/navigation/Navbar/Navbar';
 import Footer from '../../components/footer/Footer/Footer';
+import CommandPalette from '../../components/commandPalette/CommandPalette';
 import { useTheme } from '../../context/ThemeContext';
+import { useCommandPaletteShortcut } from '../../hooks';
 import styles from './MainLayout.module.css';
 
 /**
@@ -11,15 +14,26 @@ import styles from './MainLayout.module.css';
  * @param {React.ReactNode} props.children - Page content
  */
 function MainLayout({ children }) {
-  const { preference, setPreference } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  const openPalette = useCallback(() => setPaletteOpen(true), []);
+  const closePalette = useCallback(() => setPaletteOpen(false), []);
+
+  useCommandPaletteShortcut(openPalette);
 
   return (
     <div className={styles.layout}>
-      <Navbar preference={preference} onPreferenceChange={setPreference} />
+      <Navbar
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenCommandPalette={openPalette}
+      />
       <main className={styles.main} id="main-content">
         {children}
       </main>
       <Footer />
+      <CommandPalette isOpen={paletteOpen} onClose={closePalette} />
     </div>
   );
 }
