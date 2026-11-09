@@ -1,4 +1,4 @@
-/* ============================================ */
+﻿/* ============================================ */
 /* Navbar — Design System Component             */
 /* ============================================ */
 
@@ -29,7 +29,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  gap: var(--spacing-md);
+  min-height: 64px;
 }
 
 /* ---- Logo ---- */
@@ -40,6 +41,7 @@
   color: var(--color-text);
   text-decoration: none;
   transition: color var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -55,6 +57,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  min-width: 0;
 }
 
 .link {
@@ -101,27 +104,60 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.paletteTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 32px;
+  padding-inline: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background-secondary);
+  border-radius: var(--radius-md);
+}
+
+.paletteTrigger:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background-color: var(--color-surface-hover);
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.paletteTrigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.searchIcon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.paletteLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 24px;
-  padding: 0 var(--spacing-xs);
+  min-height: 20px;
+  padding: 0 6px;
   font-family: var(--font-family-mono);
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
+  line-height: 1;
   color: var(--color-text-secondary);
-  background-color: var(--color-background-tertiary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   white-space: nowrap;
-  transition: opacity var(--transition-fast);
-}
-
-.kbd:hover {
-  opacity: 0.8;
 }
 
 /* ---- Hamburger ---- */
@@ -143,6 +179,11 @@
 
 .hamburger:hover {
   background-color: var(--color-background-tertiary);
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .bar {
@@ -228,6 +269,20 @@
 }
 
 /* ---- Responsive ---- */
+
+@media (max-width: 960px) {
+  .paletteLabel {
+    display: none;
+  }
+
+  .kbd {
+    display: none;
+  }
+
+  .paletteTrigger {
+    padding-inline: var(--spacing-xs);
+  }
+}
 
 @media (max-width: 768px) {
   .desktopLinks {
