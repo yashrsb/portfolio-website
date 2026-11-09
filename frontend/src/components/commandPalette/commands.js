@@ -1,7 +1,30 @@
-/**
+﻿/**
  * Command registry for the Command Palette.
  * Commands are grouped by category and can be filtered/searched.
  */
+
+const NAVIGATION_ITEMS = [
+  { label: 'Home', path: '/', icon: 'home', keywords: ['home', 'landing'] },
+  { label: 'About', path: '/about', icon: 'about', keywords: ['about', 'bio', 'profile'] },
+  { label: 'Experience', path: '/experience', icon: 'experience', keywords: ['experience', 'work', 'career', 'jobs'] },
+  { label: 'Skills', path: '/skills', icon: 'skills', keywords: ['skills', 'tech', 'stack', 'technologies'] },
+  { label: 'Projects', path: '/projects', icon: 'projects', keywords: ['projects', 'portfolio', 'work', 'apps'] },
+  { label: 'Blog', path: '/blog', icon: 'blog', keywords: ['blog', 'posts', 'articles', 'writing'] },
+  { label: 'Education', path: '/education', icon: 'education', keywords: ['education', 'school', 'university', 'degree'] },
+  { label: 'Contact', path: '/contact', icon: 'contact', keywords: ['contact', 'email', 'message', 'reach'] },
+];
+
+function safeExternalUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  try {
+    if (url.startsWith('mailto:')) return url;
+    const parsed = new URL(url);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.toString();
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 /**
  * Creates navigation commands from the navigation configuration.
@@ -9,35 +32,25 @@
  * @returns {Array} Navigation commands
  */
 export function createNavigationCommands(navigate) {
-  const navigation = [
-    { label: 'Home', path: '/', keywords: ['home', 'landing'] },
-    { label: 'About', path: '/about', keywords: ['about', 'bio', 'profile'] },
-    { label: 'Experience', path: '/experience', keywords: ['experience', 'work', 'career', 'jobs'] },
-    { label: 'Skills', path: '/skills', keywords: ['skills', 'tech', 'stack', 'technologies'] },
-    { label: 'Projects', path: '/projects', keywords: ['projects', 'portfolio', 'work', 'apps'] },
-    { label: 'Blog', path: '/blog', keywords: ['blog', 'posts', 'articles', 'writing'] },
-    { label: 'Education', path: '/education', keywords: ['education', 'school', 'university', 'degree'] },
-    { label: 'Contact', path: '/contact', keywords: ['contact', 'email', 'message', 'reach'] },
-  ];
-
-  return navigation.map((item) => ({
+  return NAVIGATION_ITEMS.map((item) => ({
     id: `nav-${item.path}`,
     title: item.label,
     description: `Go to ${item.label} page`,
     category: 'Navigation',
     keywords: item.keywords,
     action: () => navigate(item.path),
-    icon: 'navigation',
+    icon: item.icon,
   }));
 }
 
 /**
  * Creates theme commands using the theme context.
- * @param {string} currentTheme - Current theme ('light' | 'dark')
- * @param {Function} setTheme - Theme setter function
+ * @param {string} _currentTheme - Resolved theme ('light' | 'dark'), unused for active state
+ * @param {Function} setTheme - Theme setter function (accepts preference)
+ * @param {string} preference - Current preference ('light' | 'dark' | 'system')
  * @returns {Array} Theme commands
  */
-export function createThemeCommands(currentTheme, setTheme) {
+export function createThemeCommands(_currentTheme, setTheme, preference) {
   const themes = [
     { id: 'light', label: 'Light', description: 'Switch to light theme', keywords: ['light', 'day', 'bright'] },
     { id: 'dark', label: 'Dark', description: 'Switch to dark theme', keywords: ['dark', 'night', 'dim'] },
@@ -52,7 +65,7 @@ export function createThemeCommands(currentTheme, setTheme) {
     keywords: theme.keywords,
     action: () => setTheme(theme.id),
     icon: theme.id,
-    isActive: currentTheme === theme.id,
+    isActive: preference === theme.id,
   }));
 }
 
@@ -62,23 +75,22 @@ export function createThemeCommands(currentTheme, setTheme) {
  * @returns {Array} Resume command (empty if no resume URL)
  */
 export function createResumeCommand(profile) {
-  const resumeUrl = profile?.resumeUrl || profile?.resume_url;
+  const resumeUrl = safeExternalUrl(profile?.resumeUrl || profile?.resume_url);
+  if (!resumeUrl) return [];
 
-  if (!resumeUrl) {
-    return [];
-  }
-
-  return [{
-    id: 'action-resume',
-    title: 'Open Resume',
-    description: 'View or download resume',
-    category: 'Actions',
-    keywords: ['resume', 'cv', 'download', 'document'],
-    action: () => {
-      window.open(resumeUrl, '_blank', 'noopener,noreferrer');
+  return [
+    {
+      id: 'action-resume',
+      title: 'Open Resume',
+      description: 'View or download resume',
+      category: 'Actions',
+      keywords: ['resume', 'cv', 'download', 'document'],
+      action: () => {
+        window.open(resumeUrl, '_blank', 'noopener,noreferrer');
+      },
+      icon: 'document',
     },
-    icon: 'document',
-  }];
+  ];
 }
 
 /**
@@ -87,9 +99,7 @@ export function createResumeCommand(profile) {
  * @returns {Array} Social commands
  */
 export function createSocialCommands(socialLinks) {
-  if (!socialLinks || !socialLinks.length) {
-    return [];
-  }
+  if (!Array.isArray(socialLinks) || !socialLinks.length) return [];
 
   const platformLabels = {
     github: 'GitHub',
@@ -110,33 +120,38 @@ export function createSocialCommands(socialLinks) {
   };
 
   return socialLinks
-    .filter((link) => link.url && (link.url.startsWith('https:') || link.url.startsWith('http:') || link.url.startsWith('mailto:')))
     .map((link) => {
-      const platform = link.platform?.toLowerCase();
+      const url = safeExternalUrl(link?.url);
+      if (!url) return null;
+      const platform = (link?.platform || '').toLowerCase();
       return {
-        id: `social-${link.id || platform}`,
-        title: `Open ${platformLabels[platform] || link.platform}`,
-        description: `Visit ${platformLabels[platform] || link.platform} profile`,
+        id: `social-${link.id || platform || url}`,
+        title: `Open ${platformLabels[platform] || link.platform || 'Social link'}`,
+        description: `Visit ${platformLabels[platform] || link.platform || 'profile'}`,
         category: 'Social',
-        keywords: platformKeywords[platform] || [platform],
+        keywords: platformKeywords[platform] || [platform].filter(Boolean),
         action: () => {
-          window.open(link.url, '_blank', 'noopener,noreferrer');
+          if (url.startsWith('mailto:')) {
+            window.location.href = url;
+            return;
+          }
+          window.open(url, '_blank', 'noopener,noreferrer');
         },
-        icon: platform,
+        icon: platform || 'external',
       };
-    });
+    })
+    .filter(Boolean);
 }
 
 /**
  * Gets all commands for the palette.
- * This is the main entry point for building the command list.
- * @param {Object} deps - Dependencies (navigate, theme, setTheme, profile, socialLinks)
+ * @param {Object} deps - Dependencies (navigate, theme, setTheme, preference, profile, socialLinks)
  * @returns {Array} All commands combined
  */
-export function getAllCommands({ navigate, theme, setTheme, profile, socialLinks }) {
+export function getAllCommands({ navigate, theme, setTheme, preference, profile, socialLinks }) {
   return [
     ...createNavigationCommands(navigate),
-    ...createThemeCommands(theme, setTheme),
+    ...createThemeCommands(theme, setTheme, preference || theme),
     ...createResumeCommand(profile),
     ...createSocialCommands(socialLinks),
   ];
@@ -148,7 +163,7 @@ export function getAllCommands({ navigate, theme, setTheme, profile, socialLinks
 export const CATEGORY_ORDER = ['Navigation', 'Appearance', 'Actions', 'Social'];
 
 /**
- * Category icons mapping.
+ * Category icon kinds (rendered as SVG in the component).
  */
 export const CATEGORY_ICONS = {
   Navigation: 'navigation',
