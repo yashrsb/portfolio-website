@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import Container from '../../common/Container/Container';
-import ThemeSelector from '../../theme/ThemeSelector/ThemeSelector';
+import Button from '../../common/Button/Button';
 import navigation from '../../../data/navigation';
 
 /**
- * Responsive navigation bar with hamburger menu, dark mode toggle, and command palette trigger.
+ * Responsive navigation bar with hamburger menu, theme toggle, and command palette trigger.
  * Sticky positioned at the top of the viewport.
  * Uses React Router NavLink for active page highlighting.
  *
@@ -36,6 +36,10 @@ function Navbar({ theme = 'light', onToggleTheme, onOpenCommandPalette }) {
     .filter(Boolean)
     .join(' ');
 
+  const isMac =
+    typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
+  const shortcutLabel = isMac ? 'Cmd K' : 'Ctrl K';
+
   return (
     <nav className={navbarClass} role="navigation" aria-label="Main navigation">
       <Container>
@@ -63,15 +67,34 @@ function Navbar({ theme = 'light', onToggleTheme, onOpenCommandPalette }) {
               variant="ghost"
               size="sm"
               onClick={onOpenCommandPalette}
-              ariaLabel="Open command palette (⌘K)"
+              ariaLabel={`Open command palette (${shortcutLabel})`}
+              className={styles.paletteTrigger}
+              type="button"
             >
-              <kbd className={styles.kbd}>⌘K</kbd>
+              <svg
+                className={styles.searchIcon}
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span className={styles.paletteLabel}>Search</span>
+              <kbd className={styles.kbd}>{shortcutLabel}</kbd>
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={onToggleTheme}
               ariaLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              type="button"
             >
               {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
             </Button>
