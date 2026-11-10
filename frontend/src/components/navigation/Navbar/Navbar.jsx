@@ -39,11 +39,7 @@ function Navbar({ theme = 'light', onToggleTheme, onOpenCommandPalette }) {
   const isMac =
     typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
 
-  const shortcutKeys = isMac
-    ? [{ key: '⌘' }, { key: 'K' }]
-    : [{ key: 'Ctrl' }, { key: 'K' }];
-
-  const shortcutLabel = shortcutKeys.map((k) => k.key).join(' ');
+  const shortcutLabel = isMac ? 'Cmd K' : 'Ctrl K';
 
   return (
     <nav className={navbarClass} role="navigation" aria-label="Main navigation">
@@ -92,13 +88,6 @@ function Navbar({ theme = 'light', onToggleTheme, onOpenCommandPalette }) {
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <span className={styles.paletteLabel}>Search</span>
-              <span className={styles.paletteShortcut} aria-hidden="true">
-                {shortcutKeys.map((key) => (
-                  <kbd key={key.key} className={styles.paletteKey}>
-                    {key.key}
-                  </kbd>
-                ))}
-              </span>
             </Button>
             <Button
               variant="ghost"

@@ -110,8 +110,8 @@
 .paletteTrigger {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  min-height: 34px;
+  gap: var(--spacing-xs);
+  min-height: 32px;
   padding: var(--spacing-xs) var(--spacing-md);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
@@ -121,21 +121,14 @@
     color var(--transition-fast),
     border-color var(--transition-fast),
     background-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+    box-shadow var(--transition-fast);
 }
 
 .paletteTrigger:hover:not(:disabled) {
   color: var(--color-text);
   border-color: var(--color-border);
   background-color: var(--color-surface-hover);
-  transform: none;
   box-shadow: var(--shadow-sm);
-}
-
-.paletteTrigger:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow: var(--shadow-xs);
 }
 
 .paletteTrigger:focus-visible {
@@ -166,50 +159,6 @@
 .paletteTrigger:hover .paletteLabel,
 .paletteTrigger:focus-visible .paletteLabel {
   color: var(--color-text);
-}
-
-.paletteShortcut {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-  padding-left: var(--spacing-xs);
-  border-left: 1px solid var(--color-border);
-  transition: border-color var(--transition-fast);
-}
-
-.paletteTrigger:hover .paletteShortcut {
-  border-left-color: var(--color-border);
-}
-
-.paletteKey {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  min-height: 18px;
-  padding: 0 4px;
-  font-family: var(--font-family-mono);
-  font-size: 10px;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1;
-  color: var(--color-text-secondary);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.06);
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
-}
-
-[data-theme='dark'] .paletteKey {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* ---- Hamburger ---- */
