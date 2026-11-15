@@ -11,3 +11,4 @@ export { useBlogPosts } from './useBlogPosts';
 export { useBlogPost } from './useBlogPost';
 export { useBlogCategories, useBlogTags } from './useBlogMeta';
 export { useAnalytics } from './useAnalytics';
+export { useCommandPaletteShortcut } from './useCommandPaletteShortcut';

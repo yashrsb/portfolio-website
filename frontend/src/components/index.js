@@ -4,3 +4,4 @@ export * from './footer';
 export * from './project';
 export * from './skills';
 export * from './timeline';
+export * from './commandPalette';

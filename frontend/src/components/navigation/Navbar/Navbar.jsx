@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import Container from '../../common/Container/Container';
-import ThemeSelector from '../../theme/ThemeSelector/ThemeSelector';
+import Button from '../../common/Button/Button';
 import navigation from '../../../data/navigation';
 
 /**
- * Responsive navigation bar with hamburger menu and theme selector.
+ * Responsive navigation bar with hamburger menu, theme toggle, and command palette trigger.
  * Sticky positioned at the top of the viewport.
  * Uses React Router NavLink for active page highlighting.
  *
  * @param {Object} props
- * @param {import('../../context/ThemeContext').ThemePreference} [props.preference='system'] - Current theme preference.
- * @param {(pref: import('../../context/ThemeContext').ThemePreference) => void} [props.onPreferenceChange] - Theme preference change callback.
- * @deprecated Use `preference` and `onPreferenceChange` instead of `theme` and `onToggleTheme`.
+ * @param {'light' | 'dark'} [props.theme='light'] - Current theme (for toggle icon)
+ * @param {() => void} [props.onToggleTheme] - Theme toggle callback
+ * @param {() => void} [props.onOpenCommandPalette] - Command palette open callback
  */
-function Navbar({ preference = 'system', onPreferenceChange }) {
+function Navbar({ theme = 'light', onToggleTheme, onOpenCommandPalette }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -35,6 +35,11 @@ function Navbar({ preference = 'system', onPreferenceChange }) {
   const navbarClass = [styles.navbar, scrolled ? styles.navbarScrolled : '']
     .filter(Boolean)
     .join(' ');
+
+  const isMac =
+    typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
+
+  const shortcutLabel = isMac ? 'Cmd K' : 'Ctrl K';
 
   return (
     <nav className={navbarClass} role="navigation" aria-label="Main navigation">
@@ -59,10 +64,40 @@ function Navbar({ preference = 'system', onPreferenceChange }) {
             ))}
           </ul>
           <div className={styles.actions}>
-            <ThemeSelector
-              preference={preference}
-              onPreferenceChange={onPreferenceChange}
-            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenCommandPalette}
+              ariaLabel={`Open command palette (${shortcutLabel})`}
+              className={styles.paletteTrigger}
+              type="button"
+            >
+              <svg
+                className={styles.searchIcon}
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span className={styles.paletteLabel}>Search</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleTheme}
+              ariaLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              type="button"
+            >
+              {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
+            </Button>
             <button
               type="button"
               className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ''}`}

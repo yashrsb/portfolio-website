@@ -1,4 +1,4 @@
-/* ============================================ */
+﻿/* ============================================ */
 /* Navbar — Design System Component             */
 /* ============================================ */
 
@@ -29,7 +29,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  gap: var(--spacing-md);
+  min-height: 64px;
 }
 
 /* ---- Logo ---- */
@@ -40,6 +41,7 @@
   color: var(--color-text);
   text-decoration: none;
   transition: color var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -55,6 +57,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  min-width: 0;
 }
 
 .link {
@@ -101,6 +104,61 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.paletteTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 32px;
+  padding: var(--spacing-xs) var(--spacing-md);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background-secondary);
+  border-radius: var(--radius-md);
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.paletteTrigger:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background-color: var(--color-surface-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.paletteTrigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.searchIcon {
+  display: block;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.paletteTrigger:hover .searchIcon,
+.paletteTrigger:focus-visible .searchIcon {
+  color: var(--color-primary);
+}
+
+.paletteLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.paletteTrigger:hover .paletteLabel,
+.paletteTrigger:focus-visible .paletteLabel {
+  color: var(--color-text);
 }
 
 /* ---- Hamburger ---- */
@@ -122,6 +180,11 @@
 
 .hamburger:hover {
   background-color: var(--color-background-tertiary);
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .bar {
@@ -207,6 +270,21 @@
 }
 
 /* ---- Responsive ---- */
+
+@media (max-width: 960px) {
+  .paletteLabel {
+    display: none;
+  }
+
+  .paletteKey {
+    display: none;
+  }
+
+  .paletteTrigger {
+    padding-inline: var(--spacing-xs);
+    gap: var(--spacing-xs);
+  }
+}
 
 @media (max-width: 768px) {
   .desktopLinks {
