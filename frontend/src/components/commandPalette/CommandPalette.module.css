@@ -304,6 +304,13 @@
   background-color: var(--color-background-secondary);
 }
 
+.checkmark {
+  display: block;
+  flex-shrink: 0;
+  margin-right: 3px;
+  vertical-align: middle;
+}
+
 .emptyState {
   display: flex;
   flex-direction: column;

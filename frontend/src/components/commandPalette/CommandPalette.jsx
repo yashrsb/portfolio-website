@@ -197,7 +197,7 @@ function getCommandIcon(command) {
 
 function CommandPalette({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const { theme, preference, setTheme } = useTheme();
+  const { theme, preference, setPreference } = useTheme();
   const { profile, loading: profileLoading } = useProfile();
   const { socialLinks, loading: socialLoading } = useSocial();
   const [searchQuery, setSearchQuery] = useState('');
@@ -217,11 +217,11 @@ function CommandPalette({ isOpen, onClose }) {
       navigate,
       theme,
       preference,
-      setTheme,
+      setPreference,
       profile,
       socialLinks,
     });
-  }, [navigate, theme, preference, setTheme, profile, socialLinks, profileLoading, socialLoading]);
+  }, [navigate, theme, preference, setPreference, profile, socialLinks, profileLoading, socialLoading]);
 
   const filteredCommands = useMemo(() => {
     if (!searchQuery.trim()) return allCommands;
@@ -473,7 +473,23 @@ function CommandPalette({ isOpen, onClose }) {
                           ) : null}
                         </div>
                         {command.isActive ? (
-                          <span className={styles.itemActiveBadge}>Current</span>
+                          <span className={styles.itemActiveBadge} aria-label="Currently selected">
+                            <svg
+                              className={styles.checkmark}
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Current
+                          </span>
                         ) : null}
                       </div>
                     );

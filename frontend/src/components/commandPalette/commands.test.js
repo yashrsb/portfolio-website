@@ -17,11 +17,18 @@ describe('commandPalette commands', () => {
   });
 
   it('marks active theme by preference', () => {
-    const setTheme = vi.fn();
-    const cmds = createThemeCommands('light', setTheme, 'system');
+    const setPreference = vi.fn();
+    const cmds = createThemeCommands('light', setPreference, 'system');
     expect(cmds.find((c) => c.id === 'theme-system')?.isActive).toBe(true);
     cmds.find((c) => c.id === 'theme-dark')?.action();
-    expect(setTheme).toHaveBeenCalledWith('dark');
+    expect(setPreference).toHaveBeenCalledWith('dark');
+  });
+
+  it('marks active theme by preference when light is selected', () => {
+    const cmds = createThemeCommands('light', vi.fn(), 'light');
+    expect(cmds.find((c) => c.id === 'theme-light')?.isActive).toBe(true);
+    expect(cmds.find((c) => c.id === 'theme-dark')?.isActive).toBe(false);
+    expect(cmds.find((c) => c.id === 'theme-system')?.isActive).toBe(false);
   });
 
   it('returns resume command only for safe URLs', () => {

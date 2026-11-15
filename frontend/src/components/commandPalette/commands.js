@@ -46,11 +46,11 @@ export function createNavigationCommands(navigate) {
 /**
  * Creates theme commands using the theme context.
  * @param {string} _currentTheme - Resolved theme ('light' | 'dark'), unused for active state
- * @param {Function} setTheme - Theme setter function (accepts preference)
+ * @param {Function} setPreference - Theme preference setter (accepts 'light' | 'dark' | 'system')
  * @param {string} preference - Current preference ('light' | 'dark' | 'system')
  * @returns {Array} Theme commands
  */
-export function createThemeCommands(_currentTheme, setTheme, preference) {
+export function createThemeCommands(_currentTheme, setPreference, preference) {
   const themes = [
     { id: 'light', label: 'Light', description: 'Switch to light theme', keywords: ['light', 'day', 'bright'] },
     { id: 'dark', label: 'Dark', description: 'Switch to dark theme', keywords: ['dark', 'night', 'dim'] },
@@ -63,7 +63,7 @@ export function createThemeCommands(_currentTheme, setTheme, preference) {
     description: theme.description,
     category: 'Appearance',
     keywords: theme.keywords,
-    action: () => setTheme(theme.id),
+    action: () => setPreference(theme.id),
     icon: theme.id,
     isActive: preference === theme.id,
   }));
@@ -145,13 +145,13 @@ export function createSocialCommands(socialLinks) {
 
 /**
  * Gets all commands for the palette.
- * @param {Object} deps - Dependencies (navigate, theme, setTheme, preference, profile, socialLinks)
+ * @param {Object} deps - Dependencies (navigate, theme, setPreference, preference, profile, socialLinks)
  * @returns {Array} All commands combined
  */
-export function getAllCommands({ navigate, theme, setTheme, preference, profile, socialLinks }) {
+export function getAllCommands({ navigate, theme, setPreference, preference, profile, socialLinks }) {
   return [
     ...createNavigationCommands(navigate),
-    ...createThemeCommands(theme, setTheme, preference || theme),
+    ...createThemeCommands(theme, setPreference, preference || theme),
     ...createResumeCommand(profile),
     ...createSocialCommands(socialLinks),
   ];
