@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useBlogPosts, useBlogCategories, useBlogTags } from '../../../hooks';
 import BlogPostCard from '../BlogPostCard/BlogPostCard';
 import ErrorState from '../../common/ErrorState/ErrorState';
@@ -42,6 +43,7 @@ function BlogList({
   showCategoryFilter = true,
   showTagCloud = true,
 }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState(
     initialQuery.category || null,
@@ -94,7 +96,6 @@ function BlogList({
 
   const hasActiveFilters = debouncedSearch || activeCategory || activeTag;
 
-  // Separate featured post from the rest for prominent display
   const featuredPost = posts.find((p) => p.featured);
   const otherPosts = featuredPost
     ? posts.filter((p) => p.id !== featuredPost.id)
@@ -123,10 +124,10 @@ function BlogList({
   if (error) {
     return (
       <ErrorState
-        title="Unable to load articles"
+        title={t('blog.list.unableToLoad')}
         message={error}
         onRetry={() => window.location.reload()}
-        retryLabel="Retry"
+        retryLabel={t('common.retry')}
       />
     );
   }
@@ -135,15 +136,15 @@ function BlogList({
     <div>
       {showSearch && (
         <div className={styles.exploreSection}>
-          <h2 className={styles.exploreLabel}>Explore articles</h2>
+          <h2 className={styles.exploreLabel}>{t('blog.list.explore')}</h2>
           <div className={styles.searchContainer}>
             <input
               type="search"
-              placeholder="Search articles by title, topic, or keyword..."
+              placeholder={t('blog.list.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={styles.searchInput}
-              aria-label="Search blog posts"
+              aria-label={t('blog.list.searchLabel')}
             />
           </div>
         </div>
@@ -151,7 +152,7 @@ function BlogList({
 
       {showCategoryFilter && categories.length > 0 && (
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Categories</span>
+          <span className={styles.filterLabel}>{t('blog.list.categories')}</span>
           <div className={styles.filterButtons}>
             <button
               type="button"
@@ -162,7 +163,7 @@ function BlogList({
               }
               onClick={() => handleFilterCategory(null)}
             >
-              All
+              {t('common.all')}
             </button>
             {categories.map((cat) => (
               <button
@@ -188,7 +189,7 @@ function BlogList({
           className={styles.clearFilter}
           onClick={clearFilters}
         >
-          Clear all filters
+          {t('common.clearAllFilters')}
         </button>
       )}
 
@@ -196,20 +197,19 @@ function BlogList({
         <div className={styles.emptyState}>
           {hasActiveFilters ? (
             <>
-              <p className={styles.emptyTitle}>No articles found.</p>
+              <p className={styles.emptyTitle}>{t('blog.list.noArticlesFound')}</p>
               <p className={styles.emptySubtitle}>
-                Try a different search term or clear your filters.
+                {t('blog.list.tryDifferent')}
               </p>
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
+                {t('common.clearFilters')}
               </Button>
             </>
           ) : (
             <>
-              <p className={styles.emptyTitle}>No articles published yet.</p>
+              <p className={styles.emptyTitle}>{t('blog.list.noArticlesYet')}</p>
               <p className={styles.emptySubtitle}>
-                Check back soon for new technical articles on software
-                engineering, system design, databases, and infrastructure.
+                {t('blog.list.checkBackSoon')}
               </p>
             </>
           )}
@@ -218,7 +218,7 @@ function BlogList({
         <>
           {featuredPost && (
             <div className={styles.featuredSection}>
-              <h2 className={styles.featuredTitle}>Featured Article</h2>
+              <h2 className={styles.featuredTitle}>{t('blog.list.featuredArticle')}</h2>
               <Reveal>
                 <BlogPostCard post={featuredPost} />
               </Reveal>
@@ -240,13 +240,16 @@ function BlogList({
                 className={styles.pageButton}
                 disabled={!pagination.hasPrevious}
                 onClick={() => handlePage(pagination.page - 1)}
-                aria-label="Previous page"
+                aria-label={t('blog.list.previousPage')}
               >
-                &larr; Previous
+                &larr; {t('common.previous')}
               </button>
 
               <span className={styles.pageInfo}>
-                Page {pagination.page} of {pagination.totalPages}
+                {t('common.pageOf', {
+                  page: pagination.page,
+                  totalPages: pagination.totalPages,
+                })}
               </span>
 
               <button
@@ -254,9 +257,9 @@ function BlogList({
                 className={styles.pageButton}
                 disabled={!pagination.hasNext}
                 onClick={() => handlePage(pagination.page + 1)}
-                aria-label="Next page"
+                aria-label={t('blog.list.nextPage')}
               >
-                Next &rarr;
+                {t('common.next')} &rarr;
               </button>
             </div>
           )}
@@ -265,7 +268,7 @@ function BlogList({
 
       {showTagCloud && tags && tags.length > 0 && (
         <div className={styles.tagCloud}>
-          <h3 className={styles.tagCloudTitle}>Browse by tag</h3>
+          <h3 className={styles.tagCloudTitle}>{t('blog.list.browseByTag')}</h3>
           <div className={styles.tagCloudList}>
             {tags.map((tag) => {
               const isActive = activeTag === tag.slug;

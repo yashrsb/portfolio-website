@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Section from '../../components/common/Section/Section';
@@ -11,6 +12,7 @@ import styles from './CategoryPosts.module.css';
 
 function CategoryPosts() {
   const { slug } = useParams();
+  const { t, i18n } = useTranslation();
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +33,7 @@ function CategoryPosts() {
           if (found) {
             setCategory(found);
           } else {
-            setError('Category not found');
+            setError(t('blog.category.notFound'));
           }
           setLoading(false);
         }
@@ -41,7 +43,7 @@ function CategoryPosts() {
           if (err.name === 'AbortError' || err.name === 'CanceledError') {
             return;
           }
-          setError(err.message || 'Failed to load category');
+          setError(err.message || t('blog.category.failed'));
           setLoading(false);
         }
       });
@@ -50,22 +52,23 @@ function CategoryPosts() {
       cancelled = true;
       controller.abort();
     };
-  }, [slug]);
+  }, [slug, t]);
 
   useEffect(() => {
     if (category) {
       setPageSEO({
         title: `${category.name} Articles`,
         description:
-          category.description || `Articles in the ${category.name} category.`,
+          category.description ||
+          t('blog.category.articlesIn', { name: category.name }),
         path: `/blog/category/${category.slug}`,
         noindex: false,
       });
     }
-  }, [category]);
+  }, [category, t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading category..." />;
+    return <LoadingState label={t('blog.loadingCategory')} />;
   }
 
   if (error) {
@@ -76,7 +79,7 @@ function CategoryPosts() {
         </Heading>
         <Link to="/blog">
           <button type="button" className={styles.backButton}>
-            Back to Blog
+            {t('common.backToBlog')}
           </button>
         </Link>
       </Container>
@@ -92,7 +95,7 @@ function CategoryPosts() {
       >
         <Container>
           <Link to="/blog" className={styles.backLink}>
-            &larr; Back to Blog
+            {t('blog.backToBlog')}
           </Link>
         </Container>
       </Section>

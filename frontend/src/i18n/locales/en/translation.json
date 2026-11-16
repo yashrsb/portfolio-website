@@ -1,0 +1,296 @@
+﻿{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "experience": "Experience",
+    "skills": "Skills",
+    "projects": "Projects",
+    "blog": "Blog",
+    "education": "Education",
+    "contact": "Contact",
+    "mainNavigation": "Main navigation",
+    "goToHome": "Go to home",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "language": "Language",
+    "english": "English",
+    "hindi": "Hindi",
+    "selectLanguage": "Select language"
+  },
+  "footer": {
+    "copyright": "© {{year}} Portfolio. All rights reserved.",
+    "backToTop": "↑ Back to Top",
+    "backToTopLabel": "Back to top"
+  },
+  "common": {
+    "loading": "Loading...",
+    "somethingWentWrong": "Something went wrong",
+    "retry": "Retry",
+    "featured": "Featured",
+    "live": "Live",
+    "wip": "WIP",
+    "archived": "Archived",
+    "inProgress": "In Progress",
+    "github": "GitHub",
+    "liveDemo": "Live Demo",
+    "viewCaseStudy": "View Case Study",
+    "viewGithub": "View on GitHub",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "backToBlog": "Back to Blog",
+    "backToHome": "Back to Home",
+    "goHome": "Go Home",
+    "clearFilters": "Clear filters",
+    "clearAllFilters": "Clear all filters",
+    "all": "All"
+  },
+  "home": {
+    "loadingProfile": "Loading profile...",
+    "failedToLoadProfile": "Failed to load profile",
+    "greeting": "Hi, I'm",
+    "downloadResume": "Download Resume",
+    "viewProjects": "View Projects",
+    "downloadResumeLabel": "Download resume",
+    "profilePhotoPlaceholder": "Profile photo placeholder",
+    "portraitAlt": "{{name}} portrait",
+    "scrollDown": "Scroll down to quick statistics",
+    "scroll": "Scroll",
+    "stats": {
+      "yearsExperience": "Years Experience",
+      "projects": "Projects",
+      "technologies": "Technologies",
+      "openSourceContributions": "Open Source Contributions"
+    }
+  },
+  "about": {
+    "title": "About",
+    "loadingProfile": "Loading profile...",
+    "failedToLoadProfile": "Failed to load profile",
+    "coreStrengths": "Core Strengths",
+    "coreStrengthsSubtitle": "What I build and where I focus.",
+    "engineeringPrinciples": "How I Think About Engineering",
+    "engineeringPrinciplesSubtitle": "The principles I try to apply to the work.",
+    "beyondCode": "Beyond the Code",
+    "beyondCodeSubtitle": "What keeps me curious outside day-to-day work.",
+    "interestsIntro": "I'm naturally curious about how things work and tend to keep learning even outside the immediate requirements of a project.",
+    "whereHeading": "Where I'm Heading",
+    "whereHeadingSubtitle": "The direction I'm growing toward.",
+    "closing": "I'm still learning, still experimenting, and still looking for better ways to build software.",
+    "principles": {
+      "performance": {
+        "title": "Performance",
+        "text": "Don't accept slow systems as inevitable. Find where the bottleneck actually is before optimizing."
+      },
+      "reliability": {
+        "title": "Reliability",
+        "text": "Design for failure, observability, and recoverability — behavior should be predictable in production."
+      },
+      "maintainability": {
+        "title": "Maintainability",
+        "text": "Code should still be understandable months after it was written, by me or by someone else."
+      },
+      "simplicity": {
+        "title": "Simplicity",
+        "text": "Prefer the simplest architecture that genuinely meets the requirements — and no more."
+      },
+      "observability": {
+        "title": "Observability",
+        "text": "A production system should tell you what is happening when something goes wrong."
+      },
+      "tradeoffs": {
+        "title": "Trade-offs",
+        "text": "Every engineering decision has trade-offs. Choose deliberately based on the problem, constraints, and long-term impact."
+      }
+    },
+    "strengthDescriptions": {
+      "scalableBackend": "Building maintainable backend services and APIs designed for scale.",
+      "distributedSystems": "Working with service-to-service communication, asynchronous workflows, and distributed architectures.",
+      "microservices": "Decomposing domains into independently deployable services with clear boundaries.",
+      "apiDesign": "Designing interfaces that are reliable, versionable, and developer-friendly.",
+      "databaseOptimization": "Optimizing queries, indexes, data access patterns, and database-heavy workloads.",
+      "systemDesign": "Thinking about scalability, failure modes, service boundaries, and long-term maintainability."
+    }
+  },
+  "experience": {
+    "title": "Work Experience",
+    "loading": "Loading experience...",
+    "failed": "Failed to load experience",
+    "keyResponsibilities": "Key Responsibilities",
+    "achievements": "Achievements",
+    "seoDescription": "Work experience and engineering roles in software development."
+  },
+  "skills": {
+    "title": "Skills",
+    "loading": "Loading skills...",
+    "failed": "Failed to load skills",
+    "seoDescription": "Technical skills and tools I work with, categorized by proficiency.",
+    "categories": {
+      "languages": "Languages",
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "databases": "Databases",
+      "cloud": "Cloud",
+      "tools": "Tools"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "A selection of applications and tools I have designed and built.",
+    "loading": "Loading projects...",
+    "failed": "Failed to load projects",
+    "seoDescription": "A selection of applications and tools I have designed and built.",
+    "status": {
+      "live": "Live",
+      "wip": "In Progress",
+      "archived": "Archived"
+    }
+  },
+  "projectDetail": {
+    "loading": "Loading project details...",
+    "failed": "Failed to load project",
+    "notFoundTitle": "Project Not Found",
+    "notFoundText": "The project you are looking for does not exist or has been removed.",
+    "backToProjects": "Back to Projects",
+    "viewGithubRepo": "View GitHub Repository",
+    "technologies": "Technologies",
+    "overview": "Overview",
+    "keyFeatures": "Key Features",
+    "architecture": "Architecture",
+    "screenshots": "Screenshots",
+    "techStack": "Tech Stack",
+    "challenges": "Challenges",
+    "lessonsLearned": "Lessons Learned",
+    "viewScreenshot": "View {{alt}} enlarged",
+    "closePreview": "Close preview",
+    "previousScreenshot": "Previous screenshot",
+    "nextScreenshot": "Next screenshot",
+    "screenshotPreview": "Screenshot preview"
+  },
+  "education": {
+    "title": "Education",
+    "loading": "Loading education...",
+    "failed": "Failed to load education",
+    "seoDescription": "Academic background, certifications, and achievements.",
+    "degrees": "Degrees",
+    "certificates": "Certificates",
+    "achievements": "Achievements",
+    "gpa": "GPA {{gpa}}"
+  },
+  "contact": {
+    "title": "Contact",
+    "loading": "Loading contact details...",
+    "failed": "Failed to load contact details",
+    "seoDescription": "Get in touch via email, LinkedIn, or GitHub.",
+    "getInTouch": "Get in Touch",
+    "labels": {
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "location": "Location",
+      "name": "Name",
+      "emailField": "Email",
+      "subject": "Subject",
+      "message": "Message"
+    },
+    "values": {
+      "linkedinProfile": "LinkedIn Profile",
+      "githubProfile": "GitHub Profile"
+    },
+    "placeholders": {},
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMin": "Name must be at least 2 characters",
+      "nameMax": "Name must be at most {{max}} characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "A valid email address is required",
+      "subjectRequired": "Subject is required",
+      "subjectMin": "Subject must be at least 5 characters",
+      "subjectMax": "Subject must be at most {{max}} characters",
+      "messageRequired": "Message is required",
+      "messageMin": "Message must be at least 10 characters",
+      "messageMax": "Message must be at most {{max}} characters",
+      "fixErrors": "Please fix the errors below and try again."
+    },
+    "messages": {
+      "successTitle": "Message Sent",
+      "successText": "Thank you for reaching out. I'll get back to you as soon as possible.",
+      "sendAnother": "Send another message",
+      "networkError": "Unable to reach the server. Please check your connection and try again.",
+      "spamRejected": "Your submission was flagged as spam. Please try again.",
+      "serverError": "Something went wrong. Your message could not be sent. Please try again later."
+    },
+    "submit": {
+      "send": "Send Message",
+      "sending": "Sending..."
+    }
+  },
+  "blog": {
+    "title": "Blog",
+    "seoDescription": "Practical articles on backend engineering, system design, databases, cloud infrastructure, JavaScript, and other areas of computer science.",
+    "loadingCategory": "Loading category...",
+    "loadingTag": "Loading tag...",
+    "backToBlog": "← Back to Blog",
+    "hero": {
+      "eyebrow": "Engineering Notes",
+      "headline1": "Building systems.",
+      "headline2": "Exploring ideas.",
+      "headline3": "Sharing what I learn.",
+      "description": "Practical articles on backend engineering, system design, databases, cloud infrastructure, JavaScript, and other areas of computer science."
+    },
+    "list": {
+      "explore": "Explore articles",
+      "searchPlaceholder": "Search articles by title, topic, or keyword...",
+      "searchLabel": "Search blog posts",
+      "categories": "Categories",
+      "featuredArticle": "Featured Article",
+      "unableToLoad": "Unable to load articles",
+      "noArticlesFound": "No articles found.",
+      "tryDifferent": "Try a different search term or clear your filters.",
+      "noArticlesYet": "No articles published yet.",
+      "checkBackSoon": "Check back soon for new technical articles on software engineering, system design, databases, and infrastructure.",
+      "browseByTag": "Browse by tag",
+      "previousPage": "Previous page",
+      "nextPage": "Next page"
+    },
+    "card": {
+      "featured": "Featured",
+      "readTime": "{{minutes}} min read"
+    },
+    "post": {
+      "loading": "Loading article...",
+      "notFoundTitle": "Article Not Found",
+      "notFoundText": "The article you are looking for does not exist or has been removed.",
+      "readTime": "{{minutes}} min read",
+      "updated": "Updated {{date}}",
+      "by": "By",
+      "share": "Share this article:",
+      "shareTwitter": "Share on X / Twitter",
+      "shareLinkedin": "Share on LinkedIn",
+      "copyLink": "Copy link",
+      "copied": "Copied!",
+      "contents": "Contents",
+      "goHome": "Go Home"
+    },
+    "category": {
+      "notFound": "Category not found",
+      "failed": "Failed to load category",
+      "articlesIn": "Articles in the {{name}} category."
+    },
+    "tag": {
+      "notFound": "Tag not found",
+      "failed": "Failed to load tag",
+      "articlesTagged": "Articles tagged with {{name}}."
+    }
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "text": "The page you are looking for does not exist or has been moved.",
+    "seoDescription": "The page you are looking for does not exist or has been moved."
+  },
+  "errors": {
+    "failedToLoad": "Failed to load"
+  }
+}

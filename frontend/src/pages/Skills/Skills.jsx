@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
@@ -10,54 +11,50 @@ import { useSkills } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import styles from './Skills.module.css';
 
-const categories = [
-  { key: 'languages', label: 'Languages' },
-  { key: 'frontend', label: 'Frontend' },
-  { key: 'backend', label: 'Backend' },
-  { key: 'databases', label: 'Databases' },
-  { key: 'cloud', label: 'Cloud' },
-  { key: 'tools', label: 'Tools' },
+const CATEGORIES = [
+  { key: 'languages', labelKey: 'skills.categories.languages' },
+  { key: 'frontend', labelKey: 'skills.categories.frontend' },
+  { key: 'backend', labelKey: 'skills.categories.backend' },
+  { key: 'databases', labelKey: 'skills.categories.databases' },
+  { key: 'cloud', labelKey: 'skills.categories.cloud' },
+  { key: 'tools', labelKey: 'skills.categories.tools' },
 ];
 
-/**
- * Skills page — grouped by category with proficiency badges.
- * Each category card fades in when it enters the viewport.
- */
 function Skills() {
+  const { t, i18n } = useTranslation();
   const { skills, loading, error } = useSkills();
 
   useEffect(() => {
     setPageSEO({
-      title: 'Skills',
-      description:
-        'Technical skills and tools I work with, categorized by proficiency.',
+      title: t('skills.title'),
+      description: t('skills.seoDescription'),
       path: '/skills',
     });
-  }, []);
+  }, [t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading skills..." />;
+    return <LoadingState label={t('skills.loading')} />;
   }
 
   if (error) {
-    return <ErrorState title="Failed to load skills" message={error} />;
+    return <ErrorState title={t('skills.failed')} message={error} />;
   }
 
   return (
     <Container size="md">
       <Heading level={1} alignment="center">
-        Skills
+        {t('skills.title')}
       </Heading>
 
       <div className={styles.grid}>
-        {categories.map(({ key, label }, index) => {
+        {CATEGORIES.map(({ key, labelKey }, index) => {
           const items = skills[key] || [];
           if (!items.length) return null;
 
           return (
             <Reveal key={key} delay={(index % 3) * 100}>
               <Card className={styles.category}>
-                <h3 className={styles.categoryTitle}>{label}</h3>
+                <h3 className={styles.categoryTitle}>{t(labelKey)}</h3>
                 <div className={styles.badges}>
                   {items.map((skill) => (
                     <SkillBadge

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Button from '../../components/common/Button/Button';
@@ -8,20 +9,17 @@ import { setPageSEO } from '../../utils/seo';
 import { buildUrl } from '../../config/seo';
 import styles from './NotFound.module.css';
 
-/**
- * NotFound page — 404 fallback for unknown routes.
- * Content fades in with a gentle entrance animation.
- */
 function NotFound() {
+  const { t, i18n } = useTranslation();
+
   useEffect(() => {
     setPageSEO({
-      title: 'Page Not Found',
-      description:
-        'The page you are looking for does not exist or has been moved.',
+      title: t('notFound.title'),
+      description: t('notFound.seoDescription'),
       path: buildUrl(window.location.pathname),
       noindex: true,
     });
-  }, []);
+  }, [t, i18n.language]);
 
   return (
     <Container size="sm">
@@ -29,14 +27,12 @@ function NotFound() {
         <div className={styles.wrapper}>
           <p className={styles.code}>404</p>
           <Heading level={1} alignment="center">
-            Page Not Found
+            {t('notFound.title')}
           </Heading>
-          <p className={styles.text}>
-            The page you are looking for does not exist or has been moved.
-          </p>
+          <p className={styles.text}>{t('notFound.text')}</p>
           <Link to="/">
             <Button variant="primary" size="lg">
-              Back to Home
+              {t('common.backToHome')}
             </Button>
           </Link>
         </div>

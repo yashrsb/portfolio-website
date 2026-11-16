@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
@@ -12,28 +13,24 @@ import { useExperience } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import styles from './Experience.module.css';
 
-/**
- * Experience page — timeline and detailed role cards.
- * Cards fade in when they enter the viewport.
- */
 function Experience() {
+  const { t, i18n } = useTranslation();
   const { experience, loading, error } = useExperience();
 
   useEffect(() => {
     setPageSEO({
-      title: 'Experience',
-      description:
-        'Work experience and engineering roles in software development.',
+      title: t('experience.title'),
+      description: t('experience.seoDescription'),
       path: '/experience',
     });
-  }, []);
+  }, [t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading experience..." />;
+    return <LoadingState label={t('experience.loading')} />;
   }
 
   if (error) {
-    return <ErrorState title="Failed to load experience" message={error} />;
+    return <ErrorState title={t('experience.failed')} message={error} />;
   }
 
   const timelineEvents = experience.map((item) => ({
@@ -47,7 +44,7 @@ function Experience() {
   return (
     <Container size="md">
       <Heading level={1} alignment="center">
-        Work Experience
+        {t('experience.title')}
       </Heading>
 
       <Reveal>
@@ -81,14 +78,14 @@ function Experience() {
                 ))}
               </div>
 
-              <h4 className={styles.subheading}>Key Responsibilities</h4>
+              <h4 className={styles.subheading}>{t('experience.keyResponsibilities')}</h4>
               <ul className={styles.list}>
                 {item.responsibilities.map((resp) => (
                   <li key={resp}>{resp}</li>
                 ))}
               </ul>
 
-              <h4 className={styles.subheading}>Achievements</h4>
+              <h4 className={styles.subheading}>{t('experience.achievements')}</h4>
               <ul className={styles.list}>
                 {item.achievements.map((ach) => (
                   <li key={ach}>{ach}</li>

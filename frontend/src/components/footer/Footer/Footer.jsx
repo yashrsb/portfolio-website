@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useIntersectionObserver, useSocial } from '../../../hooks';
 import styles from './Footer.module.css';
 import Container from '../../common/Container/Container';
@@ -29,6 +30,7 @@ const getLabel = (platform) =>
  * Social links are loaded from the API.
  */
 function Footer() {
+  const { t } = useTranslation();
   const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
   const { socialLinks } = useSocial();
 
@@ -71,7 +73,7 @@ function Footer() {
 
           {/* Copyright */}
           <p className={styles.copyright}>
-            &copy; {currentYear} Portfolio. All rights reserved.
+            {t('footer.copyright', { year: currentYear })}
           </p>
 
           {/* Back to top */}
@@ -79,9 +81,9 @@ function Footer() {
             variant="ghost"
             size="sm"
             onClick={scrollToTop}
-            ariaLabel="Back to top"
+            ariaLabel={t('footer.backToTopLabel')}
           >
-            ↑ Back to Top
+            {t('footer.backToTop')}
           </Button>
         </div>
       </Container>

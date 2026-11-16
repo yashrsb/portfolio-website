@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Button from '../../components/common/Button/Button';
 import LoadingState from '../../components/common/LoadingState/LoadingState';
@@ -18,14 +19,6 @@ const TYPE_SPEED = 45; // ms per character
 const TYPE_START_DELAY = 300; // ms before typing begins
 const COUNT_DURATION = 1200; // ms for count-up animation
 
-/**
- * Renders a stat value with count-up animation.
- * Non-numeric values (e.g., "8+") are rendered as-is.
- *
- * @param {Object} props
- * @param {string | number} props.value - Stat value
- * @param {boolean} props.start - Whether to start the animation
- */
 function StatValue({ value, start }) {
   const [display, setDisplay] = useState('0');
   const animatedRef = useRef(false);
@@ -40,7 +33,7 @@ function StatValue({ value, start }) {
       return;
     }
 
-    const suffix = String(value).replace(numeric, '');
+    const suffix = String(value).replace(String(numeric), '');
     let cancelled = false;
 
     const cancel = animateValue({
@@ -63,11 +56,8 @@ function StatValue({ value, start }) {
   return <span>{display}</span>;
 }
 
-/**
- * Home page — hero section with headline, CTA buttons,
- * profile image placeholder, and quick statistics.
- */
 function Home() {
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = usePrefersReducedMotion();
   const { profile, loading, error } = useProfile();
   const [profileImageFailed, setProfileImageFailed] = useState(false);
@@ -95,7 +85,6 @@ function Home() {
         ogType: 'website',
       });
 
-      // Person + WebSite JSON-LD (only if profile data is available)
       const socialLinks = {};
       if (profile.contact) {
         if (profile.contact.github) socialLinks.github = profile.contact.github;
@@ -128,9 +117,8 @@ function Home() {
         },
       });
     }
-  }, [profile]);
+  }, [profile, i18n.language]);
 
-  // Typing animation — runs once, respects reduced motion
   useEffect(() => {
     if (prefersReducedMotion) {
       setTypedText(headline);
@@ -138,6 +126,8 @@ function Home() {
       return;
     }
 
+    setTypedText('');
+    setShowCursor(true);
     let charIndex = 0;
     let typeTimer;
     let cursorTimer;
@@ -148,7 +138,6 @@ function Home() {
         setTypedText(headline.slice(0, charIndex));
         if (charIndex >= headline.length) {
           clearInterval(typeTimer);
-          // Stop blinking cursor after typing completes
           cursorTimer = setTimeout(() => setShowCursor(false), 1500);
         }
       }, TYPE_SPEED);
@@ -162,11 +151,11 @@ function Home() {
   }, [headline, prefersReducedMotion]);
 
   if (loading) {
-    return <LoadingState label="Loading profile..." />;
+    return <LoadingState label={t('home.loadingProfile')} />;
   }
 
   if (error) {
-    return <ErrorState title="Failed to load profile" message={error} />;
+    return <ErrorState title={t('home.failedToLoadProfile')} message={error} />;
   }
 
   if (!profile) {
@@ -183,12 +172,12 @@ function Home() {
   };
 
   const stats = [
-    { value: profile.stats.experience, label: 'Years Experience' },
-    { value: profile.stats.projects, label: 'Projects' },
-    { value: profile.stats.technologies, label: 'Technologies' },
+    { value: profile.stats.experience, label: t('home.stats.yearsExperience') },
+    { value: profile.stats.projects, label: t('home.stats.projects') },
+    { value: profile.stats.technologies, label: t('home.stats.technologies') },
     {
       value: profile.stats.openSourceContributions,
-      label: 'Open Source Contributions',
+      label: t('home.stats.openSourceContributions'),
     },
   ];
 
@@ -202,7 +191,7 @@ function Home() {
             }`}
           >
             <div className={styles.heroContent}>
-              <p className={styles.greeting}>Hi, I&apos;m</p>
+              <p className={styles.greeting}>{t('home.greeting')}</p>
               <h1 className={styles.name}>{profile.name}</h1>
               <p className={styles.headline}>
                 {typedText}
@@ -218,13 +207,13 @@ function Home() {
                   variant="primary"
                   size="lg"
                   onClick={() => window.open(profile.resumeUrl, '_blank')}
-                  ariaLabel="Download resume"
+                  ariaLabel={t('home.downloadResumeLabel')}
                 >
-                  Download Resume
+                  {t('home.downloadResume')}
                 </Button>
                 <Link to="/projects">
                   <Button variant="outline" size="lg">
-                    View Projects
+                    {t('home.viewProjects')}
                   </Button>
                 </Link>
               </div>
@@ -233,7 +222,7 @@ function Home() {
               {profile.profileImageUrl && !profileImageFailed ? (
                 <img
                   src={profile.profileImageUrl}
-                  alt={`${profile.name} portrait`}
+                  alt={t('home.portraitAlt', { name: profile.name })}
                   className={styles.profileImage}
                   loading="eager"
                   decoding="async"
@@ -247,7 +236,7 @@ function Home() {
                 <div
                   className={styles.imagePlaceholder}
                   role="img"
-                  aria-label="Profile photo placeholder"
+                  aria-label={t('home.profilePhotoPlaceholder')}
                 >
                   <span className={styles.imageEmoji} aria-hidden="true">
                     👨‍💻
@@ -257,14 +246,13 @@ function Home() {
             </div>
           </div>
 
-          {/* Scroll indicator */}
           <button
             type="button"
             className={styles.scrollIndicator}
             onClick={scrollToNext}
-            aria-label="Scroll down to quick statistics"
+            aria-label={t('home.scrollDown')}
           >
-            <span className={styles.scrollText}>Scroll</span>
+            <span className={styles.scrollText}>{t('home.scroll')}</span>
             <span className={styles.scrollArrow} aria-hidden="true">
               ↓
             </span>

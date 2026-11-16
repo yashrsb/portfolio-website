@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
@@ -36,99 +37,8 @@ const MAX_NAME_LENGTH = 100;
 const MAX_SUBJECT_LENGTH = 150;
 const MAX_MESSAGE_LENGTH = 2000;
 
-/**
- * Validates the contact form fields client-side.
- * Mirrors the backend validator rules so users get instant feedback.
- * @param {object} formData - Form field values.
- * @returns {object} Map of field name to error message.
- */
-const validateForm = (formData) => {
-  const errors = {};
-
-  if (!formData.name.trim()) {
-    errors.name = 'Name is required';
-  } else if (formData.name.trim().length < 2) {
-    errors.name = 'Name must be at least 2 characters';
-  } else if (formData.name.length > MAX_NAME_LENGTH) {
-    errors.name = `Name must be at most ${MAX_NAME_LENGTH} characters`;
-  }
-
-  if (!formData.email.trim()) {
-    errors.email = 'Email is required';
-  } else if (!EMAIL_REGEX.test(formData.email)) {
-    errors.email = 'A valid email address is required';
-  }
-
-  if (!formData.subject.trim()) {
-    errors.subject = 'Subject is required';
-  } else if (formData.subject.trim().length < 5) {
-    errors.subject = 'Subject must be at least 5 characters';
-  } else if (formData.subject.length > MAX_SUBJECT_LENGTH) {
-    errors.subject = `Subject must be at most ${MAX_SUBJECT_LENGTH} characters`;
-  }
-
-  if (!formData.message.trim()) {
-    errors.message = 'Message is required';
-  } else if (formData.message.trim().length < 10) {
-    errors.message = 'Message must be at least 10 characters';
-  } else if (formData.message.length > MAX_MESSAGE_LENGTH) {
-    errors.message = `Message must be at most ${MAX_MESSAGE_LENGTH} characters`;
-  }
-
-  return errors;
-};
-
-/**
- * Maps an API error to a form state.
- * @param {ApiError|Error} error - The caught error.
- * @returns {string} One of the FORM_STATES values.
- */
-const mapErrorToState = (error) => {
-  if (error instanceof ApiError && error.status === 0) {
-    return FORM_STATES.NETWORK_ERROR;
-  }
-
-  if (error instanceof ApiError && error.details) {
-    const code = error.details.code;
-    if (code === 'SPAM_REJECTED') {
-      return FORM_STATES.SPAM_REJECTED;
-    }
-    if (code === 'RATE_LIMIT_EXCEEDED') {
-      return FORM_STATES.SERVER_ERROR;
-    }
-    if (code === 'VALIDATION_ERROR') {
-      return FORM_STATES.VALIDATION_ERROR;
-    }
-  }
-
-  return FORM_STATES.SERVER_ERROR;
-};
-
-/**
- * Extracts server-side field errors from an API validation error.
- * @param {ApiError|Error} error - The caught error.
- * @returns {object} Map of field name to error message.
- */
-const extractFieldErrors = (error) => {
-  if (
-    error instanceof ApiError &&
-    error.status === 400 &&
-    Array.isArray(error.details?.errors)
-  ) {
-    return error.details.errors.reduce((acc, fieldError) => {
-      acc[fieldError.field] = fieldError.message;
-      return acc;
-    }, {});
-  }
-  return {};
-};
-
-/**
- * Contact page — contact details and a contact form backed by the API.
- * Contact info comes from the profile record; social links come from
- * the social links resource.
- */
 function Contact() {
+  const { t, i18n } = useTranslation();
   const {
     profile,
     loading: profileLoading,
@@ -144,13 +54,81 @@ function Contact() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [serverError, setServerError] = useState('');
 
+  const validateForm = (formData) => {
+    const errors = {};
+    if (!formData.name.trim()) {
+      errors.name = t('contact.validation.nameRequired');
+    } else if (formData.name.trim().length < 2) {
+      errors.name = t('contact.validation.nameMin');
+    } else if (formData.name.length > MAX_NAME_LENGTH) {
+      errors.name = t('contact.validation.nameMax', { max: MAX_NAME_LENGTH });
+    }
+    if (!formData.email.trim()) {
+      errors.email = t('contact.validation.emailRequired');
+    } else if (!EMAIL_REGEX.test(formData.email)) {
+      errors.email = t('contact.validation.emailInvalid');
+    }
+    if (!formData.subject.trim()) {
+      errors.subject = t('contact.validation.subjectRequired');
+    } else if (formData.subject.trim().length < 5) {
+      errors.subject = t('contact.validation.subjectMin');
+    } else if (formData.subject.length > MAX_SUBJECT_LENGTH) {
+      errors.subject = t('contact.validation.subjectMax', {
+        max: MAX_SUBJECT_LENGTH,
+      });
+    }
+    if (!formData.message.trim()) {
+      errors.message = t('contact.validation.messageRequired');
+    } else if (formData.message.trim().length < 10) {
+      errors.message = t('contact.validation.messageMin');
+    } else if (formData.message.length > MAX_MESSAGE_LENGTH) {
+      errors.message = t('contact.validation.messageMax', {
+        max: MAX_MESSAGE_LENGTH,
+      });
+    }
+    return errors;
+  };
+
+  const mapErrorToState = (error) => {
+    if (error instanceof ApiError && error.status === 0) {
+      return FORM_STATES.NETWORK_ERROR;
+    }
+    if (error instanceof ApiError && error.details) {
+      const code = error.details.code;
+      if (code === 'SPAM_REJECTED') {
+        return FORM_STATES.SPAM_REJECTED;
+      }
+      if (code === 'RATE_LIMIT_EXCEEDED') {
+        return FORM_STATES.SERVER_ERROR;
+      }
+      if (code === 'VALIDATION_ERROR') {
+        return FORM_STATES.VALIDATION_ERROR;
+      }
+    }
+    return FORM_STATES.SERVER_ERROR;
+  };
+
+  const extractFieldErrors = (error) => {
+    if (
+      error instanceof ApiError &&
+      error.status === 400 &&
+      Array.isArray(error.details?.errors)
+    ) {
+      return error.details.errors.reduce((acc, fieldError) => {
+        acc[fieldError.field] = fieldError.message;
+        return acc;
+      }, {});
+    }
+    return {};
+  };
+
   useEffect(() => {
     setPageSEO({
-      title: 'Contact',
-      description: 'Get in touch via email, LinkedIn, or GitHub.',
+      title: t('contact.title'),
+      description: t('contact.seoDescription'),
       path: '/contact',
     });
-  }, []);
+  }, [t, i18n.language]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -173,7 +151,7 @@ function Contact() {
 
     if (Object.keys(errors).length > 0) {
       setFormState(FORM_STATES.VALIDATION_ERROR);
-      setServerError('');
+      setServerError(t('contact.validation.fixErrors'));
       return;
     }
 
@@ -192,32 +170,24 @@ function Contact() {
 
       if (state === FORM_STATES.VALIDATION_ERROR) {
         setFieldErrors(extractFieldErrors(err));
-        setServerError('Please fix the errors below and try again.');
+        setServerError(t('contact.validation.fixErrors'));
       } else if (state === FORM_STATES.NETWORK_ERROR) {
-        setServerError(
-          'Unable to reach the server. Please check your connection and try again.',
-        );
+        setServerError(t('contact.messages.networkError'));
       } else if (state === FORM_STATES.SPAM_REJECTED) {
-        setServerError(
-          'Your submission was flagged as spam. Please try again.',
-        );
+        setServerError(t('contact.messages.spamRejected'));
       } else {
-        setServerError(
-          'Something went wrong. Your message could not be sent. Please try again later.',
-        );
+        setServerError(t('contact.messages.serverError'));
       }
     }
   };
 
   if (profileLoading || socialLoading) {
-    return <LoadingState label="Loading contact details..." />;
+    return <LoadingState label={t('contact.loading')} />;
   }
 
   const error = profileError || socialError;
   if (error) {
-    return (
-      <ErrorState title="Failed to load contact details" message={error} />
-    );
+    return <ErrorState title={t('contact.failed')} message={error} />;
   }
 
   const contact = profile?.contact || {};
@@ -227,18 +197,22 @@ function Contact() {
   }
 
   const contactItems = [
-    { label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
     {
-      label: 'LinkedIn',
-      value: 'LinkedIn Profile',
+      label: t('contact.labels.email'),
+      value: contact.email,
+      href: contact.email ? `mailto:${contact.email}` : undefined,
+    },
+    {
+      label: t('contact.labels.linkedin'),
+      value: t('contact.values.linkedinProfile'),
       href: social.linkedin || contact.linkedin,
     },
     {
-      label: 'GitHub',
-      value: 'GitHub Profile',
+      label: t('contact.labels.github'),
+      value: t('contact.values.githubProfile'),
       href: social.github || contact.github,
     },
-    { label: 'Location', value: contact.location },
+    { label: t('contact.labels.location'), value: contact.location },
   ].filter((item) => item.value);
 
   const isSubmitting = formState === FORM_STATES.SUBMITTING;
@@ -253,13 +227,13 @@ function Contact() {
   return (
     <Container size="md">
       <Heading level={1} alignment="center">
-        Contact
+        {t('contact.title')}
       </Heading>
 
       <div className={styles.grid}>
         <Reveal>
           <div className={styles.info}>
-            <h2 className={styles.sectionTitle}>Get in Touch</h2>
+            <h2 className={styles.sectionTitle}>{t('contact.getInTouch')}</h2>
             <ul className={styles.list}>
               {contactItems.map((item) => (
                 <li key={item.label} className={styles.listItem}>
@@ -293,10 +267,9 @@ function Contact() {
                 <span className={styles.successIcon} aria-hidden="true">
                   ✓
                 </span>
-                <p className={styles.successTitle}>Message Sent</p>
+                <p className={styles.successTitle}>{t('contact.messages.successTitle')}</p>
                 <p className={styles.successText}>
-                  Thank you for reaching out. I&apos;ll get back to you as soon
-                  as possible.
+                  {t('contact.messages.successText')}
                 </p>
                 <Button
                   variant="outline"
@@ -306,7 +279,7 @@ function Contact() {
                     setFormState(FORM_STATES.IDLE);
                   }}
                 >
-                  Send another message
+                  {t('contact.messages.sendAnother')}
                 </Button>
               </div>
             ) : (
@@ -327,7 +300,7 @@ function Contact() {
 
                 <div className={styles.field}>
                   <label htmlFor="name" className={styles.fieldLabel}>
-                    Name
+                    {t('contact.labels.name')}
                   </label>
                   <input
                     id="name"
@@ -343,16 +316,10 @@ function Contact() {
                     autoComplete="name"
                     disabled={inputDisabled}
                     aria-invalid={Boolean(fieldErrors.name)}
-                    aria-describedby={
-                      fieldErrors.name ? 'name-error' : undefined
-                    }
+                    aria-describedby={fieldErrors.name ? 'name-error' : undefined}
                   />
                   {fieldErrors.name && (
-                    <p
-                      id="name-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
+                    <p id="name-error" className={styles.fieldError} role="alert">
                       {fieldErrors.name}
                     </p>
                   )}
@@ -360,7 +327,7 @@ function Contact() {
 
                 <div className={styles.field}>
                   <label htmlFor="email" className={styles.fieldLabel}>
-                    Email
+                    {t('contact.labels.emailField')}
                   </label>
                   <input
                     id="email"
@@ -380,11 +347,7 @@ function Contact() {
                     }
                   />
                   {fieldErrors.email && (
-                    <p
-                      id="email-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
+                    <p id="email-error" className={styles.fieldError} role="alert">
                       {fieldErrors.email}
                     </p>
                   )}
@@ -392,7 +355,7 @@ function Contact() {
 
                 <div className={styles.field}>
                   <label htmlFor="subject" className={styles.fieldLabel}>
-                    Subject
+                    {t('contact.labels.subject')}
                   </label>
                   <input
                     id="subject"
@@ -413,11 +376,7 @@ function Contact() {
                     }
                   />
                   {fieldErrors.subject && (
-                    <p
-                      id="subject-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
+                    <p id="subject-error" className={styles.fieldError} role="alert">
                       {fieldErrors.subject}
                     </p>
                   )}
@@ -425,7 +384,7 @@ function Contact() {
 
                 <div className={styles.field}>
                   <label htmlFor="message" className={styles.fieldLabel}>
-                    Message
+                    {t('contact.labels.message')}
                   </label>
                   <textarea
                     id="message"
@@ -445,11 +404,7 @@ function Contact() {
                     }
                   />
                   {fieldErrors.message && (
-                    <p
-                      id="message-error"
-                      className={styles.fieldError}
-                      role="alert"
-                    >
+                    <p id="message-error" className={styles.fieldError} role="alert">
                       {fieldErrors.message}
                     </p>
                   )}
@@ -470,13 +425,10 @@ function Contact() {
                   disabled={isSubmitting}
                   aria-busy={isSubmitting}
                 >
-                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                  {isSubmitting ? t('contact.submit.sending') : t('contact.submit.send')}
                 </Button>
 
-                <div
-                  aria-live={hasError ? 'assertive' : 'off'}
-                  aria-atomic="true"
-                />
+                <div aria-live={hasError ? 'assertive' : 'off'} aria-atomic="true" />
               </form>
             )}
           </Card>
