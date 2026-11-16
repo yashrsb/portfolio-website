@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Section from '../../components/common/Section/Section';
@@ -9,81 +10,42 @@ import { useProfile } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import styles from './About.module.css';
 
-/**
- * Engineering principles — static copy describing approach,
- * not tied to any database field.
- */
 const ENGINEERING_PRINCIPLES = [
-  {
-    title: 'Performance',
-    text: "Don't accept slow systems as inevitable. Find where the bottleneck actually is before optimizing.",
-  },
-  {
-    title: 'Reliability',
-    text: 'Design for failure, observability, and recoverability — behavior should be predictable in production.',
-  },
-  {
-    title: 'Maintainability',
-    text: 'Code should still be understandable months after it was written, by me or by someone else.',
-  },
-  {
-    title: 'Simplicity',
-    text: 'Prefer the simplest architecture that genuinely meets the requirements — and no more.',
-  },
-  {
-    title: 'Observability',
-    text: 'A production system should tell you what is happening when something goes wrong.',
-  },
-  {
-    title: 'Trade-offs',
-    text: 'Every engineering decision has trade-offs. Choose deliberately based on the problem, constraints, and long-term impact.',
-  },
+  { key: 'performance', titleKey: 'about.principles.performance.title', textKey: 'about.principles.performance.text' },
+  { key: 'reliability', titleKey: 'about.principles.reliability.title', textKey: 'about.principles.reliability.text' },
+  { key: 'maintainability', titleKey: 'about.principles.maintainability.title', textKey: 'about.principles.maintainability.text' },
+  { key: 'simplicity', titleKey: 'about.principles.simplicity.title', textKey: 'about.principles.simplicity.text' },
+  { key: 'observability', titleKey: 'about.principles.observability.title', textKey: 'about.principles.observability.text' },
+  { key: 'tradeoffs', titleKey: 'about.principles.tradeoffs.title', textKey: 'about.principles.tradeoffs.text' },
 ];
 
-/**
- * Frontend-only mapping of strength names to richer descriptions.
- * Derived from existing profile.strengths array — no schema change needed.
- * Kept in the component to avoid hardcoding in the database.
- */
-const STRENGTH_DESCRIPTIONS = {
-  'Scalable Backend Development':
-    'Building maintainable backend services and APIs designed for scale.',
-  'Distributed Systems':
-    'Working with service-to-service communication, asynchronous workflows, and distributed architectures.',
-  'Microservices Architecture':
-    'Decomposing domains into independently deployable services with clear boundaries.',
-  'API Design (REST, GraphQL, gRPC)':
-    'Designing interfaces that are reliable, versionable, and developer-friendly.',
-  'Database Performance Optimization':
-    'Optimizing queries, indexes, data access patterns, and database-heavy workloads.',
-  'System Design':
-    'Thinking about scalability, failure modes, service boundaries, and long-term maintainability.',
+const STRENGTH_DESCRIPTION_KEYS = {
+  'Scalable Backend Development': 'about.strengthDescriptions.scalableBackend',
+  'Distributed Systems': 'about.strengthDescriptions.distributedSystems',
+  'Microservices Architecture': 'about.strengthDescriptions.microservices',
+  'API Design (REST, GraphQL, gRPC)': 'about.strengthDescriptions.apiDesign',
+  'Database Performance Optimization': 'about.strengthDescriptions.databaseOptimization',
+  'System Design': 'about.strengthDescriptions.systemDesign',
 };
 
-/**
- * About page — personal story, strengths, engineering principles,
- * interests, and career direction. All profile content comes from
- * the existing profile API.
- */
 function About() {
+  const { t, i18n } = useTranslation();
   const { profile, loading, error } = useProfile();
 
   useEffect(() => {
-    if (profile) {
-      setPageSEO({
-        title: 'About',
-        description: profile.tagline || '',
-        path: '/about',
-      });
-    }
-  }, [profile]);
+    setPageSEO({
+      title: t('about.title'),
+      description: profile?.tagline || '',
+      path: '/about',
+    });
+  }, [profile, t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading profile..." />;
+    return <LoadingState label={t('about.loadingProfile')} />;
   }
 
   if (error) {
-    return <ErrorState title="Failed to load profile" message={error} />;
+    return <ErrorState title={t('about.failedToLoadProfile')} message={error} />;
   }
 
   if (!profile) {
@@ -95,15 +57,10 @@ function About() {
 
   return (
     <Container size="lg">
-      {/* ---- Introduction ---- */}
       <Heading level={1} alignment="center" id="about-heading">
-        About
+        {t('about.title')}
       </Heading>
-      {tagline && (
-        <p className={styles.tagline}>
-          {tagline}
-        </p>
-      )}
+      {tagline && <p className={styles.tagline}>{tagline}</p>}
       <div className={styles.introBody}>
         {bioParagraphs.map((paragraph, index) => (
           <p key={index} className={styles.paragraph}>
@@ -112,11 +69,10 @@ function About() {
         ))}
       </div>
 
-      {/* ---- Core Strengths ---- */}
       <Reveal>
         <Section
-          title="Core Strengths"
-          subtitle="What I build and where I focus."
+          title={t('about.coreStrengths')}
+          subtitle={t('about.coreStrengthsSubtitle')}
         >
           <ul className={styles.strengthGrid}>
             {profile.strengths.map((strength, index) => (
@@ -124,15 +80,12 @@ function About() {
                 <Reveal delay={Math.min(index * 60, 300)}>
                   <div className={styles.strengthCard}>
                     <div className={styles.strengthContent}>
-                      <span
-                        className={styles.strengthMarker}
-                        aria-hidden="true"
-                      />
+                      <span className={styles.strengthMarker} aria-hidden="true" />
                       <span className={styles.strengthTitle}>{strength}</span>
                     </div>
-                    {STRENGTH_DESCRIPTIONS[strength] && (
+                    {STRENGTH_DESCRIPTION_KEYS[strength] && (
                       <p className={styles.strengthDescription}>
-                        {STRENGTH_DESCRIPTIONS[strength]}
+                        {t(STRENGTH_DESCRIPTION_KEYS[strength])}
                       </p>
                     )}
                   </div>
@@ -143,34 +96,29 @@ function About() {
         </Section>
       </Reveal>
 
-      {/* ---- Engineering Principles ---- */}
       <Reveal>
         <Section
-          title="How I Think About Engineering"
-          subtitle="The principles I try to apply to the work."
+          title={t('about.engineeringPrinciples')}
+          subtitle={t('about.engineeringPrinciplesSubtitle')}
           background="alt"
         >
           <ul className={styles.principleGrid}>
             {ENGINEERING_PRINCIPLES.map((principle) => (
-              <li key={principle.title} className={styles.principleCard}>
-                <h3 className={styles.principleTitle}>{principle.title}</h3>
-                <p className={styles.principleText}>{principle.text}</p>
+              <li key={principle.key} className={styles.principleCard}>
+                <h3 className={styles.principleTitle}>{t(principle.titleKey)}</h3>
+                <p className={styles.principleText}>{t(principle.textKey)}</p>
               </li>
             ))}
           </ul>
         </Section>
       </Reveal>
 
-      {/* ---- Interests ---- */}
       <Reveal>
         <Section
-          title="Beyond the Code"
-          subtitle="What keeps me curious outside day-to-day work."
+          title={t('about.beyondCode')}
+          subtitle={t('about.beyondCodeSubtitle')}
         >
-          <p className={styles.interestsIntro}>
-            I&apos;m naturally curious about how things work and tend to keep
-            learning even outside the immediate requirements of a project.
-          </p>
+          <p className={styles.interestsIntro}>{t('about.interestsIntro')}</p>
           <ul className={styles.chipList}>
             {profile.interests.map((interest) => (
               <li key={interest} className={styles.chip}>
@@ -181,11 +129,10 @@ function About() {
         </Section>
       </Reveal>
 
-      {/* ---- Career Goals ---- */}
       <Reveal>
         <Section
-          title="Where I'm Heading"
-          subtitle="The direction I'm growing toward."
+          title={t('about.whereHeading')}
+          subtitle={t('about.whereHeadingSubtitle')}
           background="alt"
         >
           <ol className={styles.goalList}>
@@ -198,10 +145,7 @@ function About() {
               </li>
             ))}
           </ol>
-          <p className={styles.closing}>
-            I&apos;m still learning, still experimenting, and still looking for
-            better ways to build software.
-          </p>
+          <p className={styles.closing}>{t('about.closing')}</p>
         </Section>
       </Reveal>
     </Container>

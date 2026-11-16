@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Section from '../../components/common/Section/Section';
@@ -11,6 +12,7 @@ import styles from './TagPosts.module.css';
 
 function TagPosts() {
   const { slug } = useParams();
+  const { t, i18n } = useTranslation();
   const [tag, setTag] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +33,7 @@ function TagPosts() {
           if (found) {
             setTag(found);
           } else {
-            setError('Tag not found');
+            setError(t('blog.tag.notFound'));
           }
           setLoading(false);
         }
@@ -41,7 +43,7 @@ function TagPosts() {
           if (err.name === 'AbortError' || err.name === 'CanceledError') {
             return;
           }
-          setError(err.message || 'Failed to load tag');
+          setError(err.message || t('blog.tag.failed'));
           setLoading(false);
         }
       });
@@ -50,21 +52,21 @@ function TagPosts() {
       cancelled = true;
       controller.abort();
     };
-  }, [slug]);
+  }, [slug, t]);
 
   useEffect(() => {
     if (tag) {
       setPageSEO({
         title: `#${tag.name} Articles`,
-        description: `Articles tagged with ${tag.name}.`,
+        description: t('blog.tag.articlesTagged', { name: tag.name }),
         path: `/blog/tag/${tag.slug}`,
         noindex: false,
       });
     }
-  }, [tag]);
+  }, [tag, t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading tag..." />;
+    return <LoadingState label={t('blog.loadingTag')} />;
   }
 
   if (error) {
@@ -75,7 +77,7 @@ function TagPosts() {
         </Heading>
         <Link to="/blog">
           <button type="button" className={styles.backButton}>
-            Back to Blog
+            {t('common.backToBlog')}
           </button>
         </Link>
       </Container>
@@ -84,14 +86,10 @@ function TagPosts() {
 
   return (
     <div className={styles.page}>
-      <Section
-        title={tag ? `#${tag.name}` : 'Tag'}
-        subtitle=""
-        background="alt"
-      >
+      <Section title={tag ? `#${tag.name}` : 'Tag'} subtitle="" background="alt">
         <Container>
           <Link to="/blog" className={styles.backLink}>
-            &larr; Back to Blog
+            {t('blog.backToBlog')}
           </Link>
         </Container>
       </Section>

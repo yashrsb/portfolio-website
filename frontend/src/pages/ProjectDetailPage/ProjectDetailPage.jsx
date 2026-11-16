@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Tag from '../../components/common/Tag/Tag';
@@ -19,23 +20,6 @@ import { setSEOMeta, removeJsonLd, setJsonLd } from '../../utils/seo';
 import { buildUrl } from '../../config/seo';
 import styles from './ProjectDetailPage.module.css';
 
-const STATUS_LABEL = {
-  live: 'Live',
-  wip: 'In Progress',
-  archived: 'Archived',
-};
-
-const STATUS_VARIANT = {
-  live: 'success',
-  wip: 'warning',
-  archived: 'danger',
-};
-
-/**
- * Renders a list of string items as a responsive card grid.
- * @param {string[]} items
- * @param {string} titleLabel - aria-label for the list.
- */
 function FeatureList({ items, titleLabel }) {
   if (!items.length) return null;
   return (
@@ -51,10 +35,6 @@ function FeatureList({ items, titleLabel }) {
   );
 }
 
-/**
- * Renders the tech stack as grouped tag clusters.
- * @param {object} techStack - { Frontend: [...], Backend: [...] }
- */
 function TechStackDisplay({ techStack }) {
   if (!techStack || typeof techStack !== 'object') return null;
   return (
@@ -79,11 +59,8 @@ function TechStackDisplay({ techStack }) {
   );
 }
 
-/**
- * Accessible screenshot gallery with a lightbox modal.
- * @param {{ src: string, alt: string, caption?: string }[]} screenshots
- */
 function ScreenshotGallery({ screenshots }) {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(null);
   const prefersReduced = usePrefersReducedMotion();
   const safeScreenshots = Array.isArray(screenshots) ? screenshots : [];
@@ -142,7 +119,9 @@ function ScreenshotGallery({ screenshots }) {
               type="button"
               className={styles.galleryButton}
               onClick={() => openLightbox(index)}
-              aria-label={`View ${screenshot.alt || screenshot.caption || 'screenshot'} enlarged`}
+              aria-label={t('projectDetail.viewScreenshot', {
+                alt: screenshot.alt || screenshot.caption || 'screenshot',
+              })}
             >
               <img
                 src={screenshot.src}
@@ -174,14 +153,14 @@ function ScreenshotGallery({ screenshots }) {
           className={styles.lightboxOverlay}
           role="dialog"
           aria-modal="true"
-          aria-label="Screenshot preview"
+          aria-label={t('projectDetail.screenshotPreview')}
           onClick={closeLightbox}
         >
           <button
             type="button"
             className={styles.lightboxClose}
             onClick={closeLightbox}
-            aria-label="Close preview"
+            aria-label={t('projectDetail.closePreview')}
           >
             &times;
           </button>
@@ -194,7 +173,7 @@ function ScreenshotGallery({ screenshots }) {
                 prev > 0 ? prev - 1 : safeScreenshots.length - 1,
               );
             }}
-            aria-label="Previous screenshot"
+            aria-label={t('projectDetail.previousScreenshot')}
           >
             ‹
           </button>
@@ -223,7 +202,7 @@ function ScreenshotGallery({ screenshots }) {
                 prev < safeScreenshots.length - 1 ? prev + 1 : 0,
               );
             }}
-            aria-label="Next screenshot"
+            aria-label={t('projectDetail.nextScreenshot')}
           >
             ›
           </button>
@@ -233,18 +212,13 @@ function ScreenshotGallery({ screenshots }) {
   );
 }
 
-/**
- * Reusable, data-driven project detail page.
- * Renders every project based on its slug; only sections with content
- * are displayed.
- */
 function ProjectDetailPage() {
   const { slug } = useParams();
+  const { t, i18n } = useTranslation();
   const { project, loading, error, notFound } = useProject(slug);
 
   useEffect(() => {
     if (project) {
-      // Track project view (non-blocking, fire-and-forget)
       trackProjectView(project.slug, window.location.pathname);
 
       const projectUrl = buildUrl(`/projects/${project.slug}`);
@@ -265,7 +239,6 @@ function ProjectDetailPage() {
         author: undefined,
       });
 
-      // SoftwareApplication JSON-LD for the project
       setJsonLd('project-ld', {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
@@ -282,7 +255,6 @@ function ProjectDetailPage() {
         }),
       });
 
-      // BreadcrumbList JSON-LD
       setJsonLd('breadcrumb-ld', {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -290,7 +262,7 @@ function ProjectDetailPage() {
           {
             '@type': 'ListItem',
             position: 1,
-            name: 'Projects',
+            name: t('nav.projects'),
             item: buildUrl('/projects'),
           },
           {
@@ -302,21 +274,19 @@ function ProjectDetailPage() {
         ],
       });
     } else {
-      // Reset SEO for 404 state
       removeJsonLd('project-ld');
       removeJsonLd('breadcrumb-ld');
       setSEOMeta({
-        title: 'Project Not Found',
-        description:
-          'The project you are looking for does not exist or has been removed.',
+        title: t('projectDetail.notFoundTitle'),
+        description: t('projectDetail.notFoundText'),
         canonicalUrl: buildUrl('/projects'),
         robots: 'noindex, nofollow',
       });
     }
-  }, [project, slug]);
+  }, [project, slug, t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading project details..." />;
+    return <LoadingState label={t('projectDetail.loading')} />;
   }
 
   if (notFound) {
@@ -326,15 +296,14 @@ function ProjectDetailPage() {
           <div className={styles.notFound}>
             <p className={styles.notFoundCode}>404</p>
             <Heading level={1} alignment="center">
-              Project Not Found
+              {t('projectDetail.notFoundTitle')}
             </Heading>
             <p className={styles.notFoundText}>
-              The project you are looking for does not exist or has been
-              removed.
+              {t('projectDetail.notFoundText')}
             </p>
             <Link to="/projects">
               <Button variant="primary" size="lg">
-                Back to Projects
+                {t('projectDetail.backToProjects')}
               </Button>
             </Link>
           </div>
@@ -344,10 +313,21 @@ function ProjectDetailPage() {
   }
 
   if (error) {
-    return <ErrorState title="Failed to load project" message={error} />;
+    return <ErrorState title={t('projectDetail.failed')} message={error} />;
   }
 
   if (!project) return null;
+
+  const statusLabelMap = {
+    live: t('projects.status.live'),
+    wip: t('projects.status.wip'),
+    archived: t('projects.status.archived'),
+  };
+  const statusVariant = {
+    live: 'success',
+    wip: 'warning',
+    archived: 'danger',
+  };
 
   const hasFeatures =
     Array.isArray(project.features) && project.features.length > 0;
@@ -365,7 +345,6 @@ function ProjectDetailPage() {
 
   return (
     <article className={styles.page}>
-      {/* Hero */}
       <Section className={styles.hero}>
         <Container size="lg">
           <Reveal>
@@ -377,18 +356,17 @@ function ProjectDetailPage() {
                 )}
                 <div className={styles.heroMeta}>
                   {project.status && (
-                    <Tag variant={STATUS_VARIANT[project.status]} size="sm">
-                      {STATUS_LABEL[project.status]}
+                    <Tag variant={statusVariant[project.status]} size="sm">
+                      {statusLabelMap[project.status] || project.status}
                     </Tag>
                   )}
                   {project.featured && (
                     <Tag variant="primary" size="sm">
-                      Featured
+                      {t('common.featured')}
                     </Tag>
                   )}
                 </div>
 
-                {/* CTAs */}
                 <div className={styles.ctas}>
                   {project.githubUrl && (
                     <a
@@ -405,7 +383,7 @@ function ProjectDetailPage() {
                       }
                     >
                       <Button variant="primary" size="md">
-                        View GitHub Repository
+                        {t('projectDetail.viewGithubRepo')}
                       </Button>
                     </a>
                   )}
@@ -423,13 +401,12 @@ function ProjectDetailPage() {
                       }
                     >
                       <Button variant="outline" size="md">
-                        Live Demo
+                        {t('common.liveDemo')}
                       </Button>
                     </a>
                   )}
                 </div>
 
-                {/* Tech stack preview */}
                 {hasTechStack && (
                   <div className={styles.techPreview}>
                     <TechStackDisplay techStack={project.techStack} />
@@ -457,11 +434,10 @@ function ProjectDetailPage() {
       </Section>
 
       <Container size="lg">
-        {/* Tags */}
         {hasTags && (
           <Reveal>
             <div className={styles.tagsSection}>
-              <h2 className={styles.sectionLabel}>Technologies</h2>
+              <h2 className={styles.sectionLabel}>{t('projectDetail.technologies')}</h2>
               <div className={styles.tags}>
                 {project.tags.map((tag) => (
                   <Tag key={tag} variant="default" size="md">
@@ -473,31 +449,31 @@ function ProjectDetailPage() {
           </Reveal>
         )}
 
-        {/* Overview */}
         <Reveal>
-          <Section title="Overview" subtitle={project.summary || undefined}>
+          <Section title={t('projectDetail.overview')} subtitle={project.summary || undefined}>
             <p className={styles.description}>{project.description}</p>
           </Section>
         </Reveal>
 
-        {/* Features */}
         {hasFeatures && (
           <Reveal>
-            <Section title="Key Features">
-              <FeatureList items={project.features} titleLabel="Key features" />
+            <Section title={t('projectDetail.keyFeatures')}>
+              <FeatureList
+                items={project.features}
+                titleLabel={t('projectDetail.keyFeatures')}
+              />
             </Section>
           </Reveal>
         )}
 
-        {/* Architecture */}
         {(hasArchitecture || hasArchitectureImage) && (
           <Reveal>
-            <Section title="Architecture">
+            <Section title={t('projectDetail.architecture')}>
               {hasArchitectureImage && (
                 <div className={styles.architectureImage}>
                   <img
                     src={project.architectureImage}
-                    alt={`Architecture diagram for ${project.title}`}
+                    alt={`${t('projectDetail.architecture')} - ${project.title}`}
                     loading="lazy"
                     decoding="async"
                   />
@@ -512,49 +488,44 @@ function ProjectDetailPage() {
           </Reveal>
         )}
 
-        {/* Screenshots */}
         {hasScreenshots && (
           <Reveal>
-            <Section title="Screenshots">
+            <Section title={t('projectDetail.screenshots')}>
               <ScreenshotGallery screenshots={project.screenshots} />
             </Section>
           </Reveal>
         )}
 
-        {/* Tech Stack */}
         {hasTechStack && (
           <Reveal>
-            <Section title="Tech Stack">
+            <Section title={t('projectDetail.techStack')}>
               <TechStackDisplay techStack={project.techStack} />
             </Section>
           </Reveal>
         )}
 
-        {/* Challenges */}
         {hasChallenges && (
           <Reveal>
-            <Section title="Challenges">
+            <Section title={t('projectDetail.challenges')}>
               <FeatureList
                 items={project.challenges}
-                titleLabel="Engineering challenges"
+                titleLabel={t('projectDetail.challenges')}
               />
             </Section>
           </Reveal>
         )}
 
-        {/* Lessons Learned */}
         {hasLessons && (
           <Reveal>
-            <Section title="Lessons Learned">
+            <Section title={t('projectDetail.lessonsLearned')}>
               <FeatureList
                 items={project.lessonsLearned}
-                titleLabel="Lessons learned"
+                titleLabel={t('projectDetail.lessonsLearned')}
               />
             </Section>
           </Reveal>
         )}
 
-        {/* GitHub CTA */}
         {(project.githubUrl || project.demoUrl) && (
           <Reveal>
             <div className={styles.footerCta}>
@@ -565,7 +536,7 @@ function ProjectDetailPage() {
                   rel="noopener noreferrer"
                 >
                   <Button variant="primary" size="md">
-                    View on GitHub
+                    {t('common.viewGithub')}
                   </Button>
                 </a>
               )}
@@ -576,7 +547,7 @@ function ProjectDetailPage() {
                   rel="noopener noreferrer"
                 >
                   <Button variant="outline" size="md">
-                    Live Demo
+                    {t('common.liveDemo')}
                   </Button>
                 </a>
               )}

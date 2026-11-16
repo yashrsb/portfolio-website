@@ -1,13 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './TableOfContents.module.css';
 
-/**
- * TableOfContents — generates a navigable TOC from an array of headings.
- *
- * @param {Object} props
- * @param {Array<{id: string, text: string, depth: number}>} props.headings
- */
 function TableOfContents({ headings }) {
+  const { t } = useTranslation();
   const [activeId, setActiveId] = useState('');
 
   const visibleHeadings = useMemo(
@@ -61,8 +57,8 @@ function TableOfContents({ headings }) {
   if (visibleHeadings.length === 0) return null;
 
   return (
-    <nav className={styles.toc} aria-label="Table of contents">
-      <h2 className={styles.tocTitle}>Contents</h2>
+    <nav className={styles.toc} aria-label={t('blog.post.contents')}>
+      <h2 className={styles.tocTitle}>{t('blog.post.contents')}</h2>
       <ul className={styles.tocList}>
         {visibleHeadings.map((heading) => (
           <li

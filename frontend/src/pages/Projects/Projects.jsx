@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import ProjectCard from '../../components/project/ProjectCard/ProjectCard';
@@ -9,38 +10,32 @@ import { useProjects } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import styles from './Projects.module.css';
 
-/**
- * Projects page — grid of project cards.
- * Each card fades in when it enters the viewport (via Reveal).
- */
 function Projects() {
+  const { t, i18n } = useTranslation();
   const { projects, loading, error } = useProjects();
 
   useEffect(() => {
     setPageSEO({
-      title: 'Projects',
-      description:
-        'A selection of applications and tools I have designed and built.',
+      title: t('projects.title'),
+      description: t('projects.seoDescription'),
       path: '/projects',
     });
-  }, []);
+  }, [t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading projects..." />;
+    return <LoadingState label={t('projects.loading')} />;
   }
 
   if (error) {
-    return <ErrorState title="Failed to load projects" message={error} />;
+    return <ErrorState title={t('projects.failed')} message={error} />;
   }
 
   return (
     <Container size="lg">
       <Heading level={1} alignment="center">
-        Projects
+        {t('projects.title')}
       </Heading>
-      <p className={styles.subtitle}>
-        A selection of applications and tools I have designed and built.
-      </p>
+      <p className={styles.subtitle}>{t('projects.subtitle')}</p>
 
       <div className={styles.grid}>
         {projects.map((project, index) => (

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Card from '../../components/common/Card/Card';
@@ -9,37 +10,34 @@ import { useEducation } from '../../hooks';
 import { setPageSEO } from '../../utils/seo';
 import styles from './Education.module.css';
 
-/**
- * Education page — degrees, certificates, and achievements.
- * Cards fade in when they enter the viewport.
- */
 function Education() {
+  const { t, i18n } = useTranslation();
   const { education, certificates, achievements, loading, error } =
     useEducation();
 
   useEffect(() => {
     setPageSEO({
-      title: 'Education',
-      description: 'Academic background, certifications, and achievements.',
+      title: t('education.title'),
+      description: t('education.seoDescription'),
       path: '/education',
     });
-  }, []);
+  }, [t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading education..." />;
+    return <LoadingState label={t('education.loading')} />;
   }
 
   if (error) {
-    return <ErrorState title="Failed to load education" message={error} />;
+    return <ErrorState title={t('education.failed')} message={error} />;
   }
 
   return (
     <Container size="md">
       <Heading level={1} alignment="center">
-        Education
+        {t('education.title')}
       </Heading>
 
-      <h2 className={styles.sectionTitle}>Degrees</h2>
+      <h2 className={styles.sectionTitle}>{t('education.degrees')}</h2>
       <div className={styles.stack}>
         {education.map((edu, index) => (
           <Reveal key={`${edu.institution}-${edu.degree}`} delay={index * 100}>
@@ -48,7 +46,7 @@ function Education() {
               <p className={styles.degree}>{edu.degree}</p>
               <p className={styles.meta}>
                 {edu.date}
-                {edu.gpa ? ` • GPA ${edu.gpa}` : ''}
+                {edu.gpa ? ` • ${t('education.gpa', { gpa: edu.gpa })}` : ''}
               </p>
               <ul className={styles.list}>
                 {edu.highlights.map((hl) => (
@@ -60,7 +58,7 @@ function Education() {
         ))}
       </div>
 
-      <h2 className={styles.sectionTitle}>Certificates</h2>
+      <h2 className={styles.sectionTitle}>{t('education.certificates')}</h2>
       <div className={styles.stack}>
         {certificates.map((cert, index) => (
           <Reveal key={cert.name} delay={index * 100}>
@@ -74,7 +72,7 @@ function Education() {
         ))}
       </div>
 
-      <h2 className={styles.sectionTitle}>Achievements</h2>
+      <h2 className={styles.sectionTitle}>{t('education.achievements')}</h2>
       <div className={styles.stack}>
         {achievements.map((ach, index) => (
           <Reveal key={ach.title} delay={index * 100}>

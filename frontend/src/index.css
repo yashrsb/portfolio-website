@@ -39,6 +39,11 @@ body {
     background-color var(--transition-base);
 }
 
+:lang(hi) {
+  font-family: var(--font-family-primary), 'Noto Sans Devanagari', 'Nirmala UI',
+    'Mangal', sans-serif;
+}
+
 a {
   color: inherit;
   text-decoration: none;

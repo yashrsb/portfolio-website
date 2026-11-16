@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Card from '../../common/Card/Card';
 import Tag from '../../common/Tag/Tag';
 import styles from './BlogPostCard.module.css';
 
-const formatDate = (dateStr) => {
+const formatDate = (dateStr, locale) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale === 'hi' ? 'hi-IN' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -14,6 +15,7 @@ const formatDate = (dateStr) => {
 };
 
 function BlogPostCard({ post }) {
+  const { t, i18n } = useTranslation();
   return (
     <Card className={styles.card} shadow="sm" hoverable>
       <Link to={`/blog/${post.slug}`} className={styles.cardLink}>
@@ -33,10 +35,10 @@ function BlogPostCard({ post }) {
           {post.featured && (
             <span
               className={styles.featuredBadge}
-              aria-label="Featured article"
-              title="Featured"
+              aria-label={t('blog.card.featured')}
+              title={t('blog.card.featured')}
             >
-              Featured
+              {t('blog.card.featured')}
             </span>
           )}
 
@@ -52,10 +54,10 @@ function BlogPostCard({ post }) {
 
           <div className={styles.cardMeta}>
             <span className={styles.cardDate}>
-              {formatDate(post.publishedAt)}
+              {formatDate(post.publishedAt, i18n.resolvedLanguage)}
             </span>
             <span className={styles.cardReadTime}>
-              {post.readingTime} min read
+              {t('blog.card.readTime', { minutes: post.readingTime })}
             </span>
           </div>
 

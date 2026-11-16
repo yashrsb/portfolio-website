@@ -1,28 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styles from './ProjectCard.module.css';
 import Tag from '../../common/Tag/Tag';
 import Button from '../../common/Button/Button';
 
-/**
- * @typedef {'live' | 'wip' | 'archived'} ProjectStatus
- */
-
-/**
- * Project card with image, title, description, tech tags, and action buttons.
- *
- * @param {Object} props
- * @param {string} props.title - Project title
- * @param {string} props.description - Short project description
- * @param {string[]} props.tags - Technology tags (e.g., ["React", "Node.js"])
- * @param {string} [props.slug] - Project slug for the case study link
- * @param {boolean} [props.featured=false] - Whether to show a featured badge
- * @param {ProjectStatus} [props.status] - Optional status badge
- * @param {string} [props.githubUrl] - GitHub repository URL
- * @param {string} [props.liveUrl] - Live demo URL
- * @param {string} [props.imageUrl] - Optional image URL (if omitted, shows placeholder)
- * @param {string} [props.imageAlt] - Alt text for the image
- * @param {string} [props.className] - Additional CSS classes
- */
 function ProjectCard({
   title,
   description,
@@ -36,11 +17,20 @@ function ProjectCard({
   imageAlt = '',
   className = '',
 }) {
+  const { t } = useTranslation();
   const classNames = [styles.card, className].filter(Boolean).join(' ');
+
+  const statusLabel =
+    status === 'live'
+      ? t('common.live')
+      : status === 'wip'
+        ? t('common.wip')
+        : status === 'archived'
+          ? t('common.archived')
+          : status;
 
   return (
     <article className={classNames}>
-      {/* Image / Placeholder */}
       <div className={styles.imageWrapper}>
         {imageUrl ? (
           <img
@@ -59,11 +49,10 @@ function ProjectCard({
           </div>
         )}
 
-        {/* Badges */}
         <div className={styles.badges}>
           {featured && (
             <Tag variant="primary" size="sm">
-              Featured
+              {t('common.featured')}
             </Tag>
           )}
           {status && (
@@ -77,17 +66,12 @@ function ProjectCard({
               }
               size="sm"
             >
-              {status === 'live'
-                ? 'Live'
-                : status === 'wip'
-                  ? 'WIP'
-                  : 'Archived'}
+              {statusLabel}
             </Tag>
           )}
         </div>
       </div>
 
-      {/* Content */}
       <div className={styles.body}>
         <h3 className={styles.title}>{title}</h3>
         <p className={styles.description}>{description}</p>
@@ -102,7 +86,6 @@ function ProjectCard({
           </div>
         )}
 
-        {/* Actions */}
         <div className={styles.actions}>
           {githubUrl && (
             <Button
@@ -113,7 +96,7 @@ function ProjectCard({
               }
               ariaLabel={`View ${title} source code on GitHub`}
             >
-              GitHub
+              {t('common.github')}
             </Button>
           )}
           {liveUrl && (
@@ -125,7 +108,7 @@ function ProjectCard({
               }
               ariaLabel={`View ${title} live demo`}
             >
-              Live Demo
+              {t('common.liveDemo')}
             </Button>
           )}
           {slug && (
@@ -134,7 +117,7 @@ function ProjectCard({
               className={styles.caseStudyLink}
               ariaLabel={`View ${title} case study`}
             >
-              View Case Study
+              {t('common.viewCaseStudy')}
             </Link>
           )}
         </div>

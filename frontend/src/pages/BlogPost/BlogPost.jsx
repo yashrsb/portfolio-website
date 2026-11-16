@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Container from '../../components/common/Container/Container';
 import Heading from '../../components/common/Heading/Heading';
 import Tag from '../../components/common/Tag/Tag';
@@ -19,12 +20,6 @@ import { buildUrl } from '../../config/seo';
 import { trackBlogPostView } from '../../services/analyticsService';
 import styles from './BlogPost.module.css';
 
-/**
- * Generates a table of contents from Markdown headings.
- * Uses the same Markdown renderer's output to extract h2/h3 headings.
- * @param {string} content - Markdown content.
- * @returns {Array<{id: string, text: string, depth: number}>}
- */
 const generateToc = (content) => {
   if (!content) return [];
 
@@ -58,40 +53,22 @@ const generateToc = (content) => {
   return headings;
 };
 
-/**
- * Formats a date into a readable string.
- * @param {string} dateStr
- * @returns {string}
- */
-const formatDate = (dateStr) => {
+const formatDate = (dateStr, locale) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale === 'hi' ? 'hi-IN' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 };
 
-/**
- * Generates the Twitter/X share URL.
- * @param {string} title
- * @returns {string}
- */
 const twitterShareUrl = (title) =>
   `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(window.location.href)}`;
 
-/**
- * Generates the LinkedIn share URL.
- * @returns {string}
- */
 const linkedinShareUrl = () =>
   `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`;
 
-/**
- * Copies the current URL to clipboard.
- * @returns {Promise<void>}
- */
 const copyLink = async () => {
   try {
     await navigator.clipboard.writeText(window.location.href);
@@ -101,12 +78,10 @@ const copyLink = async () => {
   }
 };
 
-/**
- * Blog detail page — renders a single published article.
- */
 function BlogPost() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { post, loading, error, notFound } = useBlogPost(slug);
   const [copied, setCopied] = useState(false);
 
@@ -117,18 +92,16 @@ function BlogPost() {
 
   useEffect(() => {
     if (!post) {
-      // Reset SEO for 404 state
       removeJsonLd('blog-posting-ld');
       setBlogSeoTags({
-        title: 'Article Not Found',
-        description: 'The article you are looking for does not exist.',
+        title: t('blog.post.notFoundTitle'),
+        description: t('blog.post.notFoundText'),
         canonicalUrl: buildUrl('/blog'),
         noindex: true,
       });
       return;
     }
 
-    // Track blog post view (non-blocking, fire-and-forget)
     trackBlogPostView(post.slug, window.location.pathname);
 
     const seoTitle = post.seoTitle || post.title;
@@ -176,7 +149,6 @@ function BlogPost() {
       });
     }
 
-    // Inject BreadcrumbList JSON-LD
     setJsonLd('breadcrumb-ld', {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -184,7 +156,7 @@ function BlogPost() {
         {
           '@type': 'ListItem',
           position: 1,
-          name: 'Blog',
+          name: t('nav.blog'),
           item: buildUrl('/blog'),
         },
         {
@@ -197,25 +169,22 @@ function BlogPost() {
     });
 
     return () => {
-      // Cleanup: remove all page-specific tags so they don't leak
       removeJsonLd('blog-posting-ld');
       removeJsonLd('breadcrumb-ld');
 
-      // Reset to blog listing page defaults
       setBlogSeoTags({
-        title: 'Blog',
-        description:
-          'Technical articles on software engineering, system design, and infrastructure.',
+        title: t('blog.title'),
+        description: t('blog.seoDescription'),
         canonicalUrl: buildUrl('/blog'),
         ogImage: '',
         ogType: 'website',
         noindex: false,
       });
     };
-  }, [post, slug]);
+  }, [post, slug, t, i18n.language]);
 
   if (loading) {
-    return <LoadingState label="Loading article..." />;
+    return <LoadingState label={t('blog.post.loading')} />;
   }
 
   if (notFound) {
@@ -225,15 +194,14 @@ function BlogPost() {
           <div className={styles.notFoundContent}>
             <p className={styles.notFoundCode}>404</p>
             <Heading level={1} alignment="center">
-              Article Not Found
+              {t('blog.post.notFoundTitle')}
             </Heading>
             <p className={styles.notFoundText}>
-              The article you are looking for does not exist or has been
-              removed.
+              {t('blog.post.notFoundText')}
             </p>
             <Link to="/blog">
               <Button variant="primary" size="md">
-                Back to Blog
+                {t('common.backToBlog')}
               </Button>
             </Link>
           </div>
@@ -248,16 +216,17 @@ function BlogPost() {
         <Reveal>
           <p className={styles.errorText}>{error}</p>
           <Button variant="outline" size="md" onClick={() => navigate('/')}>
-            Go Home
+            {t('blog.post.goHome')}
           </Button>
         </Reveal>
       </Container>
     );
   }
 
+  const locale = i18n.resolvedLanguage || i18n.language;
+
   return (
     <article className={styles.article}>
-      {/* Article header */}
       <header className={styles.header}>
         <Container>
           {post.category && (
@@ -274,15 +243,19 @@ function BlogPost() {
 
           <div className={styles.meta}>
             <span className={styles.metaItem}>
-              {formatDate(post.publishedAt)}
+              {formatDate(post.publishedAt, locale)}
             </span>
             <span className={styles.metaDivider}>•</span>
-            <span className={styles.metaItem}>{post.readingTime} min read</span>
+            <span className={styles.metaItem}>
+              {t('blog.post.readTime', { minutes: post.readingTime })}
+            </span>
             {post.updatedAt && post.updatedAt !== post.publishedAt && (
               <>
                 <span className={styles.metaDivider}>•</span>
                 <span className={styles.metaItem}>
-                  Updated {formatDate(post.updatedAt)}
+                  {t('blog.post.updated', {
+                    date: formatDate(post.updatedAt, locale),
+                  })}
                 </span>
               </>
             )}
@@ -303,7 +276,7 @@ function BlogPost() {
 
           {post.author && (
             <div className={styles.author}>
-              <span className={styles.authorLabel}>By</span>
+              <span className={styles.authorLabel}>{t('blog.post.by')}</span>
               <span className={styles.authorName}>{post.author}</span>
             </div>
           )}
@@ -320,14 +293,13 @@ function BlogPost() {
         </Container>
       </header>
 
-      {/* Article body with optional TOC */}
       <div className={styles.body}>
         <Container>
           <div className={styles.contentLayout}>
             {tocHeadings.length > 0 && (
               <aside
                 className={styles.tocContainer}
-                aria-label="Table of contents"
+                aria-label={t('blog.post.contents')}
               >
                 <TableOfContents headings={tocHeadings} />
               </aside>
@@ -337,13 +309,13 @@ function BlogPost() {
               <MarkdownRenderer content={post.content} prose />
 
               <div className={styles.shareSection}>
-                <p className={styles.shareTitle}>Share this article:</p>
+                <p className={styles.shareTitle}>{t('blog.post.share')}</p>
                 <div className={styles.shareButtons}>
                   <a
                     href={twitterShareUrl(post.title)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Share on X / Twitter"
+                    aria-label={t('blog.post.shareTwitter')}
                     className={styles.shareLink}
                   >
                     X / Twitter
@@ -352,7 +324,7 @@ function BlogPost() {
                     href={linkedinShareUrl(post.title)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Share on LinkedIn"
+                    aria-label={t('blog.post.shareLinkedin')}
                     className={styles.shareLink}
                   >
                     LinkedIn
@@ -360,14 +332,14 @@ function BlogPost() {
                   <button
                     type="button"
                     className={styles.shareLink}
-                    aria-label="Copy link"
+                    aria-label={t('blog.post.copyLink')}
                     onClick={async () => {
                       const ok = await copyLink();
                       setCopied(ok);
                       setTimeout(() => setCopied(false), 2000);
                     }}
                   >
-                    {copied ? 'Copied!' : 'Copy link'}
+                    {copied ? t('blog.post.copied') : t('blog.post.copyLink')}
                   </button>
                 </div>
               </div>
@@ -375,7 +347,7 @@ function BlogPost() {
               <div className={styles.backLink}>
                 <Link to="/blog">
                   <Button variant="outline" size="md">
-                    &larr; Back to Blog
+                    &larr; {t('common.backToBlog')}
                   </Button>
                 </Link>
               </div>
